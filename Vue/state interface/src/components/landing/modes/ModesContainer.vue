@@ -1,0 +1,38 @@
+<script setup lang="ts">
+import { useOperaStore } from '@stores/opera';
+import ModesCard from './ModesCard.vue';
+
+const operaStore = useOperaStore();
+</script>
+
+<template>
+  <div class="main-container">
+    <div class="title-container">
+      <span class="title">Modes</span>
+      <img src="/src/images/modes/settings.svg" alt="settings" />
+    </div>
+    <div class="cards-container">
+      <ModesCard v-for="(mode, index) in operaStore.modesState" :key="index" :image="mode.image" :title="mode.title" :active="mode.active" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.main-container {
+  margin: 0px 24px;
+}
+.title-container {
+  display: flex;
+  justify-content: space-between;
+}
+.title {
+  color: hsla(0, 0%, 0%, 0.6);
+  font-size: 24px;
+  font-weight: 900;
+}
+.cards-container {
+  display: flex;
+  margin: 15px 0px;
+  justify-content: space-between;
+}
+</style>
