@@ -12,8 +12,8 @@ describe('Stores > Opera', () => {
 
   test('Should initialize with default state', () => {
     expect(store.servicesState).toStrictEqual(SERVICES);
-    expect(store.modesState).toStrictEqual(MODES);
-    expect(store.menuItemsState).toStrictEqual(MENU_ITEMS);
-    expect(store.showWaterPage).toBe(false);
+    expect(store.modes).toStrictEqual(MODES);
+    expect(store.menuItems).toStrictEqual(MENU_ITEMS);
+    expect(store.showGoalsPage).toBe(false);
   });
 });

@@ -7,8 +7,15 @@ const operaStore = useOperaStore();
 </script>
 
 <template>
-  <div>
-    <Household v-if="!operaStore.showWaterPage" />
-    <Water v-if="operaStore.showWaterPage" />
+  <div class="main-content-container">
+    <Household v-if="!operaStore.showGoalsPage" />
+    <Water v-if="operaStore.showGoalsPage" />
   </div>
 </template>
+
+<style scoped>
+.main-content-container {
+  max-width: 1000px;
+  margin: auto;
+}
+</style>

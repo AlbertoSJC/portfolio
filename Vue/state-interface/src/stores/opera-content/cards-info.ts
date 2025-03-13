@@ -1,4 +1,4 @@
-import type { Service, ToggleItems } from "@components/types/types";
+import type { Service, ToggleItems } from '@components/types/types';
 
 export const SERVICES: Service[] = [
   {

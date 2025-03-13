@@ -24,6 +24,6 @@ describe('Menu', () => {
 
     expect(mainContainer).toBeDefined();
     expect(wrapper.findComponent(MenuItem).exists()).toBeTruthy();
-    expect(wrapper.findAll('.menu-item-main-container').length).toBe(store.menuItemsState.length);
+    expect(wrapper.findAll('.menu-item-main-container').length).toBe(store.menuItems.length);
   });
 });

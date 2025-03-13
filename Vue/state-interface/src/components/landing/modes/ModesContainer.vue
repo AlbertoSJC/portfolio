@@ -6,7 +6,7 @@ const operaStore = useOperaStore();
 </script>
 
 <template>
-  <div class="main-container">
+  <div class="modes-main-container">
     <div class="title-container">
       <span class="title">Modes</span>
       <img src="/src/images/modes/settings.svg" alt="settings" />
@@ -18,8 +18,10 @@ const operaStore = useOperaStore();
 </template>
 
 <style scoped>
-.main-container {
+.modes-main-container {
   margin: 0px 24px;
+  padding: 15px;
+  background-color: rgb(247, 249, 255);
 }
 .title-container {
   display: flex;

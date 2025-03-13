@@ -11,7 +11,7 @@ describe('Water', () => {
   beforeAll(() => {
     setActivePinia(createPinia());
     store = useOperaStore();
-    store.showWaterPage = true;
+    store.showGoalsPage = true;
     wrapper = mount(Water);
   });
 
@@ -25,11 +25,11 @@ describe('Water', () => {
     expect(wrapper.findComponent(Button).exists()).toBeTruthy();
   });
 
-  test('Should change to showWaterPage to off', async () => {
+  test('Should change to showGoalsPage to off', async () => {
     const toggleWater = wrapper.find('#water-system-button');
 
     await toggleWater.trigger('click');
 
-    expect(store.showWaterPage).toBe(false);
+    expect(store.showGoalsPage).toBe(false);
   });
 });

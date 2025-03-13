@@ -26,8 +26,8 @@ describe('Header', () => {
     expect(profileContainer).toBeDefined();
   });
 
-  test('Should not render menu container if showWaterPage is active', async () => {
-    store.toggleShowWaterPage();
+  test('Should not render menu container if showGoalsPage is active', async () => {
+    store.toggleShowGoalsPage();
 
     await flushPromises();
 

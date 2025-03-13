@@ -26,10 +26,10 @@ describe('Opera Container', () => {
     expect(wrapper.findComponent(Water).exists()).toBeFalsy();
   });
 
-  test('Should mount components once showWaterPage is true', async () => {
+  test('Should mount components once showGoalsPage is true', async () => {
     expect(wrapper).toBeDefined();
 
-    store.toggleShowWaterPage();
+    store.toggleShowGoalsPage();
 
     await flushPromises();
 

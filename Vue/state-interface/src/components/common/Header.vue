@@ -6,8 +6,8 @@ const operaStore = useOperaStore();
 
 <template>
   <div>
-    <div class="header-main-container" :class="{ reverse: operaStore.showWaterPage }">
-      <div v-show="!operaStore.showWaterPage" class="menu-container">
+    <div class="header-main-container" :class="{ reverse: operaStore.showGoalsPage }">
+      <div v-show="!operaStore.showGoalsPage" class="menu-container">
         <img alt="menu-icon" src="/src/images/header/menu-icon.svg" />
         <h1 class="header-title">Household</h1>
       </div>
@@ -22,6 +22,8 @@ const operaStore = useOperaStore();
 <style scoped>
 .header-main-container {
   width: 100%;
+  max-width: 1000px;
+  margin: auto;
   padding: 18px 0px 6px 0px;
   display: flex;
   align-items: center;

@@ -1,22 +1,35 @@
 <script setup lang="ts">
+import type { GoalsData } from '@components/types/types';
+import Goals from '@domain/Goals';
 import { useOperaStore } from '@stores/opera';
 import MainUsageTooltip from './MainUsageTooltip.vue';
+import { UsageTypes } from './types';
+
+const usageInformation: Record<UsageTypes, GoalsData> = {
+  [UsageTypes.Temperature]: { trees: 8, energy: 10, credits: 250 },
+  [UsageTypes.Water]: { trees: 12, energy: 25, credits: 90 },
+};
 
 const operaStore = useOperaStore();
+
+const toggleGoalPage = (usage: UsageTypes) => {
+  window.scrollTo(0, 0);
+  operaStore.toggleShowGoalsPage(new Goals(usageInformation[usage]));
+};
 </script>
 
 <template>
-  <div class="main-container">
+  <div class="usage-main-container">
     <span class="title">Current usage</span>
     <div class="container">
-      <div class="image-block-container">
+      <div id="toggle-temperature-page" class="image-block-container" @click="toggleGoalPage(UsageTypes.Temperature)">
         <div class="image-background-container">
           <img alt="temperature-icon" src="/src/images/usage/temperature.svg" />
         </div>
         <span class="font-bold">21°C</span>
       </div>
       <MainUsageTooltip />
-      <div id="toggle-water-page" class="image-block-container" @click="operaStore.toggleShowWaterPage">
+      <div id="toggle-water-page" class="image-block-container" @click="toggleGoalPage(UsageTypes.Water)">
         <div class="image-background-container">
           <img alt="water-icon" src="/src/images/usage/water.svg" />
         </div>
@@ -27,7 +40,7 @@ const operaStore = useOperaStore();
 </template>
 
 <style scoped>
-.main-container {
+.usage-main-container {
   background: url(/src/images/usage/background-shape.svg) no-repeat center bottom;
   background-size: 450px;
   padding: 5px 0px 80px;
@@ -37,7 +50,7 @@ const operaStore = useOperaStore();
 }
 
 @media (min-width: 450px) {
-  .main-container {
+  .usage-main-container {
     background: none;
     background-color: white;
   }

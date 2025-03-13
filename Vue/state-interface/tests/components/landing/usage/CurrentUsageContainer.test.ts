@@ -19,15 +19,15 @@ describe('CurrentUsageContainer', () => {
   });
 
   test('Should render internal components', () => {
-    expect(wrapper.find('.main-container').exists()).toBeTruthy();
+    expect(wrapper.find('.usage-main-container').exists()).toBeTruthy();
     expect(wrapper.findComponent(MainUsageTooltip).exists()).toBeTruthy();
   });
 
-  test('Should change to showWaterPage to off', async () => {
+  test('Should change to showGoalsPage to off', async () => {
     const toggleWater = wrapper.find('#toggle-water-page');
 
     await toggleWater.trigger('click');
 
-    expect(store.showWaterPage).toBe(true);
+    expect(store.showGoalsPage).toBe(true);
   });
 });

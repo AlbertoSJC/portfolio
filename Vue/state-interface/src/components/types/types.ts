@@ -10,3 +10,9 @@ export type ToggleItems = {
   title: string;
   active: boolean;
 };
+
+export interface GoalsData {
+  energy: number;
+  trees: number;
+  credits: number;
+}

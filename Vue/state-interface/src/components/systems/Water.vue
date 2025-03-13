@@ -14,7 +14,7 @@ const operaStore = useOperaStore();
         <h2 class="title">Goal reached!</h2>
         <span class="success-message">You managed to save <span class="font-bold">42 kWh</span> this month! That’s <span class="font-bold">3 trees</span> high-fiving you ✋</span>
       </div>
-      <Button id="water-system-button" @click="operaStore.toggleShowWaterPage">Continue</Button>
+      <Button id="water-system-button" @click="operaStore.toggleShowGoalsPage">Continue</Button>
     </div>
     <div class="points-obtained-container">
       <img alt="points-obtained" src="/src/images/water-system/coins.svg" />
@@ -63,6 +63,7 @@ const operaStore = useOperaStore();
   background-color: #ffecc7;
   padding: 20px;
   display: flex;
+  justify-content: center;
   gap: 25px;
 }
 .points-obtained-text-container {
