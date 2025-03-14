@@ -7,7 +7,7 @@ const operaStore = useOperaStore();
 <template>
   <div>
     <div class="header-main-container" :class="{ reverse: operaStore.showGoalsPage }">
-      <div v-show="!operaStore.showGoalsPage" class="menu-container">
+      <div v-if="!operaStore.showGoalsPage" class="menu-container">
         <img alt="menu-icon" src="/src/images/header/menu-icon.svg" />
         <h1 class="header-title">Household</h1>
       </div>

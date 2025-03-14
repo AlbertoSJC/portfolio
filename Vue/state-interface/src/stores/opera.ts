@@ -13,8 +13,16 @@ export const useOperaStore = defineStore('opera-store', () => {
   const showGoalsPage = ref<boolean>(false);
 
   const toggleShowGoalsPage = (newGoals?: Goals) => {
-    goals.value = newGoals || Goals.createEmpty();
+    if (newGoals) goals.value = newGoals;
     showGoalsPage.value = !showGoalsPage.value;
+  };
+
+  const $reset = () => {
+    servicesState.value = structuredClone(SERVICES);
+    modesState.value = structuredClone(MODES);
+    menuItems.value = structuredClone(MENU_ITEMS);
+    goals.value = Goals.createEmpty();
+    showGoalsPage.value = false;
   };
 
   return {
@@ -24,5 +32,6 @@ export const useOperaStore = defineStore('opera-store', () => {
     goals,
     showGoalsPage,
     toggleShowGoalsPage,
+    $reset,
   };
 });

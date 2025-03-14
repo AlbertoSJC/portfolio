@@ -10,8 +10,7 @@ describe('Header', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
-    wrapper = mount(Header, { attachTo: document.body });
+    wrapper = mount(Header);
   });
 
   test('Should mount', () => {
@@ -27,6 +26,8 @@ describe('Header', () => {
   });
 
   test('Should not render menu container if showGoalsPage is active', async () => {
+    store = useOperaStore();
+
     store.toggleShowGoalsPage();
 
     await flushPromises();
@@ -34,7 +35,7 @@ describe('Header', () => {
     const menuContainer = wrapper.find('.menu-container');
     const profileContainer = wrapper.find('.profile-container');
 
-    expect(menuContainer.isVisible()).toBe(false);
+    expect(menuContainer.exists()).toBe(false);
     expect(profileContainer).toBeDefined();
   });
 });

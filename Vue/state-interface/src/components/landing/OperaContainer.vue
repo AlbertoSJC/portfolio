@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Household from '@components/landing/Household.vue';
-import Water from '@components/systems/Water.vue';
+import GoalPopUp from '@components/systems/GoalPopUp.vue';
 import { useOperaStore } from '@stores/opera';
 
 const operaStore = useOperaStore();
@@ -9,7 +9,7 @@ const operaStore = useOperaStore();
 <template>
   <div class="main-content-container">
     <Household v-if="!operaStore.showGoalsPage" />
-    <Water v-if="operaStore.showGoalsPage" />
+    <GoalPopUp v-if="operaStore.showGoalsPage" />
   </div>
 </template>
 

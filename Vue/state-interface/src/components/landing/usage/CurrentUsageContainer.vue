@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import type { GoalsData } from '@components/types/types';
 import Goals from '@domain/Goals';
 import { useOperaStore } from '@stores/opera';
 import MainUsageTooltip from './MainUsageTooltip.vue';
-import { UsageTypes } from './types';
-
-const usageInformation: Record<UsageTypes, GoalsData> = {
-  [UsageTypes.Temperature]: { trees: 8, energy: 10, credits: 250 },
-  [UsageTypes.Water]: { trees: 12, energy: 25, credits: 90 },
-};
+import { usageInformation, UsageTypes } from './info';
 
 const operaStore = useOperaStore();
 

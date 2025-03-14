@@ -11,7 +11,7 @@ describe('ServicesContainer', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
+
     wrapper = mount(ServicesContainer);
   });
 
@@ -20,6 +20,7 @@ describe('ServicesContainer', () => {
   });
 
   test('Should render base state correctly', () => {
+    store = useOperaStore();
     const mainContainer = wrapper.find('.services-main-container');
 
     expect(mainContainer).toBeDefined();

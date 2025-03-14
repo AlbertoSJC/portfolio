@@ -11,7 +11,6 @@ describe('Menu', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
     wrapper = mount(Menu);
   });
 
@@ -20,6 +19,7 @@ describe('Menu', () => {
   });
 
   test('Should render base state correctly', () => {
+    store = useOperaStore();
     const mainContainer = wrapper.find('.main-container');
 
     expect(mainContainer).toBeDefined();

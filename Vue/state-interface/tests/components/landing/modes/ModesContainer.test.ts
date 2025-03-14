@@ -11,7 +11,6 @@ describe('ModesContainer', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
     wrapper = mount(ModesContainer);
   });
 
@@ -20,10 +19,11 @@ describe('ModesContainer', () => {
   });
 
   test('Should render base state correctly', () => {
+    store = useOperaStore();
     const mainContainer = wrapper.find('.main-container');
 
     expect(mainContainer).toBeDefined();
     expect(wrapper.findComponent(ModesCard).exists()).toBeTruthy();
-    expect(wrapper.findAll('.card-main-container').length).toBe(store.modes.length);
+    expect(wrapper.findAll('.card-main-container').length).toBe(store.modesState.length);
   });
 });

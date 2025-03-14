@@ -12,7 +12,17 @@ const operaStore = useOperaStore();
       <div class="text-content">
         <span class="summary">MONTHLY SUMMARY</span>
         <h2 class="title">Goal reached!</h2>
-        <span class="success-message">You managed to save <span class="font-bold">42 kWh</span> this month! That’s <span class="font-bold">3 trees</span> high-fiving you ✋</span>
+        <span class="success-message">
+          You managed to save
+          <span class="font-bold">
+            <span id="energy-saved">{{ operaStore.goals.energy }}</span> kWh
+          </span>
+          this month! That’s
+          <span class="font-bold">
+            <span id="trees-saved">{{ operaStore.goals.trees }}</span> trees
+          </span>
+          high-fiving you ✋
+        </span>
       </div>
       <Button id="water-system-button" @click="operaStore.toggleShowGoalsPage">Continue</Button>
     </div>
@@ -20,7 +30,9 @@ const operaStore = useOperaStore();
       <img alt="points-obtained" src="/src/images/water-system/coins.svg" />
       <div class="points-obtained-text-container">
         <span class="font-bold">Milestone reached</span>
-        <span class="font-bold font-large">+75 credits</span>
+        <span class="font-bold font-large">
+          + <span id="credits-obtained">{{ operaStore.goals.credits }}</span> credits
+        </span>
       </div>
     </div>
   </div>

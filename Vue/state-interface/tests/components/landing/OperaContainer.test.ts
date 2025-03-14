@@ -1,6 +1,6 @@
 import Household from '@components/landing/Household.vue';
 import OperaContainer from '@components/landing/OperaContainer.vue';
-import Water from '@components/systems/Water.vue';
+import GoalPopUp from '@components/systems/GoalPopUp.vue';
 import { useOperaStore } from '@stores/opera';
 import { VueWrapper, flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
@@ -12,7 +12,6 @@ describe('Opera Container', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
     wrapper = mount(OperaContainer);
   });
 
@@ -23,17 +22,18 @@ describe('Opera Container', () => {
   test('Should mount initial components', () => {
     expect(wrapper).toBeDefined();
     expect(wrapper.findComponent(Household).exists()).toBeTruthy();
-    expect(wrapper.findComponent(Water).exists()).toBeFalsy();
+    expect(wrapper.findComponent(GoalPopUp).exists()).toBeFalsy();
   });
 
   test('Should mount components once showGoalsPage is true', async () => {
     expect(wrapper).toBeDefined();
+    store = useOperaStore();
 
     store.toggleShowGoalsPage();
 
     await flushPromises();
 
     expect(wrapper.findComponent(Household).exists()).toBeFalsy();
-    expect(wrapper.findComponent(Water).exists()).toBeTruthy();
+    expect(wrapper.findComponent(GoalPopUp).exists()).toBeTruthy();
   });
 });

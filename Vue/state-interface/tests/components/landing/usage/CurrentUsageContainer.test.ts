@@ -10,7 +10,7 @@ describe('CurrentUsageContainer', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-    store = useOperaStore();
+
     wrapper = mount(CurrentUsageContainer);
   });
 
@@ -24,6 +24,7 @@ describe('CurrentUsageContainer', () => {
   });
 
   test('Should change to showGoalsPage to off', async () => {
+    store = useOperaStore();
     const toggleWater = wrapper.find('#toggle-water-page');
 
     await toggleWater.trigger('click');
