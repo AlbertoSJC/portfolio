@@ -3,7 +3,7 @@ import vue from '@astrojs/vue';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  output: 'hybrid',
+  output: 'server',
   base: '/',
   trailingSlash: 'ignore',
   adapter: node({

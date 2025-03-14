@@ -1,5 +1,3 @@
-
-
 {
   "name": "state-interface",
   "type": "module",
@@ -20,30 +18,29 @@
     "test:ui-coverage": "vitest --ui --coverage"
   },
   "dependencies": {
-    "@astrojs/node": "^8.2.0",
-    "@astrojs/vue": "^4.0.8",
-    "@fontsource/lato": "^5.0.20",
-    "@vitest/ui": "^0.34.7",
-    "@vueuse/core": "^10.5.0",
-    "pinia": "^2.1.6",
-    "vite": "^5.2.8",
-    "vite-tsconfig-paths": "^4.2.1",
-    "vitest": "^0.34.6",
-    "vue": "^3.4.19"
+    "@astrojs/node": "^9.1.3",
+    "@astrojs/vue": "^5.0.7",
+    "@fontsource/lato": "^5.2.5",
+    "@vitest/ui": "^3.0.8",
+    "@vueuse/core": "^13.0.0",
+    "pinia": "^3.0.1",
+    "vite": "^6.2.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.8",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.3.4",
-    "@vitest/coverage-v8": "^0.34.6",
-    "@vue/eslint-config-standard-with-typescript": "^8.0.0",
-    "@vue/eslint-config-typescript": "^12.0.0",
-    "@vue/test-utils": "^2.4.5",
-    "astro": "^4.6.0",
-    "eslint": "^8.48.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-vue": "^9.17.0",
-    "happy-dom": "^10.11.2",
-    "vue-eslint-parser": "^9.3.2"
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/coverage-v8": "^3.0.8",
+    "@vue/eslint-config-standard-with-typescript": "^9.1.0",
+    "@vue/eslint-config-typescript": "^14.5.0",
+    "@vue/test-utils": "^2.4.6",
+    "astro": "^5.5.2",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-vue": "^10.0.0",
+    "happy-dom": "^17.4.4",
+    "vue-eslint-parser": "^10.1.1"
   }
 }
