@@ -1,28 +1,29 @@
-import type { Service, ToggleItems } from '@components/types/types';
+import type { ToggleItems } from '@components/types/types';
+import type Service from '@domain/Service';
 
 export const SERVICES: Service[] = [
   {
     icon: '/src/images/services/living-room.svg',
     color: 'green',
-    temperature: '19°C',
+    temperature: 19,
     name: 'Living room',
   },
   {
     icon: '/src/images/services/kitchen.svg',
     color: 'blue',
-    temperature: '21°C',
+    temperature: 21,
     name: 'Kitchen',
   },
   {
     icon: '/src/images/services/bedroom.svg',
     color: 'orange',
-    temperature: '19°C',
+    temperature: 19,
     name: 'Bedroom',
   },
   {
     icon: '/src/images/services/bathroom.svg',
     color: 'violet',
-    temperature: '22°C',
+    temperature: 22,
     name: 'Bathroom',
   },
 ];

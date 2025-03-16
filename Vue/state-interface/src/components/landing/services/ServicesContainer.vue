@@ -9,7 +9,7 @@ const operaStore = useOperaStore();
   <div class="services-main-container">
     <div class="sides-container">
       <div class="scrollable-list">
-        <ServiceCard v-for="(service, index) in operaStore.servicesState" :name="service.name" :icon="service.icon" :color="service.color" :temperature="service.temperature" :key="index" />
+        <ServiceCard v-for="(service, index) in operaStore.services" :name="service.name" :icon="service.icon" :color="service.color" :temperature="service.temperature" :key="index" :index />
       </div>
     </div>
   </div>

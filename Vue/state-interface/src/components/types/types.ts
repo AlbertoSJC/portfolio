@@ -1,8 +1,12 @@
-export type Service = {
+export type ServiceInfo = {
   icon: string;
   color: string;
-  temperature: string;
+  temperature: number;
   name: string;
+};
+
+export type LoopIndex = {
+  index: number;
 };
 
 export type ToggleItems = {
@@ -15,4 +19,12 @@ export interface GoalsData {
   energy: number;
   trees: number;
   credits: number;
+}
+
+export interface InputProps {
+  label?: string;
+  placeholder?: string;
+  classes?: string;
+  type?: string;
+  id?: string;
 }

@@ -13,8 +13,8 @@ describe('Stores > Opera', () => {
 
   test('Should initialize with default state', () => {
     store = useOperaStore();
-    expect(store.servicesState).toStrictEqual(SERVICES);
-    expect(store.modesState).toStrictEqual(MODES);
+    expect(store.services).toStrictEqual(SERVICES);
+    expect(store.modes).toStrictEqual(MODES);
     expect(store.menuItems).toStrictEqual(MENU_ITEMS);
     expect(store.showGoalsPage).toBeFalsy();
     expect(store.goals).toStrictEqual(Goals.createEmpty());

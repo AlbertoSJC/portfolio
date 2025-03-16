@@ -12,7 +12,7 @@ const operaStore = useOperaStore();
       <img src="/src/images/modes/settings.svg" alt="settings" />
     </div>
     <div class="cards-container">
-      <ModesCard v-for="(mode, index) in operaStore.modesState" :key="index" :image="mode.image" :title="mode.title" :active="mode.active" />
+      <ModesCard v-for="(mode, index) in operaStore.modes" :key="index" :image="mode.image" :title="mode.title" :active="mode.active" />
     </div>
   </div>
 </template>

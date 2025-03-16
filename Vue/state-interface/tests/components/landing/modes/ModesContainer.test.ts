@@ -24,6 +24,6 @@ describe('ModesContainer', () => {
 
     expect(mainContainer).toBeDefined();
     expect(wrapper.findComponent(ModesCard).exists()).toBeTruthy();
-    expect(wrapper.findAll('.card-main-container').length).toBe(store.modesState.length);
+    expect(wrapper.findAll('.card-main-container').length).toBe(store.modes.length);
   });
 });

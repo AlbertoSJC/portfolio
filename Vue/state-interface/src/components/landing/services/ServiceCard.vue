@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import type { Service } from '@components/types/types';
+import NumberInput from '@components/inputs/NumberInput.vue';
+import type { LoopIndex, ServiceInfo } from '@components/types/types';
+import { useOperaStore } from '@stores/opera';
 
-const { color, icon, temperature, name } = defineProps<Service>();
+const operaStore = useOperaStore();
+
+const { color, icon, name, index } = defineProps<ServiceInfo & LoopIndex>();
 </script>
 
 <template>
@@ -11,7 +15,7 @@ const { color, icon, temperature, name } = defineProps<Service>();
         <img class="icon-element" :src="`${icon}`" :alt="`${name}-icon`" />
       </div>
     </div>
-    <span class="temperature-text">{{ temperature }}</span>
+    <NumberInput v-model="operaStore.services[index].temperature" classes="temperature-text" :id="`${name}-temperature-id`" placeholder="Num" />
     <span class="service-name">{{ name }}</span>
   </div>
 </template>
@@ -36,6 +40,10 @@ const { color, icon, temperature, name } = defineProps<Service>();
   justify-content: center;
   border-radius: 8px;
   padding: 8px;
+  transition: transform 0.3s;
+}
+.image-container:hover {
+  transform: scale(1.1);
 }
 .green.image-container {
   background: linear-gradient(#00ebc1, #00bdc9);

@@ -1,12 +1,13 @@
-import type { Service, ToggleItems } from '@components/types/types';
+import type { ToggleItems } from '@components/types/types';
 import Goals from '@domain/Goals';
+import Service from '@domain/Service';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { MENU_ITEMS, MODES, SERVICES } from './opera-content/cards-info';
 
 export const useOperaStore = defineStore('opera-store', () => {
-  const servicesState = ref<Service[]>(structuredClone(SERVICES));
-  const modesState = ref<ToggleItems[]>(structuredClone(MODES));
+  const services = ref<Service[]>(structuredClone(SERVICES).map((service) => new Service(service)));
+  const modes = ref<ToggleItems[]>(structuredClone(MODES));
   const menuItems = ref<ToggleItems[]>(structuredClone(MENU_ITEMS));
   const goals = ref<Goals>(Goals.createEmpty());
 
@@ -18,16 +19,16 @@ export const useOperaStore = defineStore('opera-store', () => {
   };
 
   const $reset = () => {
-    servicesState.value = structuredClone(SERVICES);
-    modesState.value = structuredClone(MODES);
+    services.value = structuredClone(SERVICES).map((service) => new Service(service));
+    modes.value = structuredClone(MODES);
     menuItems.value = structuredClone(MENU_ITEMS);
     goals.value = Goals.createEmpty();
     showGoalsPage.value = false;
   };
 
   return {
-    servicesState,
-    modesState,
+    services,
+    modes,
     menuItems,
     goals,
     showGoalsPage,

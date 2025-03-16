@@ -25,6 +25,6 @@ describe('ServicesContainer', () => {
 
     expect(mainContainer).toBeDefined();
     expect(wrapper.findComponent(ServiceCard).exists()).toBeTruthy();
-    expect(wrapper.findAll('.service-card-main-container').length).toBe(store.servicesState.length);
+    expect(wrapper.findAll('.service-card-main-container').length).toBe(store.services.length);
   });
 });
