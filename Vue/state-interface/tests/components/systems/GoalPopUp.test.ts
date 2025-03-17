@@ -3,7 +3,7 @@ import Button from '@components/common/Button.vue';
 import { VueWrapper, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { useOperaStore } from '@stores/opera';
-import { usageInformation, UsageTypes } from '@components/landing/usage/info';
+import { goalsUsageInformation, UsageTypes } from '@components/landing/usage/info';
 
 describe('GoalPopUp', () => {
   let wrapper: VueWrapper;
@@ -33,11 +33,11 @@ describe('GoalPopUp', () => {
   });
 
   test('Should update energy, trees and credits when model updates', async () => {
-    store.goals = usageInformation[UsageTypes.Temperature];
+    store.goals = goalsUsageInformation[UsageTypes.Temperature];
     await wrapper.vm.$nextTick();
-    expect(wrapper.find('#energy-saved').text()).toBe(`${usageInformation[UsageTypes.Temperature].energy}`);
-    expect(wrapper.find('#trees-saved').text()).toBe(`${usageInformation[UsageTypes.Temperature].trees}`);
-    expect(wrapper.find('#credits-obtained').text()).toBe(`${usageInformation[UsageTypes.Temperature].credits}`);
+    expect(wrapper.find('#energy-saved').text()).toBe(`${goalsUsageInformation[UsageTypes.Temperature].energy}`);
+    expect(wrapper.find('#trees-saved').text()).toBe(`${goalsUsageInformation[UsageTypes.Temperature].trees}`);
+    expect(wrapper.find('#credits-obtained').text()).toBe(`${goalsUsageInformation[UsageTypes.Temperature].credits}`);
   });
 
   test('Should change to showGoalsPage to off', async () => {

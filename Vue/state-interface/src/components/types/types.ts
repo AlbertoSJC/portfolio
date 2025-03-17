@@ -15,12 +15,6 @@ export type ToggleItems = {
   active: boolean;
 };
 
-export interface GoalsData {
-  energy: number;
-  trees: number;
-  credits: number;
-}
-
 export interface InputProps {
   label?: string;
   placeholder?: string;

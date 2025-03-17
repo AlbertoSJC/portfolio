@@ -1,5 +1,4 @@
-import Goals from '@domain/Goals';
-import type { GoalsData } from '@components/types/types';
+import Goals, { type GoalsData } from '@domain/Goals';
 
 describe('Domain > Goals', () => {
   let goals: Goals;

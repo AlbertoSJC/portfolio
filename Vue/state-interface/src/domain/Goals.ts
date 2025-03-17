@@ -1,4 +1,8 @@
-import type { GoalsData } from '@components/types/types';
+export interface GoalsData {
+  energy: number;
+  trees: number;
+  credits: number;
+}
 
 export default class Goals {
   energy: number;

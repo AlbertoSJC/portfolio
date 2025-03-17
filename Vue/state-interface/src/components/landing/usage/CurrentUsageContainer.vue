@@ -2,13 +2,13 @@
 import Goals from '@domain/Goals';
 import { useOperaStore } from '@stores/opera';
 import MainUsageTooltip from './MainUsageTooltip.vue';
-import { usageInformation, UsageTypes } from './info';
+import { goalsUsageInformation, UsageTypes } from './info';
 
 const operaStore = useOperaStore();
 
 const toggleGoalPage = (usage: UsageTypes) => {
   window.scrollTo(0, 0);
-  operaStore.toggleShowGoalsPage(new Goals(usageInformation[usage]));
+  operaStore.toggleShowGoalsPage(new Goals(goalsUsageInformation[usage]));
 };
 </script>
 

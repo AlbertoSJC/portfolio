@@ -1,4 +1,4 @@
-import { usageInformation, UsageTypes } from '@components/landing/usage/info';
+import { goalsUsageInformation, UsageTypes } from '@components/landing/usage/info';
 import Goals from '@domain/Goals';
 import Service from '@domain/Service';
 import { useOperaStore } from '@stores/opera';
@@ -29,7 +29,7 @@ describe('Stores > Opera', () => {
 
   test('Should update goals with given value when toggling goals', () => {
     store = useOperaStore();
-    store.toggleShowGoalsPage(usageInformation[UsageTypes.Water]);
-    expect(store.goals).toStrictEqual(usageInformation[UsageTypes.Water]);
+    store.toggleShowGoalsPage(goalsUsageInformation[UsageTypes.Water]);
+    expect(store.goals).toStrictEqual(goalsUsageInformation[UsageTypes.Water]);
   });
 });
