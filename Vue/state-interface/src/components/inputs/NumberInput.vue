@@ -7,7 +7,6 @@ const { label, classes, id, placeholder } = defineProps<InputProps>();
 const modelValue = defineModel<number>();
 
 const limitCharacters = () => {
-  console.log(modelValue.value);
   const convertToString = modelValue.value?.toString() as string;
   if (convertToString.length > 3) {
     modelValue.value = Number(modelValue.value?.toString().slice(0, 3));
