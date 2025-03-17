@@ -38,6 +38,7 @@ input::-webkit-inner-spin-button {
 }
 
 input[type='number'] {
+  appearance: auto;
   -moz-appearance: textfield;
 }
 input:focus,

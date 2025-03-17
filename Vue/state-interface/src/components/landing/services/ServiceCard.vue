@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NumberInput from '@components/inputs/NumberInput.vue';
+import NumberInput from '@components/common/inputs/NumberInput.vue';
 import type { LoopIndex, ServiceInfo } from '@components/types/types';
 import { useOperaStore } from '@stores/opera';
 
@@ -15,7 +15,7 @@ const { color, icon, name, index } = defineProps<ServiceInfo & LoopIndex>();
         <img class="icon-element" :src="`${icon}`" :alt="`${name}-icon`" />
       </div>
     </div>
-    <NumberInput v-model="operaStore.services[index].temperature" classes="temperature-text" :id="`${name}-temperature-id`" placeholder="Num" />
+    <NumberInput v-model="operaStore.services[index].temperature" classes="temperature-text" :id="`${name}-temperature`" placeholder="Num" />
     <span class="service-name">{{ name }}</span>
   </div>
 </template>
