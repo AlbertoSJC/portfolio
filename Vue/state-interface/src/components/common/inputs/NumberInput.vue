@@ -1,23 +1,25 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineProps, watch } from 'vue';
 import type { InputProps } from '@components/types/types';
 
 const { label, classes, id, placeholder } = defineProps<InputProps>();
 
 const modelValue = defineModel<number>();
 
-const limitCharacters = () => {
-  const convertToString = modelValue.value?.toString() as string;
-  if (convertToString.length > 3) {
-    modelValue.value = Number(modelValue.value?.toString().slice(0, 3));
+watch(modelValue, (newValue) => {
+  const newValueToString = newValue?.toString() as string;
+  if (newValueToString === '' || (newValue && newValue < 0)) {
+    modelValue.value = 0;
+  } else if (newValueToString.length >= 3) {
+    modelValue.value = Number(newValueToString.slice(0, 3));
   }
-};
+});
 </script>
 
 <template>
   <div>
     <label v-if="label" :for="id">{{ id }}</label>
-    <input v-model="modelValue" @input="limitCharacters" :class="classes" type="number" :id="id" :placeholder="placeholder" :max="3" :max-length="3" />
+    <input v-model="modelValue" :class="classes" type="number" :id="id" :placeholder="placeholder" :max="3" :max-length="3" />
   </div>
 </template>
 
