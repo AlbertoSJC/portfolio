@@ -31,4 +31,23 @@ describe('CurrentUsageContainer', () => {
 
     expect(store.showGoalsPage).toBe(true);
   });
+
+  test('Should show median default temperature correctly', async () => {
+    store = useOperaStore();
+    const medianTemperature = wrapper.find('#median-temperature');
+
+    expect(medianTemperature.text()).toBe('20.25°C');
+  });
+
+  test('Should show median default temperature correctly if a room temperature gets updated', async () => {
+    store = useOperaStore();
+
+    store.roomServices.services[0].temperature = 30;
+
+    await wrapper.vm.$nextTick();
+
+    const medianTemperature = wrapper.find('#median-temperature');
+
+    expect(medianTemperature.text()).toBe('23°C');
+  });
 });
