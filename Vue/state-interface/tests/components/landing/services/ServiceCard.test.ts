@@ -16,7 +16,7 @@ describe('ServiceCard', () => {
   beforeAll(() => {
     setActivePinia(createPinia());
     store = useOperaStore();
-    wrapper = mount(ServiceCard, { props: { icon, color, index, name, temperature: store.services[index].temperature } });
+    wrapper = mount(ServiceCard, { props: { icon, color, index, name, temperature: store.roomServices.services[index].temperature } });
   });
 
   test('Should mount', () => {
@@ -42,7 +42,7 @@ describe('ServiceCard', () => {
   test('Should render base state correctly with active true', async () => {
     await wrapper.find('input').setValue(8);
     console.log(wrapper.find('input').element.value);
-    expect(store.services[index].temperature).toBe(8);
+    expect(store.roomServices.services[index].temperature).toBe(8);
     expect(wrapper.find('input').element.value).toBe('8');
   });
 });

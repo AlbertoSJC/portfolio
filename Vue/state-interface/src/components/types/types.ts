@@ -1,10 +1,3 @@
-export type ServiceInfo = {
-  icon: string;
-  color: string;
-  temperature: number;
-  name: string;
-};
-
 export type LoopIndex = {
   index: number;
 };

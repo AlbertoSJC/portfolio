@@ -1,6 +1,6 @@
 import { goalsUsageInformation, UsageTypes } from '@components/landing/usage/info';
 import Goals from '@domain/Goals';
-import Service from '@domain/Service';
+import RoomService from '@domain/room-services/RoomService';
 import { useOperaStore } from '@stores/opera';
 import { MENU_ITEMS, MODES, SERVICES } from '@stores/opera-content/cards-info';
 import { createPinia, setActivePinia } from 'pinia';
@@ -14,7 +14,7 @@ describe('Stores > Opera', () => {
 
   test('Should initialize with default state', () => {
     store = useOperaStore();
-    expect(store.services).toStrictEqual(SERVICES.map((service) => new Service(service)));
+    expect(store.roomServices.services).toStrictEqual(SERVICES.map((service) => new RoomService(service)));
     expect(store.modes).toStrictEqual(MODES);
     expect(store.menuItems).toStrictEqual(MENU_ITEMS);
     expect(store.showGoalsPage).toBeFalsy();

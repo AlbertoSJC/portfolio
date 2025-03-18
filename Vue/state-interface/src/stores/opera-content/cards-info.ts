@@ -1,5 +1,5 @@
 import type { ToggleItems } from '@components/types/types';
-import type Service from '@domain/Service';
+import type Service from '@domain/room-services/RoomService';
 
 export const SERVICES: Service[] = [
   {

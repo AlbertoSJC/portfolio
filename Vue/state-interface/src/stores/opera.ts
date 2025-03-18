@@ -1,16 +1,16 @@
 import type { ToggleItems } from '@components/types/types';
 import Goals from '@domain/Goals';
-import Service from '@domain/Service';
+import AllServices from '@domain/room-services/AllServices';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { MENU_ITEMS, MODES, SERVICES } from './opera-content/cards-info';
 
 export const useOperaStore = defineStore('opera-store', () => {
-  const services = ref<Service[]>(structuredClone(SERVICES).map((service) => new Service(service)));
+  const defaultServices = new AllServices({ services: structuredClone(SERVICES) });
+  const roomServices = ref<AllServices>(defaultServices);
   const modes = ref<ToggleItems[]>(structuredClone(MODES));
   const menuItems = ref<ToggleItems[]>(structuredClone(MENU_ITEMS));
   const goals = ref<Goals>(Goals.createEmpty());
-
   const showGoalsPage = ref<boolean>(false);
 
   const toggleShowGoalsPage = (newGoals?: Goals) => {
@@ -19,7 +19,7 @@ export const useOperaStore = defineStore('opera-store', () => {
   };
 
   const $reset = () => {
-    services.value = structuredClone(SERVICES).map((service) => new Service(service));
+    roomServices.value = defaultServices;
     modes.value = structuredClone(MODES);
     menuItems.value = structuredClone(MENU_ITEMS);
     goals.value = Goals.createEmpty();
@@ -27,7 +27,7 @@ export const useOperaStore = defineStore('opera-store', () => {
   };
 
   return {
-    services,
+    roomServices,
     modes,
     menuItems,
     goals,

@@ -1,10 +1,9 @@
-import Service from '@domain/Service';
-import type { ServiceInfo } from '@components/types/types';
+import Service, { type RoomServiceInfo } from '@domain/room-services/RoomService';
 
-describe('Domain > Service', () => {
+describe('Domain > Room services > RoomServices', () => {
   let service: Service;
 
-  const serviceData: ServiceInfo = {
+  const serviceData: RoomServiceInfo = {
     icon: 'test-icon',
     color: 'test-color',
     temperature: 25,
