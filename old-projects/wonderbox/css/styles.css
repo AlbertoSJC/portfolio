@@ -1,0 +1,184 @@
+@font-face {
+    font-family: 'komika_axisregular';
+    src: url('../fonts/komikax_-webfont.woff') format('woff2'),
+         url('../fonts/komikax_-webfont.woff2') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+body {
+    background-image:url(../img/background-wonderbox.jpg);
+    background-position:left bottom;
+    background-attachment:fixed;
+    margin:0px;
+}
+.centrado {
+    width:1000px;
+    margin:auto;
+}
+header {
+    text-align:center;
+    margin: 0px 0px 0px 0px;
+}
+h1 {
+    color:#ff7d00;
+    text-align:center;
+    font-family:'komika_axisregular';
+    font-size:50px;
+    text-shadow: black -5px 5px 2px;
+    margin-top:20px;
+}
+h2 {
+    color:#ff7d00;
+    text-align:center;
+    font-family:'komika_axisregular';
+    font-size:30px;
+    text-shadow: black -5px 5px 2px;
+    margin:2px;
+}
+.text {
+    color:#ff7d00;
+    font-family:'Ubuntu', sans-serif;
+    text-align:justify;
+    font-size:22px;
+    font-weight:bold;
+    text-shadow: black -5px 5px 2px;
+    margin:2px 2px 2px 60px;
+    width:400px;
+    float:left;
+}
+.formulario {
+    float:left;
+    width:450px;
+    margin-left:auto;
+    padding:20px;
+}
+.texto {
+    display:block;
+    float:left;
+    width:120px;
+    font-size:18px;
+    font-weight:bold;
+    color:#ff7d00;
+    font-family: 'Ubuntu', sans-serif;
+    margin-left:20px;
+    margin-top:5px;
+    text-shadow: black -5px 5px 2px;
+}
+.campo {
+    width:300px;
+    border:#ff7d00 2px solid;
+    border-radius:5px;
+    margin-bottom:18px;
+    height:25px;
+    box-shadow: black -5px 5px 2px;
+}
+.boton {
+    margin:auto;
+    background-color:#ff7d00;
+    border:black 5px solid;
+    color:black;
+    font-size:15px;
+    height:50px;
+    width:150px;
+    font-family:'komika_axisregular';
+    margin-left:175px;
+    transition:transform;
+    transition-duration:0.3s;
+}
+.boton:hover {
+    animation-name:mybutton;
+    animation-duration:0.7s;
+    animation-fill-mode: forwards;
+    transform:scale(1.05);
+}
+@keyframes mybutton {
+    from {
+
+    }
+    to {
+        background-color:black;
+        color:#ff7d00;
+        border:#ff7d00 5px solid;
+    }
+}
+
+.clear {
+    clear:both;
+}
+
+#cofre {
+    margin-left:290px;
+}
+
+
+footer {
+    height:80px;
+    background-color:black;
+    margin:10px 0px 0px 0px;
+    padding:10px;
+}
+.textolegal {
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-size:10px;
+    color:white;
+    margin:0px;
+    padding-top:10px;
+}
+#participa {
+    font-family:'komika_axisregular';
+    color:#ff7d00;
+    font-size:15px;
+    float:right;
+}
+#participa p {
+    margin:3px;
+}
+.rrss {
+    float:right;
+}
+.rrss ul {
+    margin:0px;
+    padding:0px;
+    list-style-type: none;
+    width:180px;
+}
+.rrss ul li a {
+    display:block;
+    float:left;
+    width:50px;
+    text-align:center;
+    height:30px;
+    line-height:25px;
+    font-size:25px;
+    padding:5px;
+    color:white;
+    transition:transform;
+    transition-duration: 0.7s;
+}
+.rrss ul li a:hover {
+    transform:scale(1.15);
+    animation-name:myrrss;
+    animation-duration:0.5s;
+    animation-fill-mode: forwards;
+}
+@keyframes myrrss {
+    from {
+
+    }
+    to {
+        color:#ff7d00;
+    }
+}
+
+.textoprivacidad {
+    display:block;
+    float:left;
+    width:340px;
+    font-size:16px;
+    font-weight:bold;
+    color:#ff7d00;
+    font-family: 'Ubuntu', sans-serif;
+    margin:5px 10px 20px 20px;
+    text-shadow: black -5px 5px 2px;
+}
