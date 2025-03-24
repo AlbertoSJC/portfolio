@@ -26,7 +26,7 @@ export default class Usage {
 
     let humidity = factor * this.generalTemperature;
 
-    if (coolAir) humidity += 10;
+    if (coolAir) humidity += 20;
 
     return Math.max(0, Math.min(100, Math.round(humidity)));
   }

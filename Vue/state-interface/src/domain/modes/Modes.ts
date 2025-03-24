@@ -7,6 +7,10 @@ export default class Modes {
     this.modes = modesData.map((mode) => new Mode(mode));
   }
 
+  findIndexByTitle(title: string): number {
+    return this.modes.findIndex((mode) => mode.title === title);
+  }
+
   modesToggling(index: number) {
     this.modes[index].modeActivation();
   }

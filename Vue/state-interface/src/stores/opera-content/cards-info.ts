@@ -1,6 +1,12 @@
 import type { ToggleItems } from '@components/types/types';
 import type Service from '@domain/room-services/RoomService';
 
+export enum ModesLiterals {
+  CoolAir = 'Cool Air',
+  Eco = 'Eco',
+  Silent = 'Silent',
+}
+
 export const SERVICES: Service[] = [
   {
     icon: '/src/images/services/living-room.svg',
@@ -31,17 +37,17 @@ export const SERVICES: Service[] = [
 export const MODES: ToggleItems[] = [
   {
     image: '/src/images/modes/cool-air.svg',
-    title: 'Cool Air',
-    active: true,
+    title: ModesLiterals.CoolAir,
+    active: false,
   },
   {
     image: '/src/images/modes/eco.svg',
-    title: 'Eco',
+    title: ModesLiterals.Eco,
     active: false,
   },
   {
     image: '/src/images/modes/silent.svg',
-    title: 'Silent',
+    title: ModesLiterals.Silent,
     active: false,
   },
 ];
