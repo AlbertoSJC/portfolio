@@ -8,12 +8,9 @@ export function useCalculateOutputsWatcher(roomServices: AllServices, currentUsa
   watch(
     [roomServices, currentModes],
     () => {
-      const isCoolAirActive = currentModes && currentModes.modes ? currentModes.modes[currentModes.findIndexByTitle(ModesLiterals.CoolAir)].active : false;
       currentUsage.generalTemperature = roomServices.calculateMedianTemperature();
-      currentUsage.updateHumidity(isCoolAirActive);
+      currentUsage.updateHumidity(currentModes.modes[currentModes.findIndexByTitle(ModesLiterals.CoolAir)].active);
     },
-    {
-      deep: true,
-    }
+    { deep: true }
   );
 }

@@ -26,4 +26,10 @@ export default class AllServices {
       }, 0) / this.services.length;
     return Math.round(finalTemperature);
   }
+
+  updateTemperatureWithCoolAir(coolAir?: boolean): void {
+    this.services.forEach((service) => {
+      service.setTemperatureWithCoolAir(coolAir);
+    });
+  }
 }

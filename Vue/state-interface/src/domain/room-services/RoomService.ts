@@ -18,6 +18,11 @@ export default class RoomService {
     this.name = service.name;
   }
 
+  setTemperatureWithCoolAir(coolAir?: boolean) {
+    this.temperature = coolAir ? this.temperature - 7 : this.temperature + 7;
+    Math.round(this.temperature);
+  }
+
   public static createEmpty(): RoomService {
     return new RoomService({
       icon: '',

@@ -1,5 +1,5 @@
 import type { ToggleItems } from '@components/types/types';
-import type Service from '@domain/room-services/RoomService';
+import type { RoomServiceInfo } from '@domain/room-services/RoomService';
 
 export enum ModesLiterals {
   CoolAir = 'Cool Air',
@@ -7,7 +7,7 @@ export enum ModesLiterals {
   Silent = 'Silent',
 }
 
-export const SERVICES: Service[] = [
+export const SERVICES: RoomServiceInfo[] = [
   {
     icon: '/src/images/services/living-room.svg',
     color: 'green',

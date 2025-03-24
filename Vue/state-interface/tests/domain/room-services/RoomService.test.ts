@@ -40,4 +40,12 @@ describe('Domain > Room services > RoomServices', () => {
     expect(service.temperature).toBe(30);
     expect(service.name).toBe('new-service');
   });
+
+  test('Should set temperature with cool air', () => {
+    service.setTemperatureWithCoolAir(true);
+    expect(service.temperature).toBe(18);
+
+    service.setTemperatureWithCoolAir(false);
+    expect(service.temperature).toBe(25);
+  });
 });

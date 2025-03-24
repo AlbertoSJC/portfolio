@@ -1,11 +1,11 @@
 import AllServices from '@domain/room-services/AllServices';
-import RoomService from '@domain/room-services/RoomService';
+import RoomService, { type RoomServiceInfo } from '@domain/room-services/RoomService';
 import type { AllServicesInfo } from '@domain/room-services/AllServices';
 
 describe('Domain > Room services > AllServices', () => {
   let allServices: AllServices;
 
-  const roomServiceData = {
+  const roomServiceData: RoomServiceInfo = {
     icon: 'test-icon',
     color: 'test-color',
     temperature: 25,
@@ -13,7 +13,7 @@ describe('Domain > Room services > AllServices', () => {
   };
 
   const allServicesData: AllServicesInfo = {
-    services: [roomServiceData],
+    services: [new RoomService(roomServiceData)],
   };
 
   beforeEach(() => {
@@ -64,5 +64,15 @@ describe('Domain > Room services > AllServices', () => {
     expect(allServices.services[0].color).toBe('new-color');
     expect(allServices.services[0].temperature).toBe(30);
     expect(allServices.services[0].name).toBe('new-service');
+  });
+
+  test('Should update temperatures with cool air', () => {
+    const initialTemperature = allServices.services[0].temperature;
+
+    allServices.updateTemperatureWithCoolAir(true);
+    expect(allServices.services[0].temperature).toBe(initialTemperature - 7);
+
+    allServices.updateTemperatureWithCoolAir(false);
+    expect(allServices.services[0].temperature).toBe(initialTemperature);
   });
 });
