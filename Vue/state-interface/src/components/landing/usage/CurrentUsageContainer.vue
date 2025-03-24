@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import Goals from '@domain/Goals';
-import AllServices from '@domain/room-services/AllServices';
 import { useOperaStore } from '@stores/opera';
-import { computed, watch } from 'vue';
 import MainUsageTooltip from './MainUsageTooltip.vue';
 import { goalsUsageInformation, UsageTypes } from './info';
 
@@ -29,7 +27,7 @@ const toggleGoalPage = (usage: UsageTypes) => {
         <div class="image-background-container">
           <img alt="water-icon" src="/src/images/usage/water.svg" />
         </div>
-        <span class="font-bold">58%</span>
+        <span class="font-bold">{{ operaStore.currentUsage.humidity }}%</span>
       </div>
     </div>
   </div>

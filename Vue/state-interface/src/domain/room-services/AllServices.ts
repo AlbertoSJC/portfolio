@@ -17,13 +17,13 @@ export default class AllServices {
     });
   }
 
-  public static calculateMedianTemperature(data: AllServices): number {
+  calculateMedianTemperature(): number {
     const finalTemperature =
-      data.services.reduce((total, service) => {
+      this.services.reduce((total, service) => {
         let finalTemperature = total;
         if (service.temperature) finalTemperature = total + service.temperature;
         return finalTemperature;
-      }, 0) / data.services.length;
+      }, 0) / this.services.length;
     return Math.round(finalTemperature);
   }
 }

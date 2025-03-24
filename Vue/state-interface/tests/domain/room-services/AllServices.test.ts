@@ -49,7 +49,7 @@ describe('Domain > Room services > AllServices', () => {
 
     allServices.services.push(new RoomService(additionalServiceData));
 
-    const medianTemperature = AllServices.calculateMedianTemperature(allServices);
+    const medianTemperature = allServices.calculateMedianTemperature();
 
     expect(medianTemperature).toBe(finalTemperature);
   });
