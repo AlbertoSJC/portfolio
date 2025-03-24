@@ -1,8 +1,8 @@
 import CurrentUsageContainer from '@components/landing/usage/CurrentUsageContainer.vue';
 import MainUsageTooltip from '@components/landing/usage/MainUsageTooltip.vue';
-import { VueWrapper, mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
 import { useOperaStore } from '@stores/opera';
+import { VueWrapper, flushPromises, mount } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
 
 describe('CurrentUsageContainer', () => {
   let wrapper: VueWrapper;
@@ -10,7 +10,7 @@ describe('CurrentUsageContainer', () => {
 
   beforeAll(() => {
     setActivePinia(createPinia());
-
+    store = useOperaStore();
     wrapper = mount(CurrentUsageContainer);
   });
 
@@ -24,7 +24,6 @@ describe('CurrentUsageContainer', () => {
   });
 
   test('Should change to showGoalsPage to off', async () => {
-    store = useOperaStore();
     const toggleWater = wrapper.find('#toggle-water-page');
 
     await toggleWater.trigger('click');
@@ -33,15 +32,12 @@ describe('CurrentUsageContainer', () => {
   });
 
   test('Should show median default temperature correctly', async () => {
-    store = useOperaStore();
     const medianTemperature = wrapper.find('#median-temperature');
 
-    expect(medianTemperature.text()).toBe('20.25°C');
+    expect(medianTemperature.text()).toBe('20°C');
   });
 
   test('Should show median default temperature correctly if a room temperature gets updated', async () => {
-    store = useOperaStore();
-
     store.roomServices.services[0].temperature = 30;
 
     await wrapper.vm.$nextTick();

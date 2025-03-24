@@ -24,6 +24,6 @@ export default class AllServices {
         if (service.temperature) finalTemperature = total + service.temperature;
         return finalTemperature;
       }, 0) / data.services.length;
-    return finalTemperature;
+    return Math.round(finalTemperature);
   }
 }

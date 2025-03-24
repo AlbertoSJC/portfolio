@@ -1,3 +1,4 @@
+import AllServices from '@domain/room-services/AllServices';
 import Costs from './Costs';
 
 export interface UsageData {

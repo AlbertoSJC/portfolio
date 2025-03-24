@@ -2,7 +2,7 @@
 import Goals from '@domain/Goals';
 import AllServices from '@domain/room-services/AllServices';
 import { useOperaStore } from '@stores/opera';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import MainUsageTooltip from './MainUsageTooltip.vue';
 import { goalsUsageInformation, UsageTypes } from './info';
 
@@ -12,10 +12,6 @@ const toggleGoalPage = (usage: UsageTypes) => {
   window.scrollTo(0, 0);
   operaStore.toggleShowGoalsPage(new Goals(goalsUsageInformation[usage]));
 };
-
-const medianTemperature = computed(() => {
-  return AllServices.calculateMedianTemperature(operaStore.roomServices);
-});
 </script>
 
 <template>
@@ -26,7 +22,7 @@ const medianTemperature = computed(() => {
         <div class="image-background-container">
           <img alt="temperature-icon" src="/src/images/usage/temperature.svg" />
         </div>
-        <span class="font-bold" id="median-temperature">{{ medianTemperature }}°C</span>
+        <span class="font-bold" id="median-temperature">{{ operaStore.currentUsage.generalTemperature }}°C</span>
       </div>
       <MainUsageTooltip />
       <div id="toggle-water-page" class="image-block-container" @click="toggleGoalPage(UsageTypes.Water)">
