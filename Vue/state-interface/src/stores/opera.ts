@@ -1,17 +1,18 @@
 import type { ToggleItems } from '@components/types/types';
 import Goals from '@domain/Goals';
+import type Mode from '@domain/modes/Mode';
+import Modes from '@domain/modes/Modes';
 import AllServices from '@domain/room-services/AllServices';
+import Costs from '@domain/usage/Costs';
 import Usage from '@domain/usage/Usage';
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { MENU_ITEMS, MODES, SERVICES } from './opera-content/cards-info';
 import { useRoomServicesWatcher } from './watchers/useRoomServicesWatcher';
-import Costs from '@domain/usage/Costs';
 
 export const useOperaStore = defineStore('opera-store', () => {
-  const defaultServices = new AllServices({ services: structuredClone(SERVICES) });
-  const roomServices = ref<AllServices>(defaultServices);
-  const modes = ref<ToggleItems[]>(structuredClone(MODES));
+  const roomServices = ref<AllServices>(new AllServices({ services: structuredClone(SERVICES) }));
+  const allModes = ref<Modes>(new Modes(structuredClone(MODES) as Mode[]));
   const currentUsage = ref<Usage>(new Usage({ generalTemperature: roomServices.value.calculateMedianTemperature(), humidity: 19, costs: Costs.createEmpty() }));
   const menuItems = ref<ToggleItems[]>(structuredClone(MENU_ITEMS));
   const goals = ref<Goals>(Goals.createEmpty());
@@ -23,8 +24,9 @@ export const useOperaStore = defineStore('opera-store', () => {
   };
 
   const $reset = () => {
-    roomServices.value = defaultServices;
-    modes.value = structuredClone(MODES);
+    roomServices.value = new AllServices({ services: structuredClone(SERVICES) });
+    currentUsage.value = new Usage({ generalTemperature: roomServices.value.calculateMedianTemperature(), humidity: 19, costs: Costs.createEmpty() });
+    allModes.value = new Modes(structuredClone(MODES) as Mode[]);
     menuItems.value = structuredClone(MENU_ITEMS);
     goals.value = Goals.createEmpty();
     showGoalsPage.value = false;
@@ -33,10 +35,9 @@ export const useOperaStore = defineStore('opera-store', () => {
   useRoomServicesWatcher(roomServices.value, currentUsage.value);
 
   return {
-    defaultServices,
     roomServices,
     currentUsage,
-    modes,
+    allModes,
     menuItems,
     goals,
     showGoalsPage,

@@ -24,6 +24,7 @@ describe('ModesCard', () => {
     const activeText = wrapper.find('.mode-state');
     const imageElement = wrapper.find('.image-element');
     const imageBackgroundContainer = wrapper.find('.image-background-container');
+    const cardMainContainer = wrapper.find('.card-main-container');
 
     expect(titleElement).toBeDefined();
     expect(titleElement.text()).toBe(title);
@@ -32,7 +33,7 @@ describe('ModesCard', () => {
     expect(imageElement).toBeDefined();
     expect(imageElement.attributes('src')).toBe(image);
     expect(imageBackgroundContainer).toBeDefined();
-    expect(imageBackgroundContainer.classes()).toContain('active');
+    expect(cardMainContainer.classes()).toContain('active');
   });
 
   test('Should render state with active off', async () => {

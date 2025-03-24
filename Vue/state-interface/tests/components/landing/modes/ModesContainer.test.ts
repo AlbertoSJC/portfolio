@@ -24,6 +24,21 @@ describe('ModesContainer', () => {
 
     expect(mainContainer).toBeDefined();
     expect(wrapper.findComponent(ModesCard).exists()).toBeTruthy();
-    expect(wrapper.findAll('.card-main-container').length).toBe(store.modes.length);
+    expect(wrapper.findAll('.card-main-container').length).toBe(store.allModes.modes.length);
+  });
+
+  test('Should toggle mode activation on click', async () => {
+    const modeIndex = 1;
+    const modeCard = wrapper.findAllComponents(ModesCard).at(modeIndex) as VueWrapper;
+
+    expect(store.allModes.modes[modeIndex].active).toBe(false);
+
+    await modeCard.trigger('click');
+
+    expect(store.allModes.modes[modeIndex].active).toBe(true);
+
+    await modeCard.trigger('click');
+
+    expect(store.allModes.modes[modeIndex].active).toBe(false);
   });
 });

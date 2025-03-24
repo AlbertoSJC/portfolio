@@ -1,5 +1,6 @@
 import { goalsUsageInformation, UsageTypes } from '@components/landing/usage/info';
 import Goals from '@domain/Goals';
+import Mode from '@domain/modes/Mode';
 import RoomService from '@domain/room-services/RoomService';
 import { useOperaStore } from '@stores/opera';
 import { MENU_ITEMS, MODES, SERVICES } from '@stores/opera-content/cards-info';
@@ -15,7 +16,8 @@ describe('Stores > Opera', () => {
   test('Should initialize with default state', () => {
     store = useOperaStore();
     expect(store.roomServices.services).toStrictEqual(SERVICES.map((service) => new RoomService(service)));
-    expect(store.modes).toStrictEqual(MODES);
+    expect(store.allModes.modes).toStrictEqual(MODES.map((mode) => new Mode(mode)));
+    expect(store.currentUsage.generalTemperature).toBe(store.roomServices.calculateMedianTemperature());
     expect(store.menuItems).toStrictEqual(MENU_ITEMS);
     expect(store.showGoalsPage).toBeFalsy();
     expect(store.goals).toStrictEqual(Goals.createEmpty());
@@ -31,5 +33,23 @@ describe('Stores > Opera', () => {
     store = useOperaStore();
     store.toggleShowGoalsPage(goalsUsageInformation[UsageTypes.Water]);
     expect(store.goals).toStrictEqual(goalsUsageInformation[UsageTypes.Water]);
+  });
+
+  test('Should reset to default state', () => {
+    store.roomServices.services[0].temperature = 30;
+    store.currentUsage.generalTemperature = 30;
+    store.allModes.modes[0].active = false;
+    store.menuItems[0].active = false;
+    store.goals = new Goals({ energy: 200, trees: 100, credits: 400 });
+    store.showGoalsPage = true;
+
+    store.$reset();
+
+    expect(store.roomServices.services).toStrictEqual(SERVICES.map((service) => new RoomService(service)));
+    expect(store.allModes.modes).toStrictEqual(MODES.map((mode) => new Mode(mode)));
+    expect(store.currentUsage.generalTemperature).toBe(store.roomServices.calculateMedianTemperature());
+    expect(store.menuItems).toStrictEqual(MENU_ITEMS);
+    expect(store.showGoalsPage).toBeFalsy();
+    expect(store.goals).toStrictEqual(Goals.createEmpty());
   });
 });
