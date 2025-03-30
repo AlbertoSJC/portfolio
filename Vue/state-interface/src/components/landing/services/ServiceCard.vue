@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import NumberInput from '@components/common/inputs/NumberInput.vue';
 import type { LoopIndex } from '@components/types/types';
-import AllServices from '@domain/room-services/AllServices';
 import type { RoomServiceInfo } from '@domain/room-services/RoomService';
 import { useOperaStore } from '@stores/opera';
 

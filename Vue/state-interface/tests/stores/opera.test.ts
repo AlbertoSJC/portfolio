@@ -2,13 +2,10 @@ import { goalsUsageInformation, UsageTypes } from '@components/landing/usage/inf
 import Goals from '@domain/Goals';
 import Mode from '@domain/modes/Mode';
 import RoomService from '@domain/room-services/RoomService';
-import Costs from '@domain/usage/Costs';
-import Usage from '@domain/usage/Usage';
 import { useOperaStore } from '@stores/opera';
 import { MENU_ITEMS, MODES, ModesLiterals, SERVICES } from '@stores/opera-content/cards-info';
 import { flushPromises } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import { nextTick } from 'vue';
 
 describe('Stores > Opera', () => {
   let store: ReturnType<typeof useOperaStore>;
