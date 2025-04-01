@@ -1,0 +1,18 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@pages/*": ["src/pages/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@components/*": ["src/components/*"],
+      "@stores/*": ["src/stores/*"],
+      "@domain/*": ["src/domain/*"],
+      "@tests/*": ["tests/*"],
+      "@models/*": ["src/types/*"]
+    },
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+:root {
+  font-family: 'Lato';
+}
+
+html,
+body,
+.main-layout-container {
+  @apply w-full h-full m-0 bg-white;
+}
+
+html {
+  @apply h-full overflow-auto;
+}
+
+.comic-background {
+  background-image: url('/src/images/comic-background.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.superhero-fonting {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  @apply text-[#fff66f];
+}
+.text-shadow {
+  text-shadow: 3px 3px 1px rgba(0, 0, 0, 0.9);
+}
+.small-text-shadow {
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.9);
+}
+
+.ellipsis-text {
+  @apply whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px];
+}

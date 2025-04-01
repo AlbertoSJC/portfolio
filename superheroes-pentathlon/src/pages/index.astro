@@ -1,0 +1,8 @@
+---
+import LandingView from '@components/views/LandingView.vue';
+import MainLayout from '@layouts/MainLayout.astro';
+---
+
+<MainLayout metaTitle="Home">
+  <LandingView client:load />
+</MainLayout>

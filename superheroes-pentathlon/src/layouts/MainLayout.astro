@@ -1,0 +1,29 @@
+---
+import '@fontsource/lato';
+import '@fontsource/lato/900.css';
+import "../styles/global.css";
+
+interface Props {
+  metaTitle?: string;
+}
+
+const { metaTitle = 'Superheroes in tha house' } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="src/images/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="src/styles/global.css" />
+
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{metaTitle} | Superheroes Competition</title>
+  </head>
+  <body>
+    <div class="main-layout-container">
+      <slot />
+    </div>
+  </body>
+</html>
