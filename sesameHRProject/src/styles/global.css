@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+:root {
+  font-family: 'Figtree Variable', sans-serif;
+}
+
+@theme {
+  --color-primary-white: #e2e8f0;
+  --color-secondary-white: #f8fafc;
+  --color-primary-grey: #94a3b8;
+  --color-secondary-color: #6c63ff;
+  --color-secondary-blue: #1f2d52;
+  --shadow-inset-lg: 5px 4px 9px 3px #2f299908;
+  --shadow-outset-lg: 0px 1px 9px 5px #2f299908;
+}
+
+html,
+body,
+.main-layout-container {
+  @apply w-full h-full m-0 bg-white;
+}
+
+html {
+  @apply h-full overflow-auto;
+}
+
+.ellipsis-text {
+  @apply whitespace-nowrap overflow-hidden text-ellipsis;
+}
+
+input {
+  appearance: auto;
+  -moz-appearance: textfield;
+  @apply transition duration-300 ease-in-out focus:border-secondary-color active:border-secondary-color focus-visible:border-secondary-color;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.shadow-inset-lg {
+  @apply shadow-inset-lg;
+}
+
+.shadow-outset-lg {
+  @apply shadow-outset-lg;
+}
+
+::-webkit-scrollbar {
+  @apply w-[12px];
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-white;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-secondary-blue rounded-[6px] border border-white;
+}
+
+.scroll-container {
+  scrollbar-color: #1f2d52 white;
+  scrollbar-width: thin;
+}
+
+.dragging {
+  @apply cursor-grabbing select-none;
+}
+
+.list-card-scroll-container {
+  max-height: calc(100dvh - 350px);
+}
