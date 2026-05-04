@@ -1,0 +1,37 @@
+{
+  "name": "finquest",
+  "version": "0.0.1",
+  "description": "Gamified Personal Finance Adventure - Transform financial goals into an exciting quest game",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "framer-motion": "^10.16.16",
+    "next": "^16.2.4",
+    "postcss": "^8.5.13",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.3",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "typescript": "^5.2.2",
+    "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "postcss": "^8.5.13"
+  }
+}
