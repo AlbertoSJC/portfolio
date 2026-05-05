@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { Quest } from '@/domain/Quest';
+import { FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('Quest', () => {
   let quest: Quest;
@@ -9,17 +10,17 @@ describe('Quest', () => {
       id: '1',
       title: 'Save $500',
       description: 'Build emergency fund',
-      category: 'savings',
+      category: FinancialCategory.Savings,
       targetAmount: 500,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      priority: 'high',
+      priority: QuestPriority.High,
     });
   });
 
   it('should create a quest with correct initial values', () => {
     expect(quest.id).toBe('1');
     expect(quest.title).toBe('Save $500');
-    expect(quest.status).toBe('active');
+    expect(quest.status).toBe(QuestStatus.Active);
     expect(quest.currentAmount).toBe(0);
   });
 
@@ -30,7 +31,7 @@ describe('Quest', () => {
 
   it('should complete quest when target amount is reached', () => {
     quest.updateProgress(500);
-    expect(quest.status).toBe('completed');
+    expect(quest.status).toBe(QuestStatus.Completed);
     expect(quest.completedAt).toBeDefined();
   });
 
@@ -40,7 +41,7 @@ describe('Quest', () => {
       id: '2',
       title: 'Test',
       description: 'Test',
-      category: 'savings',
+      category: FinancialCategory.Savings,
       targetAmount: 100,
       dueDate: pastDate,
     });

@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
-import { QuestStatus, QuestPriority, FinancialCategory } from '@/types/finquest';
+import { useMemo } from 'react';
+import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
+import { Quest } from '@/domain/Quest';
 
 interface UseQuestFilterOptions {
-  quests: any[];
+  quests: Quest[];
   searchTerm: string;
   statusFilter: QuestStatus | 'all';
   priorityFilter: QuestPriority | 'all';

@@ -1,4 +1,4 @@
-import { QuestStatus, QuestPriority, FinancialCategory } from '@/types/finquest';
+import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
 
 interface QuestFilterProps {
   searchTerm: string;
@@ -81,7 +81,7 @@ export function QuestFilter({
       <div className="filter-group">
         <select
           value={sortBy}
-          onChange={(e) => onSortChange(e.target.value as any)}
+          onChange={(e) => onSortChange(e.target.value as 'dueDate' | 'priority' | 'progress')}
           className="filter-select"
         >
           <option value="dueDate">Sort by Due Date</option>

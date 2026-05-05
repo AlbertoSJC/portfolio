@@ -1,6 +1,5 @@
-import React from 'react';
 import { Player } from '@/domain/Player';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export function CategoryBar({ player }: { player: Player }) {
   const categories = new Map<string, number>();

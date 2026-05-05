@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { NotificationToast } from '@/components/NotificationToast';
+import { NotificationDrawer } from '@/components/NotificationDrawer';
 
 export const metadata: Metadata = {
   title: 'FinQuest - Gamified Personal Finance Adventure',
@@ -15,6 +17,8 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div id="root">{children}</div>
+        <NotificationToast />
+        <NotificationDrawer />
       </body>
     </html>
   );

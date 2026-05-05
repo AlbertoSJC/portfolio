@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Quest } from '@/domain/Quest';
-import { FinancialCategory, QuestPriority } from '@/types/finquest';
+import { FinancialCategory, QuestPriority } from '@/enums/finquestEnums';
 
 interface QuestFormData {
   title: string;
@@ -19,10 +19,10 @@ export function useQuestForm(initialData?: Quest) {
   const [formData, setFormData] = useState<QuestFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    category: initialData?.category || 'savings',
+    category: initialData?.category || FinancialCategory.Savings,
     targetAmount: initialData?.targetAmount || 0,
     dueDate: initialData?.dueDate.toISOString().split('T')[0] || '',
-    priority: initialData?.priority || 'medium',
+    priority: initialData?.priority || QuestPriority.Medium,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -81,10 +81,10 @@ export function useQuestForm(initialData?: Quest) {
     setFormData({
       title: '',
       description: '',
-      category: 'savings',
+      category: FinancialCategory.Savings,
       targetAmount: 0,
       dueDate: '',
-      priority: 'medium',
+      priority: QuestPriority.Medium,
     });
     setErrors({});
   }, []);

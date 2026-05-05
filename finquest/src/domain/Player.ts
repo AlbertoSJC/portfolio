@@ -1,5 +1,6 @@
 import { Quest } from '@/domain/Quest';
 import { Achievement } from '@/domain/Achievement';
+import { QuestStatus } from '@/enums/finquestEnums';
 
 /**
  * Represents a player's profile and progression
@@ -45,14 +46,21 @@ export class Player {
    * Get total completed quests
    */
   getCompletedQuestsCount(): number {
-    return this.quests.filter((q) => q.status === 'completed').length;
+    return this.quests.filter((q) => q.status === QuestStatus.Completed).length;
   }
 
   /**
    * Get total active quests
    */
   getActiveQuestsCount(): number {
-    return this.quests.filter((q) => q.status === 'active').length;
+    return this.quests.filter((q) => q.status === QuestStatus.Active).length;
+  }
+
+  /**
+   * Get completed quests by category
+   */
+  getCompletedQuestsByCategory(category: string): number {
+    return this.quests.filter((q) => q.status === QuestStatus.Completed && q.category === category).length;
   }
 
   /**

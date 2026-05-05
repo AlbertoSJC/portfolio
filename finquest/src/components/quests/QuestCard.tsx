@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Quest } from '@/domain/Quest';
 import { ProgressBar } from '@/components/common/ProgressBar';
+import { QuestStatus } from '@/enums/finquestEnums';
 
 interface QuestCardProps {
   quest: Quest;
@@ -25,7 +26,7 @@ export function QuestCard({
   delay = 0,
 }: QuestCardProps) {
   const isOverdue = quest.isOverdue();
-  const isCompleted = quest.status === 'completed';
+  const isCompleted = quest.status === QuestStatus.Completed;
 
   return (
     <motion.div

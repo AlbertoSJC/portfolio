@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { Achievement } from '@/domain/Achievement';
 import { Player } from '@/domain/Player';
 import { Quest } from '@/domain/Quest';
-import { Achievement } from '@/domain/Achievement';
+import { AchievementRequirementType, FinancialCategory } from '@/enums/finquestEnums';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('Player', () => {
   let player: Player;
@@ -36,7 +37,7 @@ describe('Player', () => {
       id: '1',
       title: 'Test Quest',
       description: 'Test',
-      category: 'savings',
+      category: FinancialCategory.Savings,
       targetAmount: 100,
       dueDate: new Date(),
     });
@@ -51,7 +52,7 @@ describe('Player', () => {
       title: 'First Quest',
       description: 'Complete your first quest',
       icon: '🎯',
-      requirements: { type: 'milestone', value: 1 },
+      requirements: { type: AchievementRequirementType.Milestone, value: 1 },
     });
     player.unlockAchievement(achievement);
     expect(player.achievements.length).toBe(1);

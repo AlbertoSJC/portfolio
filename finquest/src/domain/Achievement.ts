@@ -1,4 +1,4 @@
-import { AchievementRarity } from '@/types/finquest';
+import { AchievementRarity, AchievementRequirementType } from '@/enums/finquestEnums';
 
 export class Achievement {
   id: string;
@@ -8,7 +8,7 @@ export class Achievement {
   rarity: AchievementRarity;
   unlockedAt?: Date;
   requirements: {
-    type: 'milestone' | 'streak' | 'challenge' | 'learning';
+    type: AchievementRequirementType;
     value: number;
   };
 
@@ -18,13 +18,13 @@ export class Achievement {
     description: string;
     icon: string;
     rarity?: AchievementRarity;
-    requirements: { type: 'milestone' | 'streak' | 'challenge' | 'learning'; value: number };
+    requirements: { type: AchievementRequirementType; value: number };
   }) {
     this.id = data.id;
     this.title = data.title;
     this.description = data.description;
     this.icon = data.icon;
-    this.rarity = data.rarity || 'common';
+    this.rarity = data.rarity ?? AchievementRarity.Common;
     this.requirements = data.requirements;
   }
 

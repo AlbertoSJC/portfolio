@@ -1,4 +1,4 @@
-import { QuestStatus, QuestPriority, FinancialCategory } from '@/types/finquest';
+import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
 
 /**
  * Represents a single financial quest/goal
@@ -34,8 +34,8 @@ export class Quest {
     this.title = data.title;
     this.description = data.description;
     this.category = data.category;
-    this.status = 'active';
-    this.priority = data.priority || 'medium';
+    this.status = QuestStatus.Active;
+    this.priority = data.priority || QuestPriority.Medium;
     this.targetAmount = data.targetAmount;
     this.currentAmount = 0;
     this.dueDate = data.dueDate;
@@ -54,7 +54,7 @@ export class Quest {
    * Check if quest is overdue
    */
   isOverdue(): boolean {
-    return this.status === 'active' && new Date() > this.dueDate;
+    return this.status === QuestStatus.Active && new Date() > this.dueDate;
   }
 
   /**
@@ -71,7 +71,7 @@ export class Quest {
    * Mark quest as completed
    */
   completeQuest(): void {
-    this.status = 'completed';
+    this.status = QuestStatus.Completed;
     this.completedAt = new Date();
   }
 
@@ -79,6 +79,6 @@ export class Quest {
    * Mark quest as failed
    */
   failQuest(): void {
-    this.status = 'failed';
+    this.status = QuestStatus.Failed;
   }
 }

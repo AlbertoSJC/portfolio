@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAnimation, useMotionValue, useTransform } from 'framer-motion';
 
 export function useFadeInAnimation(delay = 0) {

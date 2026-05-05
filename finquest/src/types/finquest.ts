@@ -1,11 +1,14 @@
-// Quest status types
-export type QuestStatus = 'active' | 'completed' | 'failed' | 'locked';
+import {
+    AchievementRarity as AchievementRarityEnum,
+    FinancialCategory as FinancialCategoryEnum,
+    QuestPriority as QuestPriorityEnum,
+    QuestStatus as QuestStatusEnum,
+} from '@/enums/finquestEnums';
 
-// Quest priority levels
-export type QuestPriority = 'low' | 'medium' | 'high';
+export type QuestStatus = QuestStatusEnum;
+export type QuestPriority = QuestPriorityEnum;
+export type FinancialCategory = FinancialCategoryEnum;
+export type AchievementRarity = AchievementRarityEnum;
 
-// Financial goal categories
-export type FinancialCategory = 'savings' | 'investing' | 'debt-payoff' | 'budgeting' | 'learning';
+export { AchievementRarityEnum, FinancialCategoryEnum, QuestPriorityEnum, QuestStatusEnum };
 
-// Achievement rarity levels
-export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';

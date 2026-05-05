@@ -1,16 +1,15 @@
 'use client';
 
-import Link from 'next/link';
-import { usePlayerStore } from '@/stores/player';
-import { useEffect } from 'react';
 import { Player } from '@/domain/Player';
+import { usePlayerStore } from '@/stores/player';
 import { createDemoQuests } from '@/utils/fixtures';
+import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function Home() {
   const { player, initializePlayer } = usePlayerStore();
 
   useEffect(() => {
-    // Initialize demo player with example quests
     if (!player) {
       const demoPlayer = new Player({ id: '1', username: 'Adventurer' });
       const demoQuests = createDemoQuests();

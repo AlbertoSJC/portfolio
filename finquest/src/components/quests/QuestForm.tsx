@@ -1,6 +1,6 @@
 import { useQuestForm } from '@/hooks/useQuestForm';
 import { Quest } from '@/domain/Quest';
-import { FinancialCategory, QuestPriority } from '@/types/finquest';
+import { FinancialCategory, QuestPriority } from '@/enums/finquestEnums';
 
 interface QuestFormProps {
   onSubmit: (questData: {

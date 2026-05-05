@@ -1,6 +1,5 @@
-import React from 'react';
 import { Player } from '@/domain/Player';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const COLORS = ['#10b981', '#6366f1', '#ef4444'];
 

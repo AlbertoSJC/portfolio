@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-import { usePlayerStore } from '@/stores/player';
-import { CompletionPie } from '@/components/dashboard/CompletionPie';
 import { CategoryBar } from '@/components/dashboard/CategoryBar';
+import { CompletionPie } from '@/components/dashboard/CompletionPie';
 import { ProgressLine } from '@/components/dashboard/ProgressLine';
+import { usePlayerStore } from '@/stores/player';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { player } = usePlayerStore();

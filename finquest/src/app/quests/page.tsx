@@ -4,14 +4,14 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePlayerStore } from '@/stores/player';
 import { Quest } from '@/domain/Quest';
-import { QuestStatus, QuestPriority, FinancialCategory } from '@/types/finquest';
+import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
 import { QuestForm } from '@/components/quests/QuestForm';
 import { QuestGrid } from '@/components/quests/QuestGrid';
 import { QuestFilter } from '@/components/quests/QuestFilter';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
-  const { player, addQuest, completeQuest } = usePlayerStore();
+  const { player, addQuest, updateQuestProgress } = usePlayerStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuestStatus | 'all'>('all');
@@ -19,12 +19,8 @@ export default function QuestsPage() {
   const [categoryFilter, setCategoryFilter] = useState<FinancialCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'progress'>('dueDate');
 
-  if (!player) {
-    return <div className="loading">Loading...</div>;
-  }
-
   const filteredQuests = useQuestFilter({
-    quests: player.quests,
+    quests: player?.quests || [],
     searchTerm,
     statusFilter,
     priorityFilter,
@@ -41,6 +37,7 @@ export default function QuestsPage() {
       dueDate: Date;
       priority: QuestPriority;
     }) => {
+      if (!player) return;
       const newQuest = new Quest({
         id: `quest-${Date.now()}`,
         title: questData.title,
@@ -54,11 +51,12 @@ export default function QuestsPage() {
       addQuest(newQuest);
       setShowCreateForm(false);
     },
-    [addQuest]
+    [addQuest, player]
   );
 
   const handleUpdateProgress = useCallback(
     (questId: string) => {
+      if (!player) return;
       const quest = player.quests.find((q) => q.id === questId);
       if (quest) {
         const newAmount = prompt(
@@ -69,19 +67,20 @@ export default function QuestsPage() {
         if (newAmount !== null) {
           const amount = parseFloat(newAmount);
           if (!isNaN(amount) && amount >= 0) {
-            quest.updateProgress(amount);
-            if (quest.status === 'completed') {
-              completeQuest(questId);
-            }
+            updateQuestProgress(questId, amount);
           }
         }
       }
     },
-    [player.quests, completeQuest]
+    [player, updateQuestProgress]
   );
 
-  const activeQuests = player.quests.filter((q) => q.status === 'active');
-  const completedQuests = player.quests.filter((q) => q.status === 'completed');
+  if (!player) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  const activeQuests = player.quests.filter((q) => q.status === QuestStatus.Active);
+  const completedQuests = player.quests.filter((q) => q.status === QuestStatus.Completed);
 
   return (
     <main>
@@ -133,21 +132,21 @@ export default function QuestsPage() {
           </div>
         ) : (
           <>
-            {filteredQuests.filter((q) => q.status === 'active').length > 0 && (
+            {filteredQuests.filter((q) => q.status === QuestStatus.Active).length > 0 && (
               <section className="quest-section">
                 <h2>Active Quests</h2>
                 <QuestGrid
-                  quests={filteredQuests.filter((q) => q.status === 'active')}
+                  quests={filteredQuests.filter((q) => q.status === QuestStatus.Active)}
                   onUpdateProgress={handleUpdateProgress}
                 />
               </section>
             )}
 
-            {filteredQuests.filter((q) => q.status === 'completed').length > 0 && (
+            {filteredQuests.filter((q) => q.status === QuestStatus.Completed).length > 0 && (
               <section className="quest-section">
                 <h2>Completed Quests</h2>
                 <QuestGrid
-                  quests={filteredQuests.filter((q) => q.status === 'completed')}
+                  quests={filteredQuests.filter((q) => q.status === QuestStatus.Completed)}
                   emptyMessage="No completed quests yet"
                 />
               </section>

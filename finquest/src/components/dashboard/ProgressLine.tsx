@@ -1,13 +1,17 @@
-import React from 'react';
 import { Player } from '@/domain/Player';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { QuestStatus } from '@/enums/finquestEnums';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export function ProgressLine({ player }: { player: Player }) {
   const data = player.quests
-    .filter((q) => q.status === 'completed')
-    .sort((a, b) => a.completedAt?.getTime()! - b.completedAt?.getTime()!)
+    .filter((q) => q.status === QuestStatus.Completed)
+    .sort((a, b) => {
+      const aTime = a.completedAt?.getTime() ?? 0;
+      const bTime = b.completedAt?.getTime() ?? 0;
+      return aTime - bTime;
+    })
     .map((quest) => ({
-      name: quest.completedAt?.toLocaleDateString() ?? 'Completed',
+      name: quest.completedAt?.toLocaleDateString() ?? QuestStatus.Completed,
       value: quest.targetAmount,
     }));
 

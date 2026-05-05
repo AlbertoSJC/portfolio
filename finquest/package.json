@@ -21,6 +21,8 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
@@ -28,6 +30,11 @@
     "@typescript-eslint/parser": "^8.59.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.4",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "globals": "^14.0.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.1.1",
     "typescript": "^5.2.2",
     "vitest": "^4.1.5"
   },
