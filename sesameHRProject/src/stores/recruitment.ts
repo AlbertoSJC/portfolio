@@ -31,9 +31,8 @@ export const useRecruitmentStore = defineStore('recruitment', () => {
 
   const createCandidateToUpload = () => {
     errors.value = null;
-    candidateToUpload.value = new Candidate();
-    candidateToUpload.value.statusId = vacancyStatusList.value.statuses.length > 0 ? vacancyStatusList.value.statuses[0].id : '';
-    candidateToUpload.value.vacancyId = ENV_VARIABLES.PUBLIC_VACANCY_ID;
+    const statusId = vacancyStatusList.value.statuses.length > 0 ? vacancyStatusList.value.statuses[0].id : '';
+    candidateToUpload.value = new Candidate({statusId, vacancyId: ENV_VARIABLES.PUBLIC_VACANCY_ID});
   };
 
   const validateCandidate = () => {

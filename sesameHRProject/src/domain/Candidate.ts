@@ -31,7 +31,7 @@ export class Candidate {
   createdAt?: string;
   updatedAt?: string;
 
-  constructor(data?: CandidateInformation) {
+  constructor(data?: Partial<CandidateInformation>) {
     this.id = data?.id;
     this.firstName = data?.firstName;
     this.lastName = data?.lastName;
