@@ -25,9 +25,9 @@ const buttonFormClasses = computed(() => {
 });
 
 const buttonFormText = computed(() => {
-  if (recruitmentStore.formStatus === ModalFormSuccess.Success) return 'Editado!';
+  if (recruitmentStore.formStatus === ModalFormSuccess.Success) return 'Edited!';
   if (recruitmentStore.formStatus === ModalFormSuccess.Failure) return 'Error!';
-  return 'Editar';
+  return 'Edit';
 });
 </script>
 
@@ -35,7 +35,7 @@ const buttonFormText = computed(() => {
   <div class="flex flex-row justify-between items-end pb-2 border-b-2 border-[#F1F5F9]">
     <div class="flex flex-row gap-3 items-start">
       <img src="src/images/new-candidate.svg" alt="Edit candidate" class="h-[25px]" />
-      <h5 class="text-2xl font-bold text-secondary-blue">Editar candidato</h5>
+      <h5 class="text-2xl font-bold text-secondary-blue">Edit candidate</h5>
     </div>
     <ButtonElement :text="buttonFormText" @click="editCandidate" :disabled="recruitmentStore.errors !== null" :classes="buttonFormClasses" />
   </div>

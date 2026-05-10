@@ -98,7 +98,7 @@ describe('CandidatesListCard.vue', () => {
 
     const editButton = wrapper.findComponent(ButtonElement);
     expect(editButton.exists()).toBe(true);
-    expect(editButton.props('text')).toBe('Editar');
+    expect(editButton.props('text')).toBe('Edit');
 
     await editButton.trigger('click');
 

@@ -18,8 +18,8 @@ const openModal = () => {
 
 <template>
   <div class="flex flex-row items-center justify-between height-fit max-h-[32px]">
-    <TextInput placeholder="Buscar" icon="src/images/icon-search.svg" v-model="recruitmentStore.recruitmentFilterInput" :no-errors="true" />
-    <ButtonElement text="Añadir candidato" classes="text-sm" @click="openModal" :disabled="recruitmentStore.loading" />
+    <TextInput placeholder="Search" icon="src/images/icon-search.svg" v-model="recruitmentStore.recruitmentFilterInput" :no-errors="true" />
+    <ButtonElement text="Add candidate" classes="text-sm" @click="openModal" :disabled="recruitmentStore.loading" />
     <CreateCandidateModal />
     <EditCandidateModal />
   </div>

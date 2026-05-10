@@ -24,7 +24,7 @@ describe('HeaderCreateCandidate', () => {
     const image = wrapper.find('img');
 
     expect(title.exists()).toBe(true);
-    expect(title.text()).toBe('Añadir nuevo candidato');
+    expect(title.text()).toBe('Add new candidate');
     expect(image.exists()).toBe(true);
   });
 
@@ -33,7 +33,7 @@ describe('HeaderCreateCandidate', () => {
     const button = wrapper.findComponent(ButtonElement);
 
     expect(button.exists()).toBe(true);
-    expect(button.props('text')).toBe('Guardar');
+    expect(button.props('text')).toBe('Save');
     expect(button.props('disabled')).toBe(false);
   });
 
@@ -50,7 +50,7 @@ describe('HeaderCreateCandidate', () => {
     const wrapper = mount(HeaderCreateCandidate);
     const button = wrapper.findComponent(ButtonElement);
 
-    expect(button.props('text')).toBe('Guardado!');
+    expect(button.props('text')).toBe('Saved!');
     expect(button.props('classes')).toContain('bg-[#137019]');
 
     recruitmentStore.formStatus = ModalFormSuccess.Failure;

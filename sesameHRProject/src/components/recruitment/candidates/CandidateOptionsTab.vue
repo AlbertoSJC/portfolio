@@ -79,9 +79,9 @@ onUnmounted(() => {
         { 'bottom-5 -left-[105px]': moreThanFiveCandidates && isLastCandidate },
       ]"
     >
-      <span class="edit-candidate-tab-button w-full cursor-pointer text-sm text-secondary-color hover:text-secondary-blue" @click="editCandidate">Editar Candidato</span>
+      <span class="edit-candidate-tab-button w-full cursor-pointer text-sm text-secondary-color hover:text-secondary-blue" @click="editCandidate">Edit candidate</span>
       <hr class="w-full text-secondary-color bg-secondary-color h-[2px] border-0" />
-      <span class="show-status-trigger w-full text-sm text-secondary-color hover:text-secondary-blue cursor-pointer" @click="handleStatusClick">Cambiar Status</span>
+      <span class="show-status-trigger w-full text-sm text-secondary-color hover:text-secondary-blue cursor-pointer" @click="handleStatusClick">Change status</span>
       <div
         v-if="showStatus"
         :class="[

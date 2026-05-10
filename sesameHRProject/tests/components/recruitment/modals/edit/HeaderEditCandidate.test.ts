@@ -28,7 +28,7 @@ describe('HeaderEditCandidate', () => {
     const image = wrapper.find('img');
 
     expect(title.exists()).toBe(true);
-    expect(title.text()).toBe('Editar candidato');
+    expect(title.text()).toBe('Edit candidate');
     expect(image.exists()).toBe(true);
   });
 
@@ -37,7 +37,7 @@ describe('HeaderEditCandidate', () => {
     const button = wrapper.findComponent(ButtonElement);
 
     expect(button.exists()).toBe(true);
-    expect(button.props('text')).toBe('Editar');
+    expect(button.props('text')).toBe('Edit');
     expect(button.props('disabled')).toBe(false);
   });
 
@@ -54,7 +54,7 @@ describe('HeaderEditCandidate', () => {
     const wrapper = mount(HeaderEditCandidate);
     const button = wrapper.findComponent(ButtonElement);
 
-    expect(button.props('text')).toBe('Editado!');
+    expect(button.props('text')).toBe('Edited!');
     expect(button.props('classes')).toContain('bg-[#137019]');
 
     recruitmentStore.formStatus = ModalFormSuccess.Failure;

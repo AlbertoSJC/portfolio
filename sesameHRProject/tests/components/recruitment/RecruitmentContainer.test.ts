@@ -34,7 +34,7 @@ describe('RecruitmentContainer', () => {
     const wrapper = shallowMount(RecruitmentContainer);
     const heading = wrapper.find('h1');
     expect(heading.exists()).toBe(true);
-    expect(heading.text()).toBe('Reclutamiento');
+    expect(heading.text()).toBe('Recruitment');
     expect(heading.classes()).toContain('text-5xl');
     expect(heading.classes()).toContain('font-bold');
     expect(heading.classes()).toContain('text-secondary-blue');

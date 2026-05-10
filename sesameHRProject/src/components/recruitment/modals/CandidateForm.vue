@@ -11,7 +11,7 @@ const recruitmentStore = useRecruitmentStore();
   <div class="flex flex-col gap-2">
     <div class="flex flex-row justify-between items-start gap-4">
       <TextInput
-        label="Primer nombre*"
+        label="First name*"
         v-model="recruitmentStore.candidateToUpload.firstName"
         placeholder="John"
         :width-full="true"
@@ -21,7 +21,7 @@ const recruitmentStore = useRecruitmentStore();
         :onInputCallback="() => recruitmentStore.clearError('firstName')"
       />
       <TextInput
-        label="Apellidos*"
+        label="Last name*"
         v-model="recruitmentStore.candidateToUpload.lastName"
         placeholder="Doe"
         :width-full="true"
@@ -42,11 +42,11 @@ const recruitmentStore = useRecruitmentStore();
         :errors="recruitmentStore.errors?.email"
         :onInputCallback="() => recruitmentStore.clearError('email')"
       />
-      <NumberInput label="Teléfono (sin extensión)" v-model="recruitmentStore.candidateToUpload.phone" placeholder="000333555" :width-full="true" id="phone-candidate" />
+      <NumberInput label="Phone (no extension)" v-model="recruitmentStore.candidateToUpload.phone" placeholder="000333555" :width-full="true" id="phone-candidate" />
     </div>
     <div class="flex flex-row justify-between items-start gap-4">
       <TextInput
-        label="Perfil Linkedin"
+        label="LinkedIn profile"
         v-model="recruitmentStore.candidateToUpload.linkedInURL"
         placeholder="https://www.linkedin.com/in/your-name/"
         :width-full="true"
@@ -54,7 +54,7 @@ const recruitmentStore = useRecruitmentStore();
         :errors="recruitmentStore.errors?.linkedInURL"
         :onInputCallback="() => recruitmentStore.clearError('linkedInURL')"
       />
-      <NumberInput label="Salario Deseado" v-model="recruitmentStore.candidateToUpload.desiredSalary" placeholder="10000" :width-full="true" id="salary-candidate" />
+      <NumberInput label="Desired salary" v-model="recruitmentStore.candidateToUpload.desiredSalary" placeholder="10000" :width-full="true" id="salary-candidate" />
     </div>
     <div class="flex flex-row justify-between items-start gap-4">
       <TextInput
@@ -66,10 +66,10 @@ const recruitmentStore = useRecruitmentStore();
         :errors="recruitmentStore.errors?.web"
         :onInputCallback="() => recruitmentStore.clearError('web')"
       />
-      <TextInput label="Localización" v-model="recruitmentStore.candidateToUpload.location" placeholder="España" :width-full="true" id="location-candidate" />
+      <TextInput label="Location" v-model="recruitmentStore.candidateToUpload.location" placeholder="Spain" :width-full="true" id="location-candidate" />
     </div>
     <div class="flex flex-row justify-center items-start gap-4">
-      <DateInput label="Posible fecha de entrada" v-model="recruitmentStore.candidateToUpload.startWorkDate" id="web-candidate" />
+      <DateInput label="Possible start date" v-model="recruitmentStore.candidateToUpload.startWorkDate" id="web-candidate" />
     </div>
   </div>
 </template>

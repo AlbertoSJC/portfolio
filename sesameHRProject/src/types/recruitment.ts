@@ -27,8 +27,8 @@ export const vacancyStatusCardOutput: Record<VacancyStatusText, StatusCardModel>
 };
 
 export enum RecruitmentTabs {
-  Vacancies = 'Vacantes',
-  Candidates = 'Candidatos',
+  Vacancies = 'Vacancies',
+  Candidates = 'Candidates',
 }
 
 export interface SchemaCandidateErrors {

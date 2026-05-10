@@ -74,7 +74,7 @@ describe('CandidateOptionsTab.vue', () => {
     const submenuIcon = wrapper.find('img');
     await submenuIcon.trigger('click');
 
-    const statusButton = wrapper.findAll('span').filter((node) => node.text() === 'Cambiar Status')[0];
+    const statusButton = wrapper.findAll('span').filter((node) => node.text() === 'Change status')[0];
     await statusButton.trigger('click');
 
     expect((wrapper.vm as any).showStatus).toBe(true);

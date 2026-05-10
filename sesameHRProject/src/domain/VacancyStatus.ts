@@ -1,9 +1,9 @@
 export enum VacancyStatusText {
-  New = 'Nuevo',
-  InProgress = 'En proceso',
-  Offer = 'Oferta',
-  Selected = 'Seleccionado',
-  Discarded = 'Descartado',
+  New = 'New',
+  InProgress = 'In progress',
+  Offer = 'Offer',
+  Selected = 'Selected',
+  Discarded = 'Discarded',
   Default = 'Default',
 }
 

@@ -16,11 +16,11 @@ defineProps<CandidateCardProps>();
       <span class="text-sm text-primary-grey">{{ formatDate(candidate.createdAt as string) }}</span>
     </div>
     <div class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Nombre:</span>
+      <span class="text-secondary-blue font-bold text-lg">First name:</span>
       <span>{{ candidate.firstName }}</span>
     </div>
     <div class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Apellidos:</span>
+      <span class="text-secondary-blue font-bold text-lg">Last name:</span>
       <span>{{ candidate.lastName }}</span>
     </div>
     <div class="flex flex-col items-start gap-1">
@@ -30,7 +30,7 @@ defineProps<CandidateCardProps>();
       </a>
     </div>
     <div v-if="candidate.phone" class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Telefono:</span>
+      <span class="text-secondary-blue font-bold text-lg">Phone:</span>
       <span>{{ candidate.phone }}</span>
     </div>
     <div v-if="candidate.linkedInURL" class="flex flex-col items-start gap-1">
@@ -40,7 +40,7 @@ defineProps<CandidateCardProps>();
       </a>
     </div>
     <div v-if="candidate.desiredSalary" class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Salario deseado:</span>
+      <span class="text-secondary-blue font-bold text-lg">Desired salary:</span>
       <span>{{ candidate.desiredSalary }}</span>
     </div>
     <div v-if="candidate.web" class="flex flex-col items-start gap-1">
@@ -50,11 +50,11 @@ defineProps<CandidateCardProps>();
       </a>
     </div>
     <div v-if="candidate.location" class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Localización:</span>
+      <span class="text-secondary-blue font-bold text-lg">Location:</span>
       <span>{{ candidate.location }}</span>
     </div>
     <div v-if="candidate.startWorkDate" class="flex flex-col items-start gap-1">
-      <span class="text-secondary-blue font-bold text-lg">Dia deseado de comienzo:</span>
+      <span class="text-secondary-blue font-bold text-lg">Desired start date:</span>
       <span>{{ formatDate(candidate.startWorkDate) }}</span>
     </div>
   </div>

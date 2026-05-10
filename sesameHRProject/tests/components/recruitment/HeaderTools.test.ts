@@ -33,7 +33,7 @@ describe('HeaderTools', () => {
     const textInput = wrapper.findComponent(TextInput);
 
     expect(textInput.exists()).toBe(true);
-    expect(textInput.props('placeholder')).toBe('Buscar');
+    expect(textInput.props('placeholder')).toBe('Search');
     expect(textInput.props('icon')).toBe('src/images/icon-search.svg');
   });
 
@@ -50,7 +50,7 @@ describe('HeaderTools', () => {
     const buttonElement = wrapper.findComponent(ButtonElement);
 
     expect(buttonElement.exists()).toBe(true);
-    expect(buttonElement.props('text')).toBe('Añadir candidato');
+    expect(buttonElement.props('text')).toBe('Add candidate');
     expect(buttonElement.props('classes')).toBe('text-sm');
   });
 

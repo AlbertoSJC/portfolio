@@ -32,7 +32,7 @@ const editCandidate = () => {
           <img :src="`src/images/status/default.svg`" class="max-h-[24px] max-w-[24px]" />
           <span class="text-secondary-blue font-bold max-w-[160px] ellipsis-text" :title="`${candidate?.firstName} ${candidate?.lastName}`">{{ candidate?.firstName }} {{ candidate?.lastName }}</span>
         </div>
-        <ButtonElement text="Editar" @click="editCandidate" classes="text-xs" />
+        <ButtonElement text="Edit" @click="editCandidate" classes="text-xs" />
       </div>
     </div>
     <div v-if="candidate" id="candidate-list-cards-container" class="flex flex-col h-full w-full min-w-0 gap-3 pb-2 pr-1 overflow-y-auto overflow-x-hidden scroll-container list-card-scroll-container">

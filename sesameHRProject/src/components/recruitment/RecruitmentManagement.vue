@@ -21,7 +21,7 @@ onMounted(async () => {
   <div class="h-full flex flex-col min-w-0 bg-white rounded-2xl px-6 py-4 gap-6 shadow-outset-lg">
     <HeaderTabs />
     <HeaderTools />
-    <LoaderElement v-if="recruitmentStore.loading" text="Cargando vacantes y candidatos" />
+    <LoaderElement v-if="recruitmentStore.loading" text="Loading vacancies and candidates" />
     <VacanciesTab v-else-if="recruitmentStore.vacancyTabs[RecruitmentTabs.Vacancies]" />
     <CandidatesTab v-else-if="recruitmentStore.vacancyTabs[RecruitmentTabs.Candidates]" />
   </div>

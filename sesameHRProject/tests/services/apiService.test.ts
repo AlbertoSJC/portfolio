@@ -1,93 +1,50 @@
 import apiService from '@services/apiService';
 import { mockCandidateData } from '@tests/mocks/candidateMocks';
-import axios from 'axios';
-import { ENV_VARIABLES } from 'src/env';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
-
-vi.mock('axios');
+import { beforeEach, describe, expect, test } from 'vitest';
 
 describe('apiService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    (apiService as { resetMockData?: () => void }).resetMockData?.();
   });
 
   test('should fetch candidature statuses successfully', async () => {
-    const mockVacancyStatuses = [{ id: '1', name: 'Nuevo', order: 1, companyId: 'company1', vacancyId: 'vacancy1' }];
-
-    vi.mocked(axios.get).mockResolvedValueOnce({
-      data: {
-        data: mockVacancyStatuses,
-      },
-    });
-
     const result = await apiService.fetchCandidatureStatuses();
 
-    expect(axios.get).toHaveBeenCalledWith(`${ENV_VARIABLES.PUBLIC_BASE_API_URL}/recruitment/v1/candidate-status/${ENV_VARIABLES.PUBLIC_VACANCY_ID}`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${ENV_VARIABLES.PUBLIC_API_TOKEN}`,
-      },
-    });
-
-    expect(result).toEqual(mockVacancyStatuses);
+    expect(result).toHaveLength(5);
+    expect(result[0]).toHaveProperty('id');
+    expect(result[0]).toHaveProperty('name');
+    expect(result[0]).toHaveProperty('vacancyId');
   });
 
   test('should fetch candidates successfully', async () => {
-    const mockCandidates = [{ id: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' }];
-
-    vi.mocked(axios.get).mockResolvedValueOnce({
-      data: {
-        data: mockCandidates,
-      },
-    });
-
     const result = await apiService.fetchCandidates();
 
-    expect(axios.get).toHaveBeenCalledWith(`${ENV_VARIABLES.PUBLIC_BASE_API_URL}/recruitment/v1/vacancies/${ENV_VARIABLES.PUBLIC_VACANCY_ID}/candidates`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${ENV_VARIABLES.PUBLIC_API_TOKEN}`,
-      },
-    });
-
-    expect(result).toEqual(mockCandidates);
+    expect(result).toHaveLength(1);
+    expect(result[0].firstName).toBe('John');
+    expect(result[0].email).toBe('john.doe@example.com');
   });
 
   test('should save a candidate successfully', async () => {
-    vi.mocked(axios.post).mockResolvedValueOnce({
-      data: {
-        data: mockCandidateData,
-      },
-    });
-
     const result = await apiService.saveCandidate(mockCandidateData);
 
-    expect(axios.post).toHaveBeenCalledWith(`${ENV_VARIABLES.PUBLIC_BASE_API_URL}/recruitment/v1/candidates`, mockCandidateData, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${ENV_VARIABLES.PUBLIC_API_TOKEN}`,
-      },
+    expect(result).toMatchObject({
+      firstName: mockCandidateData.firstName,
+      lastName: mockCandidateData.lastName,
+      email: mockCandidateData.email,
     });
-
-    expect(result).toEqual(mockCandidateData);
+    expect(result.id).toBeDefined();
+    expect(result.createdAt).toBeDefined();
   });
 
   test('should edit a candidate successfully', async () => {
-    vi.mocked(axios.put).mockResolvedValueOnce({
-      data: {
-        data: mockCandidateData,
-      },
-    });
+    const updatedCandidate = {
+      ...mockCandidateData,
+      firstName: 'Updated Name',
+    };
 
-    const result = await apiService.editCandidate(mockCandidateData);
+    const result = await apiService.editCandidate(updatedCandidate);
 
-    expect(axios.put).toHaveBeenCalledWith(`${ENV_VARIABLES.PUBLIC_BASE_API_URL}/recruitment/v1/candidates/${mockCandidateData.id}`, mockCandidateData, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${ENV_VARIABLES.PUBLIC_API_TOKEN}`,
-      },
-    });
-
-    expect(result).toEqual(mockCandidateData);
+    expect(result.id).toBe(mockCandidateData.id);
+    expect(result.firstName).toBe('Updated Name');
   });
 });

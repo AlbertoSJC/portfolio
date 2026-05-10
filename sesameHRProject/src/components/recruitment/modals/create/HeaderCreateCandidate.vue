@@ -25,9 +25,9 @@ const buttonFormClasses = computed(() => {
 });
 
 const buttonFormText = computed(() => {
-  if (recruitmentStore.formStatus === ModalFormSuccess.Success) return 'Guardado!';
+  if (recruitmentStore.formStatus === ModalFormSuccess.Success) return 'Saved!';
   if (recruitmentStore.formStatus === ModalFormSuccess.Failure) return 'Error!';
-  return 'Guardar';
+  return 'Save';
 });
 </script>
 
@@ -35,7 +35,7 @@ const buttonFormText = computed(() => {
   <div class="flex flex-row justify-between items-end pb-2 border-b-2 border-[#F1F5F9]">
     <div class="flex flex-row gap-3 items-start">
       <img src="src/images/new-candidate.svg" alt="New candidate" class="h-[25px]" />
-      <h5 class="text-2xl font-bold text-secondary-blue">Añadir nuevo candidato</h5>
+      <h5 class="text-2xl font-bold text-secondary-blue">Add new candidate</h5>
     </div>
     <ButtonElement :text="buttonFormText" @click="saveCandidate" :disabled="recruitmentStore.errors !== null" :classes="buttonFormClasses" />
   </div>
