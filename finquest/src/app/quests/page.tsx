@@ -18,9 +18,12 @@ export default function QuestsPage() {
   const [priorityFilter, setPriorityFilter] = useState<QuestPriority | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<FinancialCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'progress'>('dueDate');
+  const [updatingQuestId, setUpdatingQuestId] = useState<string | null>(null);
+  const [progressInput, setProgressInput] = useState('');
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   const filteredQuests = useQuestFilter({
-    quests: player?.quests || [],
+    quests: player?.quests ?? [],
     searchTerm,
     statusFilter,
     priorityFilter,
@@ -59,21 +62,34 @@ export default function QuestsPage() {
       if (!player) return;
       const quest = player.quests.find((q) => q.id === questId);
       if (quest) {
-        const newAmount = prompt(
-          `Current: $${quest.currentAmount}. Enter new amount:`,
-          quest.currentAmount.toString()
-        );
-
-        if (newAmount !== null) {
-          const amount = parseFloat(newAmount);
-          if (!isNaN(amount) && amount >= 0) {
-            updateQuestProgress(questId, amount);
-          }
-        }
+        setUpdatingQuestId(questId);
+        setProgressInput(quest.currentAmount.toString());
+        setProgressError(null);
       }
     },
-    [player, updateQuestProgress]
+    [player]
   );
+
+  const handleSubmitProgress = useCallback(() => {
+    if (!updatingQuestId) return;
+
+    const amount = parseFloat(progressInput);
+    if (isNaN(amount) || amount < 0) {
+      setProgressError('Please enter a valid non-negative amount.');
+      return;
+    }
+
+    updateQuestProgress(updatingQuestId, amount);
+    setUpdatingQuestId(null);
+    setProgressInput('');
+    setProgressError(null);
+  }, [progressInput, updatingQuestId, updateQuestProgress]);
+
+  const handleCancelProgress = useCallback(() => {
+    setUpdatingQuestId(null);
+    setProgressInput('');
+    setProgressError(null);
+  }, []);
 
   if (!player) {
     return <div className="loading">Loading...</div>;
@@ -110,6 +126,35 @@ export default function QuestsPage() {
               onSubmit={handleCreateQuest}
               onCancel={() => setShowCreateForm(false)}
             />
+          </div>
+        )}
+
+        {updatingQuestId && (
+          <div className="update-progress-container">
+            <h3>Update Quest Progress</h3>
+            <p>
+              Enter a new current amount for{' '}
+              <strong>{player.quests.find((q) => q.id === updatingQuestId)?.title}</strong>.
+            </p>
+            <div className="update-progress-controls">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={progressInput}
+                onChange={(event) => {
+                  setProgressInput(event.target.value);
+                  setProgressError(null);
+                }}
+              />
+              <button className="btn btn-primary" onClick={handleSubmitProgress}>
+                Save
+              </button>
+              <button className="btn btn-secondary" onClick={handleCancelProgress}>
+                Cancel
+              </button>
+            </div>
+            {progressError && <p className="form-error">{progressError}</p>}
           </div>
         )}
 
