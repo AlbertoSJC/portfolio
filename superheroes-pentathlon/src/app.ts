@@ -1,8 +1,11 @@
 /* eslint-disable no-console */
 import { createPinia } from 'pinia';
+import { setupMockAdapter } from 'src/services/mockSetup';
 import type { App } from 'vue';
 
 const pinia = createPinia();
+
+setupMockAdapter();
 
 export default (app: App) => {
   app.use(pinia);
