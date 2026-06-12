@@ -1,4 +1,11 @@
-import { AchievementRarity, AchievementRequirementType } from '@/enums/finquestEnums';
+import { AchievementMetric, AchievementRarity, AchievementRequirementType, FinancialCategory } from '@/enums/finquestEnums';
+
+export interface AchievementRequirements {
+  type: AchievementRequirementType;
+  metric: AchievementMetric;
+  value: number;
+  category?: FinancialCategory;
+}
 
 export class Achievement {
   id: string;
@@ -7,10 +14,7 @@ export class Achievement {
   icon: string;
   rarity: AchievementRarity;
   unlockedAt?: Date;
-  requirements: {
-    type: AchievementRequirementType;
-    value: number;
-  };
+  requirements: AchievementRequirements;
 
   constructor(data: {
     id: string;
@@ -18,7 +22,7 @@ export class Achievement {
     description: string;
     icon: string;
     rarity?: AchievementRarity;
-    requirements: { type: AchievementRequirementType; value: number };
+    requirements: AchievementRequirements;
   }) {
     this.id = data.id;
     this.title = data.title;

@@ -6,6 +6,7 @@ interface QuestGridProps {
   onEdit?: (quest: Quest) => void;
   onDelete?: (questId: string) => void;
   onUpdateProgress?: (questId: string) => void;
+  onComplete?: (questId: string) => void;
   emptyMessage?: string;
 }
 
@@ -14,6 +15,7 @@ export function QuestGrid({
   onEdit,
   onDelete,
   onUpdateProgress,
+  onComplete,
   emptyMessage = 'No quests found',
 }: QuestGridProps) {
   if (quests.length === 0) {
@@ -33,6 +35,7 @@ export function QuestGrid({
           onEdit={onEdit}
           onDelete={onDelete}
           onUpdateProgress={onUpdateProgress}
+          onComplete={onComplete}
           delay={index * 0.05}
         />
       ))}

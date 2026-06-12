@@ -1,7 +1,7 @@
 import { Achievement } from '@/domain/Achievement';
 import { Player } from '@/domain/Player';
 import { Quest } from '@/domain/Quest';
-import { AchievementRequirementType, FinancialCategory } from '@/enums/finquestEnums';
+import { AchievementMetric, AchievementRequirementType, FinancialCategory } from '@/enums/finquestEnums';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('Player', () => {
@@ -52,7 +52,7 @@ describe('Player', () => {
       title: 'First Quest',
       description: 'Complete your first quest',
       icon: '🎯',
-      requirements: { type: AchievementRequirementType.Milestone, value: 1 },
+      requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.QuestsCompleted, value: 1 },
     });
     player.unlockAchievement(achievement);
     expect(player.achievements.length).toBe(1);

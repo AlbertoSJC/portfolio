@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAnimation, useMotionValue, useTransform } from 'framer-motion';
+import { useAnimation, useMotionValue, useTransform } from 'motion/react';
 
 export function useFadeInAnimation(delay = 0) {
   const controls = useAnimation();

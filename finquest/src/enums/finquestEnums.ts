@@ -37,3 +37,21 @@ export enum AchievementRequirementType {
   Challenge = 'challenge',
   Learning = 'learning',
 }
+
+// Metric an achievement requirement is measured against
+export enum AchievementMetric {
+  QuestsCompleted = 'quests-completed',
+  LevelReached = 'level-reached',
+  CoinsHeld = 'coins-held',
+  CategoryQuestsCompleted = 'category-quests-completed',
+  StreakDays = 'streak-days',
+}
+
+// Player action a daily challenge is completed by
+export enum DailyChallengeKind {
+  UpdateProgress = 'update-progress',
+  CreateQuest = 'create-quest',
+  CompleteQuest = 'complete-quest',
+  CreateSavingsQuest = 'create-savings-quest',
+  ReachHalf = 'reach-half',
+}

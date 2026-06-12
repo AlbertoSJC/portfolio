@@ -1,26 +1,31 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import Link from 'next/link';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'motion/react';
 import { usePlayerStore } from '@/stores/player';
 import { Quest } from '@/domain/Quest';
 import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
 import { QuestForm } from '@/components/quests/QuestForm';
 import { QuestGrid } from '@/components/quests/QuestGrid';
 import { QuestFilter } from '@/components/quests/QuestFilter';
+import { Modal } from '@/components/common/Modal';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
-  const { player, addQuest, updateQuestProgress } = usePlayerStore();
+  const { player, _hasHydrated, addQuest, editQuest, deleteQuest, updateQuestProgress, completeQuest } = usePlayerStore();
+  const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuestStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<QuestPriority | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<FinancialCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'progress'>('dueDate');
+  const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
   const [updatingQuestId, setUpdatingQuestId] = useState<string | null>(null);
   const [progressInput, setProgressInput] = useState('');
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [progressFloat, setProgressFloat] = useState<{ key: number; text: string } | null>(null);
 
   const filteredQuests = useQuestFilter({
     quests: player?.quests ?? [],
@@ -79,11 +84,18 @@ export default function QuestsPage() {
       return;
     }
 
+    const quest = player?.quests.find((q) => q.id === updatingQuestId);
+    const delta = quest ? amount - quest.currentAmount : 0;
+    const completes = quest ? amount >= quest.targetAmount : false;
+
     updateQuestProgress(updatingQuestId, amount);
+    if (delta > 0 && !completes) {
+      setProgressFloat({ key: Date.now(), text: `+$${delta.toLocaleString()} saved` });
+    }
     setUpdatingQuestId(null);
     setProgressInput('');
     setProgressError(null);
-  }, [progressInput, updatingQuestId, updateQuestProgress]);
+  }, [progressInput, updatingQuestId, updateQuestProgress, player]);
 
   const handleCancelProgress = useCallback(() => {
     setUpdatingQuestId(null);
@@ -91,7 +103,46 @@ export default function QuestsPage() {
     setProgressError(null);
   }, []);
 
-  if (!player) {
+  const handleEditQuest = useCallback((quest: Quest) => {
+    setShowCreateForm(false);
+    setEditingQuest(quest);
+  }, []);
+
+  const handleSaveEdit = useCallback(
+    (questData: {
+      title: string;
+      description: string;
+      category: FinancialCategory;
+      targetAmount: number;
+      dueDate: Date;
+      priority: QuestPriority;
+    }) => {
+      if (!editingQuest) return;
+      editQuest(editingQuest.id, questData);
+      setEditingQuest(null);
+    },
+    [editingQuest, editQuest]
+  );
+
+  const handleDeleteQuest = useCallback(
+    (questId: string) => {
+      deleteQuest(questId);
+    },
+    [deleteQuest]
+  );
+
+  const handleCompleteQuest = useCallback(
+    (questId: string) => {
+      completeQuest(questId);
+    },
+    [completeQuest]
+  );
+
+  useEffect(() => {
+    if (_hasHydrated && !player) router.replace('/');
+  }, [_hasHydrated, player, router]);
+
+  if (!_hasHydrated || !player) {
     return <div className="loading">Loading...</div>;
   }
 
@@ -101,10 +152,6 @@ export default function QuestsPage() {
   return (
     <main>
       <div className="container">
-        <Link href="/" className="btn-back">
-          ← Back
-        </Link>
-
         <div className="page-header">
           <div>
             <h1>Quests</h1>
@@ -114,49 +161,84 @@ export default function QuestsPage() {
           </div>
           <button
             className="btn btn-primary"
-            onClick={() => setShowCreateForm(!showCreateForm)}
+            onClick={() => {
+              setShowCreateForm(true);
+              setEditingQuest(null);
+            }}
           >
-            {showCreateForm ? 'Cancel' : '+ Create Quest'}
+            + Create Quest
           </button>
         </div>
 
-        {showCreateForm && (
-          <div className="create-form-container">
-            <QuestForm
-              onSubmit={handleCreateQuest}
-              onCancel={() => setShowCreateForm(false)}
-            />
-          </div>
-        )}
-
-        {updatingQuestId && (
-          <div className="update-progress-container">
-            <h3>Update Quest Progress</h3>
-            <p>
-              Enter a new current amount for{' '}
-              <strong>{player.quests.find((q) => q.id === updatingQuestId)?.title}</strong>.
-            </p>
-            <div className="update-progress-controls">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={progressInput}
-                onChange={(event) => {
-                  setProgressInput(event.target.value);
-                  setProgressError(null);
-                }}
+        <AnimatePresence>
+          {showCreateForm && (
+            <Modal title="Create Quest" onClose={() => setShowCreateForm(false)}>
+              <QuestForm
+                onSubmit={handleCreateQuest}
+                onCancel={() => setShowCreateForm(false)}
               />
-              <button className="btn btn-primary" onClick={handleSubmitProgress}>
-                Save
-              </button>
-              <button className="btn btn-secondary" onClick={handleCancelProgress}>
-                Cancel
-              </button>
-            </div>
-            {progressError && <p className="form-error">{progressError}</p>}
-          </div>
-        )}
+            </Modal>
+          )}
+
+          {editingQuest && (
+            <Modal title="Edit Quest" onClose={() => setEditingQuest(null)}>
+              <QuestForm
+                key={editingQuest.id}
+                initialData={editingQuest}
+                onSubmit={handleSaveEdit}
+                onCancel={() => setEditingQuest(null)}
+              />
+            </Modal>
+          )}
+
+          {updatingQuestId && (
+            <Modal title="Update Quest Progress" onClose={handleCancelProgress}>
+              <p>
+                Enter a new current amount for{' '}
+                <strong>{player.quests.find((q) => q.id === updatingQuestId)?.title}</strong>.
+              </p>
+              <div className="update-progress-controls">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  autoFocus
+                  value={progressInput}
+                  onChange={(event) => {
+                    setProgressInput(event.target.value);
+                    setProgressError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') handleSubmitProgress();
+                  }}
+                />
+                <button className="btn btn-primary" onClick={handleSubmitProgress}>
+                  Save
+                </button>
+                <button className="btn btn-secondary" onClick={handleCancelProgress}>
+                  Cancel
+                </button>
+              </div>
+              {progressError && <p className="form-error">{progressError}</p>}
+            </Modal>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {progressFloat && (
+            <motion.div
+              key={progressFloat.key}
+              className="progress-float"
+              initial={{ opacity: 0, y: 0, scale: 0.9 }}
+              animate={{ opacity: [0, 1, 1, 0], y: -56, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.4, ease: 'easeOut', times: [0, 0.15, 0.75, 1] }}
+              onAnimationComplete={() => setProgressFloat(null)}
+            >
+              {progressFloat.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <QuestFilter
           searchTerm={searchTerm}
@@ -182,7 +264,10 @@ export default function QuestsPage() {
                 <h2>Active Quests</h2>
                 <QuestGrid
                   quests={filteredQuests.filter((q) => q.status === QuestStatus.Active)}
+                  onEdit={handleEditQuest}
+                  onDelete={handleDeleteQuest}
                   onUpdateProgress={handleUpdateProgress}
+                  onComplete={handleCompleteQuest}
                 />
               </section>
             )}
@@ -192,6 +277,7 @@ export default function QuestsPage() {
                 <h2>Completed Quests</h2>
                 <QuestGrid
                   quests={filteredQuests.filter((q) => q.status === QuestStatus.Completed)}
+                  onDelete={handleDeleteQuest}
                   emptyMessage="No completed quests yet"
                 />
               </section>

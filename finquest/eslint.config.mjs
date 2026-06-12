@@ -7,7 +7,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['dist', 'build', '.next', 'node_modules'],
+    ignores: ['dist', 'build', '.next', 'node_modules', 'src/generated'],
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],

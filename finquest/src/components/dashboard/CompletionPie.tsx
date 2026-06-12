@@ -9,12 +9,12 @@ export function CompletionPie({ player }: { player: Player }) {
   const total = player.quests.length;
   const failed = total - completed - active;
 
-  const data = [
+  const allData = [
     { name: 'Completed', value: completed },
     { name: 'Active', value: active },
+    { name: 'Failed', value: failed },
   ];
-
-  if (failed > 0) data.push({ name: 'Failed', value: failed });
+  const data = allData.filter((d) => d.value > 0);
 
   return (
     <div className="chart-card">

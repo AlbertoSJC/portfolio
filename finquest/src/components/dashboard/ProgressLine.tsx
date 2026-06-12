@@ -15,6 +15,18 @@ export function ProgressLine({ player }: { player: Player }) {
       value: quest.targetAmount,
     }));
 
+  if (data.length === 0) {
+    return (
+      <div className="chart-card">
+        <h3>Completed Quest Growth</h3>
+        <div className="chart-empty">
+          <p>No completed quests yet</p>
+          <p className="empty-hint">Finish a quest to start tracking your growth</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="chart-card">
       <h3>Completed Quest Growth</h3>

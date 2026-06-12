@@ -150,7 +150,9 @@ export function QuestForm({
           className="btn btn-primary"
           disabled={isLoading}
         >
-          {isLoading ? 'Creating...' : 'Create Quest'}
+          {isLoading
+            ? initialData ? 'Saving...' : 'Creating...'
+            : initialData ? 'Save Changes' : 'Create Quest'}
         </button>
         {onCancel && (
           <button

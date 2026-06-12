@@ -10,17 +10,38 @@ export interface NotificationItem {
   timestamp: Date;
 }
 
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
+export type CelebrationEvent =
+  | {
+      id: string;
+      kind: 'quest-complete';
+      questTitle: string;
+      xpGained: number;
+      coinsGained: number;
+      achievementTitles: string[];
+    }
+  | {
+      id: string;
+      kind: 'level-up';
+      newLevel: number;
+    };
+
 interface NotificationState {
   notifications: NotificationItem[];
   history: NotificationItem[];
+  celebrations: CelebrationEvent[];
   pushNotification: (notification: Omit<NotificationItem, 'id' | 'timestamp'>) => void;
   removeNotification: (id: string) => void;
   clearHistory: () => void;
+  pushCelebration: (event: DistributiveOmit<CelebrationEvent, 'id'>) => void;
+  dismissCelebration: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   history: [],
+  celebrations: [],
 
   pushNotification: (notification) => {
     const id = `toast-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -44,4 +65,17 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     })),
 
   clearHistory: () => set({ history: [] }),
+
+  pushCelebration: (event) =>
+    set((state) => ({
+      celebrations: [
+        ...state.celebrations,
+        { ...event, id: `celebration-${Date.now()}-${Math.random().toString(16).slice(2)}` } as CelebrationEvent,
+      ],
+    })),
+
+  dismissCelebration: () =>
+    set((state) => ({
+      celebrations: state.celebrations.slice(1),
+    })),
 }));

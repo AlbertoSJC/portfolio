@@ -30,7 +30,7 @@ describe('QuestCard', () => {
     );
 
     expect(screen.getByText('Emergency Fund')).toBeInTheDocument();
-    expect(screen.getByText('savings')).toBeInTheDocument();
+    expect(screen.getByText('Savings')).toBeInTheDocument();
     expect(screen.getByText(QuestStatus.Active)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /edit quest/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /update progress/i })).toBeInTheDocument();
