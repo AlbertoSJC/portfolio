@@ -31,6 +31,8 @@ export interface GuildState {
   consumableInventory: Record<string, number>;
   /** Unequipped gear in the guild stores, by equipment identifier. */
   equipmentInventory: Record<string, number>;
+  /** What the village store still has on its shelves, by item identifier. */
+  storeStock: Record<string, number>;
   questIdentifiersOnBoard: string[];
   recruitsOnOffer: RecruitOffer[];
   completedQuestCount: number;

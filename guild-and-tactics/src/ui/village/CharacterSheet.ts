@@ -13,7 +13,8 @@ import {
 } from '../../sim/items/EquipmentDefinition';
 import { experienceRequiredToLevelUpFrom } from '../../sim/progression/ExperienceAndLevels';
 import { createUnitFromCharacter } from '../../sim/units/UnitFactory';
-import type { UnitStatistics } from '../../sim/units/Unit';
+import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
+import type { BaseClassIdentifier, UnitStatistics } from '../../sim/units/Unit';
 import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import { createMemberPortraitCanvas } from './MemberPortrait';
 
@@ -21,12 +22,14 @@ export interface CharacterSheetCallbacks {
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
   onToggleSlotPicker: (slot: EquipmentSlot) => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier) => void;
 }
 
 export interface CharacterSheetContentTables {
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
   equipment: Record<string, EquipmentDefinition>;
+  skills: Record<string, SkillDefinition>;
 }
 
 const STATISTIC_SHORT_LABELS: Record<keyof UnitStatistics, string> = {
@@ -145,7 +148,92 @@ export function buildCharacterSheetContent(
     );
   }
   sheetElement.appendChild(equipmentSection);
+
+  sheetElement.appendChild(buildSkillsSection(baseClass, content));
+  sheetElement.appendChild(buildClassesSection(member, race, content, callbacks));
   return sheetElement;
+}
+
+/** Skills the member commands in their current class. */
+function buildSkillsSection(
+  baseClass: BaseClassDefinition,
+  content: CharacterSheetContentTables,
+): HTMLElement {
+  const skillsSection = document.createElement('div');
+  skillsSection.className = 'character-sheet-skills';
+  const skillsTitle = document.createElement('p');
+  skillsTitle.className = 'menu-section-title';
+  skillsTitle.textContent = `Skills — ${baseClass.displayName}`;
+  skillsSection.appendChild(skillsTitle);
+  for (const skillIdentifier of ['basic_attack', ...baseClass.skillIdentifiers]) {
+    const skill = content.skills[skillIdentifier];
+    if (skill === undefined) {
+      continue;
+    }
+    const skillRow = document.createElement('div');
+    skillRow.className = 'skill-row';
+    const costNote = skill.manaPointCost === 0 ? '' : ` · ${skill.manaPointCost} MP`;
+    const rangeNote = skill.targetingRange === 0 ? 'Self' : `Range ${skill.targetingRange}`;
+    skillRow.innerHTML = `
+      <strong>${skill.displayName}</strong>
+      <span>${skill.description}</span>
+      <em>${rangeNote}${costNote}</em>
+    `;
+    skillsSection.appendChild(skillRow);
+  }
+  return skillsSection;
+}
+
+/**
+ * Every base class the member's race allows, with its skill list, and a
+ * switch button (PRD §4: class changes happen in the village). Per-level
+ * skill learning and advanced classes arrive in M3.
+ */
+function buildClassesSection(
+  member: GuildMember,
+  race: RaceDefinition,
+  content: CharacterSheetContentTables,
+  callbacks: CharacterSheetCallbacks,
+): HTMLElement {
+  const classesSection = document.createElement('div');
+  classesSection.className = 'character-sheet-classes';
+  const classesTitle = document.createElement('p');
+  classesTitle.className = 'menu-section-title';
+  classesTitle.textContent = `Classes open to ${race.displayName}s`;
+  classesSection.appendChild(classesTitle);
+
+  for (const classIdentifier of race.allowedBaseClasses) {
+    const baseClass = content.baseClasses[classIdentifier];
+    if (baseClass === undefined) {
+      continue;
+    }
+    const isCurrentClass = classIdentifier === member.baseClassIdentifier;
+    const skillNames = baseClass.skillIdentifiers
+      .map((skillIdentifier) => content.skills[skillIdentifier]?.displayName)
+      .filter((displayName) => displayName !== undefined)
+      .join(', ');
+    const classRow = document.createElement('div');
+    classRow.className = `class-row ${isCurrentClass ? 'is-current' : ''}`;
+    classRow.innerHTML = `
+      <strong>${baseClass.displayName}${isCurrentClass ? ' · current' : ''}</strong>
+      <span>${skillNames}</span>
+    `;
+    const switchButton = document.createElement('button');
+    switchButton.textContent = isCurrentClass ? 'Current class' : `Become ${baseClass.displayName}`;
+    switchButton.disabled = isCurrentClass;
+    switchButton.addEventListener('click', () =>
+      callbacks.onChangeClass(member.identifier, classIdentifier as BaseClassIdentifier),
+    );
+    classRow.appendChild(switchButton);
+    classesSection.appendChild(classRow);
+  }
+
+  const classChangeNote = document.createElement('p');
+  classChangeNote.className = 'village-hint';
+  classChangeNote.textContent =
+    'Switching class keeps level and XP; gear the new class cannot use returns to the guild stores. Advanced classes and per-level skill learning arrive with M3.';
+  classesSection.appendChild(classChangeNote);
+  return classesSection;
 }
 
 function buildEquipmentSlotRow(

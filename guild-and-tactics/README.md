@@ -542,6 +542,33 @@ forward from M3).**
   confirming sheet ATK 12→15 on equipping the Iron Sword, the picker,
   buy/sell math, portraits, and the quest modal muster.
 
+**2026-06-12 — M2.6: store depth + class switching.**
+
+- *Store stock* (`src/sim/guild/StoreStock.ts`): shelves hold limited
+  stock (5 per consumable, 2 per equipment piece), shown on every card;
+  buying decrements it and "Out of stock" disables the button. Caravans
+  restock fully after every completed quest. Multi-buying verified in the
+  browser (3 potions: stock 5→2, gold 300→210).
+- *Item icons* (`src/ui/village/ItemIcons.ts`): procedural canvas icons
+  by item type — healing/mana flasks, sword/dagger/staff/rod (weapon
+  silhouette picked from the wielding class), breastplate, ring. Same
+  swap-point principle as the unit miniatures.
+- *Store filters*: pill sub-tabs under the main tabs — All / Consumables
+  / Weapons / Armor / Accessories.
+- *Character sheet completed*: **Skills section** (current class's skills
+  with description, range, MP cost) and **Classes section** — every base
+  class the member's race allows, each with its skill list and a switch
+  button. *Class switching* (`src/sim/guild/ClassChange.ts`) keeps level
+  and XP, and gear the new class cannot use returns to the guild stores
+  automatically (browser-verified: Garrick Warrior→Mage dropped the Iron
+  Sword back into the stores). Per-level skill learning, mastered-class
+  secondary skill sets, and advanced classes remain M3.
+- *Save format*: storeStock field added; load-normalization treats a
+  missing/empty stock map as "never stocked" and refills it.
+- *Verification*: 86 vitest tests (stock, class-change legality including
+  the Feryan no-magic rule, illegal-gear auto-unequip); browser E2E
+  (`tmp/verify_store_classes.mjs`).
+
 ## 12. Open decisions
 
 - [x] **Rendering**: ~~3D vs 2D~~ → **2D decided** (placeholder sprites

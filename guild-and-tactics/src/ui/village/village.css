@@ -376,6 +376,82 @@ button.village-card:hover {
   font-size: 13px;
 }
 
+.store-filter-bar {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 14px;
+}
+
+.store-filter-bar button {
+  background: #232936;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 14px;
+  padding: 6px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.store-filter-bar button.is-active {
+  background: var(--hud-accent-color);
+  color: #1c1c1c;
+  font-weight: 600;
+}
+
+.item-icon {
+  flex-shrink: 0;
+  background: radial-gradient(circle at 50% 60%, #2c3340 0%, #232936 70%);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 6px;
+}
+
+.character-sheet-skills,
+.character-sheet-classes {
+  margin-top: 16px;
+}
+
+.skill-row,
+.class-row {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.skill-row em,
+.class-row span {
+  opacity: 0.8;
+  font-style: normal;
+}
+
+.class-row.is-current {
+  border-color: var(--hud-accent-color);
+}
+
+.class-row button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.class-row button:hover:not(:disabled) {
+  border-color: var(--hud-accent-color);
+}
+
+.class-row button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .guild-stores-summary {
   background: #232936;
   border: 1px solid var(--hud-panel-border);

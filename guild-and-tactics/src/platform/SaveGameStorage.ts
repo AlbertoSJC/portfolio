@@ -28,6 +28,8 @@ interface VersionedSaveFile {
 function normalizeLoadedGuild(guild: GuildState): GuildState {
   guild.equipmentInventory ??= {};
   guild.consumableInventory ??= {};
+  // An empty stock map means "never stocked" — the GameController restocks it.
+  guild.storeStock ??= {};
   for (const member of guild.roster) {
     member.equippedItemIdentifiers ??= {};
   }

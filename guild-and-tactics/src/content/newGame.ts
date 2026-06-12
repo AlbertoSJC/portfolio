@@ -3,6 +3,9 @@ import type { GuildState } from '../sim/guild/GuildState';
 import { STARTING_GOLD } from '../sim/guild/GuildState';
 import { refillQuestBoard } from '../sim/guild/QuestBoard';
 import { averageRosterLevel, generateRecruitOffers } from '../sim/guild/RecruitGeneration';
+import { restockStore } from '../sim/guild/StoreStock';
+import { EQUIPMENT } from './equipment';
+import { ITEMS } from './items';
 import { QUESTS } from './quests';
 import { RACES } from './races';
 import { RECRUIT_NAMES_BY_RACE } from './recruitNames';
@@ -69,10 +72,12 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
     consumableInventory: { potion: STARTING_POTIONS, ether: STARTING_ETHERS },
     // A couple of starter pieces so the equipment flow is discoverable.
     equipmentInventory: { iron_sword: 1, leather_vest: 1 },
+    storeStock: {},
     questIdentifiersOnBoard: [],
     recruitsOnOffer: [],
     completedQuestCount: 0,
   };
+  restockStore(guild, ITEMS, EQUIPMENT);
   refillQuestBoard(guild, Object.keys(QUESTS), randomNumberGenerator);
   guild.recruitsOnOffer = generateRecruitOffers(
     randomNumberGenerator,

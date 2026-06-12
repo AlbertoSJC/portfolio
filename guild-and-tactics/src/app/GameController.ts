@@ -10,7 +10,10 @@ import {
   spendGold,
   type GuildState,
 } from '../sim/guild/GuildState';
+import { changeMemberBaseClass } from '../sim/guild/ClassChange';
 import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
+import { restockStore, takeOneFromStoreStock } from '../sim/guild/StoreStock';
+import type { BaseClassIdentifier } from '../sim/units/Unit';
 import {
   sellPriceForEquipment,
   type EquipmentSlot,
@@ -39,6 +42,10 @@ import { VillageScreen } from '../ui/village/VillageScreen';
 import { BattleController, type BattleConclusion } from './BattleController';
 
 const RANDOM_SEED_BIT_MASK = 0x7fffffff;
+
+function canAffordAndInStock(guild: GuildState, priceInGold: number, itemIdentifier: string): boolean {
+  return guild.gold >= priceInGold && (guild.storeStock[itemIdentifier] ?? 0) > 0;
+}
 
 /**
  * The top of the game: owns the guild state, the save storage, and the
@@ -72,6 +79,10 @@ export class GameController {
     this.randomNumberGenerator = new SeededRandomNumberGenerator(Date.now() & RANDOM_SEED_BIT_MASK);
 
     this.guild = this.saveGameStorage.loadGuildSave() ?? createNewGuild(this.randomNumberGenerator);
+    if (Object.keys(this.guild.storeStock).length === 0) {
+      // Saves from before store stock existed start with full shelves.
+      restockStore(this.guild, ITEMS, EQUIPMENT);
+    }
     this.saveGameStorage.persistGuildSave(this.guild);
 
     this.villageScreen = new VillageScreen(
@@ -81,6 +92,7 @@ export class GameController {
         quests: QUESTS,
         items: ITEMS,
         equipment: EQUIPMENT,
+        skills: SKILLS,
         battleMapsByIdentifier: BATTLE_MAPS,
         races: RACES,
         baseClasses: BASE_CLASSES,
@@ -96,6 +108,8 @@ export class GameController {
         onEquipItem: (memberIdentifier, equipmentIdentifier) =>
           this.equipItem(memberIdentifier, equipmentIdentifier),
         onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
+        onChangeClass: (memberIdentifier, classIdentifier) =>
+          this.changeClass(memberIdentifier, classIdentifier),
       },
     );
 
@@ -123,9 +137,11 @@ export class GameController {
 
   private buyItem(itemIdentifier: string): void {
     const item = ITEMS[itemIdentifier];
-    if (item === undefined || !spendGold(this.guild, item.priceInGold)) {
+    if (item === undefined || !canAffordAndInStock(this.guild, item.priceInGold, itemIdentifier)) {
       return;
     }
+    takeOneFromStoreStock(this.guild, itemIdentifier);
+    spendGold(this.guild, item.priceInGold);
     addConsumable(this.guild, itemIdentifier, 1);
     this.persistAndRerenderVillage();
   }
@@ -141,10 +157,22 @@ export class GameController {
 
   private buyEquipment(equipmentIdentifier: string): void {
     const equipment = EQUIPMENT[equipmentIdentifier];
-    if (equipment === undefined || !spendGold(this.guild, equipment.priceInGold)) {
+    if (
+      equipment === undefined ||
+      !canAffordAndInStock(this.guild, equipment.priceInGold, equipmentIdentifier)
+    ) {
       return;
     }
+    takeOneFromStoreStock(this.guild, equipmentIdentifier);
+    spendGold(this.guild, equipment.priceInGold);
     addEquipmentPiece(this.guild, equipmentIdentifier);
+    this.persistAndRerenderVillage();
+  }
+
+  private changeClass(memberIdentifier: string, classIdentifier: BaseClassIdentifier): void {
+    if (!changeMemberBaseClass(this.guild, memberIdentifier, classIdentifier, RACES, EQUIPMENT)) {
+      return;
+    }
     this.persistAndRerenderVillage();
   }
 
@@ -289,6 +317,8 @@ export class GameController {
         Object.keys(QUESTS),
         this.randomNumberGenerator,
       );
+      // The cleared road lets a caravan through: full shelves again.
+      restockStore(this.guild, ITEMS, EQUIPMENT);
       // New faces drift into the hall after every job well done.
       this.guild.recruitsOnOffer = generateRecruitOffers(
         this.randomNumberGenerator,

@@ -19,13 +19,17 @@ import {
   type EquipmentSlot,
 } from '../../sim/items/EquipmentDefinition';
 import { experienceRequiredToLevelUpFrom } from '../../sim/progression/ExperienceAndLevels';
+import { storeStockOf } from '../../sim/guild/StoreStock';
 import type { BattleMap } from '../../sim/grid/BattleMap';
+import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
+import type { BaseClassIdentifier } from '../../sim/units/Unit';
 import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import {
   buildCharacterSheetContent,
   describeStatisticBonuses,
 } from './CharacterSheet';
+import { createItemIconCanvas, iconKindForConsumable, iconKindForEquipment } from './ItemIcons';
 import { createMemberPortraitCanvas } from './MemberPortrait';
 import { ModalDialog } from './ModalDialog';
 
@@ -38,6 +42,7 @@ export interface VillageCallbacks {
   onHireRecruit: (recruitMemberIdentifier: string) => void;
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier) => void;
 }
 
 /** Content the village needs for display, injected so the UI stays data-driven. */
@@ -45,12 +50,23 @@ export interface VillageContentTables {
   quests: Record<string, QuestDefinition>;
   items: Record<string, ConsumableItemDefinition>;
   equipment: Record<string, EquipmentDefinition>;
+  skills: Record<string, SkillDefinition>;
   battleMapsByIdentifier: Record<string, { map: BattleMap }>;
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
 }
 
 type VillageTab = 'tavern' | 'store' | 'recruitment' | 'roster';
+
+type StoreFilter = 'all' | 'consumables' | EquipmentSlot;
+
+const STORE_FILTER_LABELS: [StoreFilter, string][] = [
+  ['all', 'All'],
+  ['consumables', 'Consumables'],
+  ['weapon', 'Weapons'],
+  ['armor', 'Armor'],
+  ['accessory', 'Accessories'],
+];
 
 type VillageModalState =
   | { kind: 'questDetail'; questIdentifier: string }
@@ -78,6 +94,7 @@ export class VillageScreen {
   private readonly content: VillageContentTables;
   private readonly modal: ModalDialog;
   private activeTab: VillageTab = 'tavern';
+  private storeFilter: StoreFilter = 'all';
   private modalState: VillageModalState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
   private lastRenderedGuild: GuildState | undefined;
@@ -219,6 +236,10 @@ export class VillageScreen {
           }
           this.rerender();
         },
+        onChangeClass: (memberIdentifier, classIdentifier) => {
+          this.sounds.playMenuConfirm();
+          this.callbacks.onChangeClass(memberIdentifier, classIdentifier);
+        },
       },
     );
   }
@@ -322,80 +343,99 @@ export class VillageScreen {
   // ── Store ────────────────────────────────────────────────────────────
 
   private renderStore(container: HTMLElement, guild: GuildState): void {
-    const consumablesTitle = document.createElement('p');
-    consumablesTitle.className = 'menu-section-title';
-    consumablesTitle.textContent = 'Consumables';
-    container.appendChild(consumablesTitle);
-
-    const consumablesList = document.createElement('div');
-    consumablesList.className = 'village-card-list';
-    for (const item of Object.values(this.content.items)) {
-      consumablesList.appendChild(
-        this.buildStoreCard(
-          guild,
-          item.displayName,
-          item.description,
-          `Price: ${item.priceInGold} gold · Owned: ${countConsumable(guild, item.identifier)}`,
-          item.priceInGold,
-          sellPriceForItem(item),
-          countConsumable(guild, item.identifier) > 0,
-          () => this.callbacks.onBuyItem(item.identifier),
-          () => this.callbacks.onSellItem(item.identifier),
-        ),
-      );
+    const filterBar = document.createElement('nav');
+    filterBar.className = 'store-filter-bar';
+    for (const [filter, label] of STORE_FILTER_LABELS) {
+      const filterButton = document.createElement('button');
+      filterButton.textContent = label;
+      filterButton.className = filter === this.storeFilter ? 'is-active' : '';
+      filterButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
+      filterButton.addEventListener('click', () => {
+        this.sounds.playMenuConfirm();
+        this.storeFilter = filter;
+        this.rerender();
+      });
+      filterBar.appendChild(filterButton);
     }
-    container.appendChild(consumablesList);
+    container.appendChild(filterBar);
 
-    const equipmentTitle = document.createElement('p');
-    equipmentTitle.className = 'menu-section-title';
-    equipmentTitle.textContent = 'Equipment';
-    container.appendChild(equipmentTitle);
+    const storeList = document.createElement('div');
+    storeList.className = 'village-card-list';
 
-    const equipmentList = document.createElement('div');
-    equipmentList.className = 'village-card-list';
+    if (this.storeFilter === 'all' || this.storeFilter === 'consumables') {
+      for (const item of Object.values(this.content.items)) {
+        storeList.appendChild(
+          this.buildStoreCard(
+            guild,
+            createItemIconCanvas(iconKindForConsumable(item)),
+            item.displayName,
+            item.description,
+            `Price: ${item.priceInGold} gold · Stock: ${storeStockOf(guild, item.identifier)} · Owned: ${countConsumable(guild, item.identifier)}`,
+            item.priceInGold,
+            sellPriceForItem(item),
+            storeStockOf(guild, item.identifier),
+            countConsumable(guild, item.identifier) > 0,
+            () => this.callbacks.onBuyItem(item.identifier),
+            () => this.callbacks.onSellItem(item.identifier),
+          ),
+        );
+      }
+    }
+
     for (const equipment of Object.values(this.content.equipment)) {
+      const matchesFilter = this.storeFilter === 'all' || this.storeFilter === equipment.slot;
+      if (!matchesFilter) {
+        continue;
+      }
       const classRestrictionNote =
         equipment.allowedBaseClasses === undefined
           ? 'Anyone'
           : equipment.allowedBaseClasses
               .map((classIdentifier) => this.content.baseClasses[classIdentifier]?.displayName ?? classIdentifier)
               .join(', ');
-      equipmentList.appendChild(
+      storeList.appendChild(
         this.buildStoreCard(
           guild,
+          createItemIconCanvas(iconKindForEquipment(equipment)),
           `${equipment.displayName} (${describeStatisticBonuses(equipment.statisticBonuses)})`,
           equipment.description,
-          `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${classRestrictionNote} · Price: ${equipment.priceInGold} gold · In stores: ${countEquipmentPieces(guild, equipment.identifier)}`,
+          `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${classRestrictionNote} · Price: ${equipment.priceInGold} gold · Stock: ${storeStockOf(guild, equipment.identifier)} · In stores: ${countEquipmentPieces(guild, equipment.identifier)}`,
           equipment.priceInGold,
           sellPriceForEquipment(equipment),
+          storeStockOf(guild, equipment.identifier),
           countEquipmentPieces(guild, equipment.identifier) > 0,
           () => this.callbacks.onBuyEquipment(equipment.identifier),
           () => this.callbacks.onSellEquipment(equipment.identifier),
         ),
       );
     }
-    container.appendChild(equipmentList);
+    container.appendChild(storeList);
   }
 
   private buildStoreCard(
     guild: GuildState,
+    iconCanvas: HTMLCanvasElement,
     title: string,
     description: string,
     detailLine: string,
     buyPrice: number,
     sellPrice: number,
+    stockRemaining: number,
     canSell: boolean,
     onBuy: () => void,
     onSell: () => void,
   ): HTMLElement {
     const storeCard = document.createElement('div');
-    storeCard.className = 'village-card';
-    storeCard.innerHTML = `<h3>${title}</h3><p>${description}</p><p>${detailLine}</p>`;
+    storeCard.className = 'village-card with-portrait';
+    storeCard.appendChild(iconCanvas);
+    const cardBody = document.createElement('div');
+    cardBody.innerHTML = `<h3>${title}</h3><p>${description}</p><p>${detailLine}</p>`;
+    storeCard.appendChild(cardBody);
     const buttonRow = document.createElement('div');
     buttonRow.className = 'village-card-buttons';
     const buyButton = document.createElement('button');
-    buyButton.textContent = `Buy (${buyPrice}g)`;
-    buyButton.disabled = !canAffordGoldCost(guild, buyPrice);
+    buyButton.textContent = stockRemaining < 1 ? 'Out of stock' : `Buy (${buyPrice}g)`;
+    buyButton.disabled = !canAffordGoldCost(guild, buyPrice) || stockRemaining < 1;
     buyButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
     buyButton.addEventListener('click', () => {
       this.sounds.playMenuConfirm();
@@ -410,7 +450,7 @@ export class VillageScreen {
       onSell();
     });
     buttonRow.append(buyButton, sellButton);
-    storeCard.appendChild(buttonRow);
+    cardBody.appendChild(buttonRow);
     return storeCard;
   }
 
