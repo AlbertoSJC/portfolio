@@ -19,9 +19,15 @@ interface VersionedSaveFile {
   guild: GuildState;
 }
 
-/** Version 1 predates equipment: add the empty fields it lacked. */
-function migrateVersionOneSave(guild: GuildState): GuildState {
+/**
+ * Heals any accepted save to the current shape: fields added by newer
+ * formats (the v2 equipment fields) are filled with empty defaults when
+ * missing. Runs on every load, so a save written by an in-between dev
+ * build can never crash the game.
+ */
+function normalizeLoadedGuild(guild: GuildState): GuildState {
   guild.equipmentInventory ??= {};
+  guild.consumableInventory ??= {};
   for (const member of guild.roster) {
     member.equippedItemIdentifiers ??= {};
   }
@@ -49,15 +55,15 @@ export class BrowserLocalStorageSaveGameStorage implements SaveGameStorage {
     }
     try {
       const parsedSave = JSON.parse(rawSave) as VersionedSaveFile;
-      if (parsedSave.saveFormatVersion === 1) {
-        return migrateVersionOneSave(parsedSave.guild);
-      }
-      if (parsedSave.saveFormatVersion !== CURRENT_SAVE_FORMAT_VERSION) {
+      const isKnownVersion =
+        parsedSave.saveFormatVersion === 1 ||
+        parsedSave.saveFormatVersion === CURRENT_SAVE_FORMAT_VERSION;
+      if (!isKnownVersion) {
         // Newer/unknown format than this build understands: start fresh
         // rather than corrupt.
         return undefined;
       }
-      return parsedSave.guild;
+      return normalizeLoadedGuild(parsedSave.guild);
     } catch {
       return undefined; // a corrupt save never crashes the game
     }

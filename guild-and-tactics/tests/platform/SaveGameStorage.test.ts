@@ -72,6 +72,38 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(migratedGuild?.gold).toBe(150);
   });
 
+  it('heals a v2 save that is missing the equipment fields (mid-dev hot-reload artifact)', () => {
+    const keyValueStore = createInMemoryKeyValueStore();
+    const brokenVersionTwoGuild = {
+      gold: 270,
+      roster: [
+        {
+          identifier: 'member_broken',
+          displayName: 'Broken Save Member',
+          raceIdentifier: 'werecat',
+          baseClassIdentifier: 'thief',
+          level: 2,
+          experiencePoints: 10,
+          // v2 label but no equippedItemIdentifiers — written by an in-between build
+        },
+      ],
+      consumableInventory: { potion: 3 },
+      // no equipmentInventory either
+      questIdentifiersOnBoard: [],
+      recruitsOnOffer: [],
+      completedQuestCount: 1,
+    };
+    keyValueStore.setItem(
+      'guild-and-tactics.save',
+      JSON.stringify({ saveFormatVersion: 2, guild: brokenVersionTwoGuild }),
+    );
+    const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
+    const healedGuild = storage.loadGuildSave();
+    expect(healedGuild?.equipmentInventory).toEqual({});
+    expect(healedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
+    expect(healedGuild?.gold).toBe(270);
+  });
+
   it('refuses saves from an unknown format version', () => {
     const keyValueStore = createInMemoryKeyValueStore();
     keyValueStore.setItem(
