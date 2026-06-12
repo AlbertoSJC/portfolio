@@ -225,6 +225,27 @@ buildings:
 (Bronze → Silver → Gold → …) unlock better store stock, better recruits,
 harder quest ranks, and the other villages.
 
+### 6.0 World map screen (FFT/FFTA-style — planned for M3)
+
+Navigation is presented as a **map, not menus**: an overworld/town map
+with location nodes connected by paths, in the style of FFT and FFTA's
+world map.
+
+- **Inside a settlement**: the village is a small map with building nodes
+  — Tavern, Store, Recruitment Hall, Guild Hall (roster) — and the party
+  marker moves between them; clicking/entering a node opens that
+  building's screen (the existing tab panels become the building
+  interiors).
+- **Between settlements (M4)**: the same pattern zoomed out — settlement
+  and landmark nodes connected by roads; moving along a road is what can
+  trigger random encounters (§6.1) and is how the other villages unlock.
+- **Presentation**: 2D drawn map (procedural/canvas first, art later via
+  the same swap-point principle as `SpriteRegistry`); the party marker
+  animates along the path; keyboard and click navigation both work.
+- **Build order**: village map screen lands in **M3** (replacing the tab
+  bar as the primary navigation); the overworld map between settlements
+  lands in **M4** together with travel and random encounters.
+
 ### 6.1 Overworld random encounters
 
 Traveling between villages on the overworld map can trigger a random
@@ -389,10 +410,12 @@ days of work, not a rewrite.
    gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
    browser-verified**
 3. ⬜ **M3 — Depth**: advanced classes + race gating, secondary skill sets,
-   status effects, elements, equipment slots/tiers.
+   status effects, elements, equipment slots/tiers, **village map screen
+   (§6.0)** — buildings as walkable map nodes instead of tabs.
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
-   villages, overworld travel + random encounters (§6.1), reputation tiers,
-   dispatch quests, balancing pass, audio, visual polish.
+   villages, **overworld map** (§6.0) with travel + random encounters
+   (§6.1), reputation tiers, dispatch quests, balancing pass, audio,
+   visual polish.
 
 ### Development log
 
