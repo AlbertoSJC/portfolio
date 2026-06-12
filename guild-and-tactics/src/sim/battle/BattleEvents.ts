@@ -21,6 +21,13 @@ export type BattleEvent =
     }
   | { kind: 'attackMissed'; attackerIdentifier: string; defenderIdentifier: string }
   | { kind: 'healingReceived'; healerIdentifier: string; targetIdentifier: string; amount: number }
+  | { kind: 'manaRestored'; targetIdentifier: string; amount: number }
+  | {
+      kind: 'itemUsed';
+      unitIdentifier: string;
+      itemIdentifier: string;
+      targetIdentifier: string;
+    }
   | {
       kind: 'statModifierApplied';
       targetIdentifier: string;

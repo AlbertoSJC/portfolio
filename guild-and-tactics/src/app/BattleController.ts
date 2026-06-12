@@ -1,6 +1,7 @@
-import { Battle } from '../sim/battle/Battle';
+import type { Battle, BattleOutcome } from '../sim/battle/Battle';
 import type { BattleEvent } from '../sim/battle/BattleEvents';
 import { planEnemyTurn } from '../sim/battle/EnemyArtificialIntelligence';
+import { ITEM_USE_RANGE } from '../sim/battle/combatConstants';
 import { isPositionInsideMap } from '../sim/grid/BattleMap';
 import type { CardinalDirection, GridPosition } from '../sim/grid/GridPosition';
 import {
@@ -17,55 +18,81 @@ import {
 } from '../render/BattleRenderer';
 import { BattleHud, type ActionMenuMode } from '../ui/BattleHud';
 import { formatBattleEventAsLogLine } from '../ui/CombatLogFormatting';
-import { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
+import type { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
 
 const ENEMY_ACTION_DELAY_MILLISECONDS = 450;
 
 type InteractionPhase =
   | 'unitCommands'
   | 'choosingMoveDestination'
-  | 'choosingSkillTarget'
+  | 'choosingActionTarget'
   | 'choosingFacing'
   | 'enemyActing'
   | 'battleOver';
 
+/** What the player is aiming: a skill or a consumable item. */
+type ChosenAction = { kind: 'skill'; identifier: string } | { kind: 'item'; identifier: string };
+
+/** What the outcome overlay shows when the battle ends. */
+export interface BattleConclusion {
+  summaryLines: string[];
+  continueButtonLabel: string;
+  onContinue: () => void;
+}
+
 /**
- * Owns the player interaction state machine and drives enemy turns.
- * All rule decisions stay in the Battle; this class only sequences input,
- * rendering, sound, and timing.
+ * Owns the player interaction state machine and drives enemy turns for one
+ * battle. All rule decisions stay in the Battle; this class only sequences
+ * input, rendering, sound, and timing. The GameController creates one per
+ * quest and disposes it afterwards.
  */
 export class BattleController {
-  private battle: Battle;
-  private readonly createBattle: () => Battle;
+  private readonly battle: Battle;
+  private readonly canvas: HTMLCanvasElement;
   private readonly renderer: BattleRenderer;
   private readonly hud: BattleHud;
-  private readonly sounds = new UserInterfaceSounds();
+  private readonly sounds: UserInterfaceSounds;
+  private readonly onBattleFinished: (outcome: Exclude<BattleOutcome, 'ongoing'>) => BattleConclusion;
+  private readonly boundHandleCanvasClick: (clickEvent: MouseEvent) => void;
+  private readonly boundHandleCanvasHover: (moveEvent: MouseEvent) => void;
+  private readonly pendingTimeoutIdentifiers: number[] = [];
   private phase: InteractionPhase = 'unitCommands';
   private highlightedTiles: GridPosition[] = [];
   private highlightKind: TileHighlightKind | undefined;
-  /** Tiles shown while hovering a skill/Move button, before committing. */
+  /** Tiles shown while hovering a skill/item/Move button, before committing. */
   private previewTiles: GridPosition[] = [];
   private previewKind: TileHighlightKind | undefined;
   private hoveredTile: GridPosition | undefined;
-  private chosenSkillIdentifier: string | undefined;
+  private chosenAction: ChosenAction | undefined;
   /** Which chooser arrow the cursor is over while picking end-of-turn facing. */
   private hoveredFacingDirection: CardinalDirection | undefined;
   /** Unit hovered in the turn-order strip, marked on the map. */
   private spotlightedUnitIdentifier: string | undefined;
 
-  constructor(canvas: HTMLCanvasElement, createBattle: () => Battle) {
-    this.createBattle = createBattle;
-    this.battle = createBattle();
+  constructor(
+    canvas: HTMLCanvasElement,
+    battle: Battle,
+    sounds: UserInterfaceSounds,
+    onBattleFinished: (outcome: Exclude<BattleOutcome, 'ongoing'>) => BattleConclusion,
+  ) {
+    this.canvas = canvas;
+    this.battle = battle;
+    this.sounds = sounds;
+    this.onBattleFinished = onBattleFinished;
     this.renderer = new BattleRenderer(canvas);
     this.renderer.sizeCanvasToMap(this.battle);
     this.hud = new BattleHud(
       {
         onMoveChosen: () => this.beginChoosingMoveDestination(),
-        onSkillChosen: (skillIdentifier) => this.beginChoosingSkillTarget(skillIdentifier),
+        onSkillChosen: (skillIdentifier) =>
+          this.beginChoosingActionTarget({ kind: 'skill', identifier: skillIdentifier }),
+        onItemChosen: (itemIdentifier) =>
+          this.beginChoosingActionTarget({ kind: 'item', identifier: itemIdentifier }),
         onEndTurnChosen: () => this.beginChoosingFacing(),
         onCancelChosen: () => this.returnToUnitCommands(),
         onMovePreviewStart: () => this.showMovePreview(),
         onSkillPreviewStart: (skillIdentifier) => this.showSkillPreview(skillIdentifier),
+        onItemPreviewStart: () => this.showItemPreview(),
         onPreviewEnd: () => this.clearPreview(),
         onTurnOrderUnitHoverStart: (unitIdentifier) => this.spotlightUnit(unitIdentifier),
         onTurnOrderUnitHoverEnd: () => this.clearUnitSpotlight(),
@@ -73,11 +100,26 @@ export class BattleController {
       this.sounds,
     );
 
-    canvas.addEventListener('click', (clickEvent) => this.handleCanvasClick(clickEvent));
-    canvas.addEventListener('mousemove', (moveEvent) => this.handleCanvasHover(moveEvent));
+    this.boundHandleCanvasClick = (clickEvent) => this.handleCanvasClick(clickEvent);
+    this.boundHandleCanvasHover = (moveEvent) => this.handleCanvasHover(moveEvent);
+    canvas.addEventListener('click', this.boundHandleCanvasClick);
+    canvas.addEventListener('mousemove', this.boundHandleCanvasHover);
 
-    this.hud.appendCombatLogLine('Creatures of the Darkness block the road north!');
     this.startTurnForActiveUnit();
+  }
+
+  /** Detaches listeners and cancels queued enemy steps when leaving the battle. */
+  dispose(): void {
+    this.canvas.removeEventListener('click', this.boundHandleCanvasClick);
+    this.canvas.removeEventListener('mousemove', this.boundHandleCanvasHover);
+    for (const timeoutIdentifier of this.pendingTimeoutIdentifiers) {
+      window.clearTimeout(timeoutIdentifier);
+    }
+    this.hud.hideOutcomeOverlay();
+  }
+
+  appendCombatLogLine(logLine: string): void {
+    this.hud.appendCombatLogLine(logLine);
   }
 
   private buildViewState(): BattleViewState {
@@ -116,6 +158,11 @@ export class BattleController {
     this.hud.renderActiveUnitPanel(this.battle.getActiveUnit());
   }
 
+  private renderEverythingIncludingMenu(): void {
+    this.renderEverything();
+    this.hud.renderActionMenu(this.battle, this.phaseAsMenuMode());
+  }
+
   // ── Turn-order strip spotlight ───────────────────────────────────────
 
   private spotlightUnit(unitIdentifier: string): void {
@@ -130,22 +177,17 @@ export class BattleController {
     this.renderBattleCanvasOnly();
   }
 
-  private renderEverythingIncludingMenu(): void {
-    this.renderEverything();
-    this.hud.renderActionMenu(this.battle, this.phaseAsMenuMode());
-  }
-
   /** While aiming an area skill, show exactly which tiles the burst would cover. */
   private areaOfEffectPreviewTiles(): GridPosition[] {
     if (
-      this.phase !== 'choosingSkillTarget' ||
-      this.chosenSkillIdentifier === undefined ||
+      this.phase !== 'choosingActionTarget' ||
+      this.chosenAction?.kind !== 'skill' ||
       this.hoveredTile === undefined
     ) {
       return [];
     }
     const hoveredTile = this.hoveredTile;
-    const skill = this.battle.getSkillByIdentifier(this.chosenSkillIdentifier);
+    const skill = this.battle.getSkillByIdentifier(this.chosenAction.identifier);
     if (skill.areaOfEffectRadius === 0) {
       return [];
     }
@@ -172,7 +214,7 @@ export class BattleController {
       case 'unitCommands':
         return 'unitCommands';
       case 'choosingMoveDestination':
-      case 'choosingSkillTarget':
+      case 'choosingActionTarget':
         return 'choosingTarget';
       case 'choosingFacing':
         return 'choosingFacing';
@@ -207,6 +249,7 @@ export class BattleController {
       case 'healingReceived':
         this.sounds.playHealingChime();
         return;
+      case 'manaRestored':
       case 'statModifierApplied':
         this.sounds.playBuffApplied();
         return;
@@ -223,6 +266,7 @@ export class BattleController {
           this.sounds.playDefeatSting();
         }
         return;
+      case 'itemUsed':
       case 'skillUsed':
       case 'turnEnded':
         return;
@@ -230,8 +274,7 @@ export class BattleController {
   }
 
   private startTurnForActiveUnit(): void {
-    const outcome = this.battle.getBattleOutcome();
-    if (outcome !== 'ongoing') {
+    if (this.battle.getBattleOutcome() !== 'ongoing') {
       this.finishBattle();
       return;
     }
@@ -268,7 +311,16 @@ export class BattleController {
     this.previewTiles =
       skill.targetingRange === 0
         ? [this.battle.getActiveUnit().position]
-        : this.tilesWithinRangeOfActiveUnit(skill.targetingRange);
+        : this.tilesWithinRangeOfActiveUnit(skill.targetingRange, false);
+    this.previewKind = 'targeting';
+    this.renderEverything();
+  }
+
+  private showItemPreview(): void {
+    if (this.phase !== 'unitCommands') {
+      return;
+    }
+    this.previewTiles = this.tilesWithinRangeOfActiveUnit(ITEM_USE_RANGE, true);
     this.previewKind = 'targeting';
     this.renderEverything();
   }
@@ -292,34 +344,42 @@ export class BattleController {
     this.renderEverythingIncludingMenu();
   }
 
-  private beginChoosingSkillTarget(skillIdentifier: string): void {
+  private beginChoosingActionTarget(chosenAction: ChosenAction): void {
     if (this.phase !== 'unitCommands') {
       return;
     }
     this.previewTiles = [];
-    const skill = this.battle.getSkillByIdentifier(skillIdentifier);
     const activeUnit = this.battle.getActiveUnit();
-    if (skill.targetingRange === 0) {
-      // Self-targeted skills need no tile choice.
-      this.logEvents(this.battle.useSkillWithActiveUnit(skillIdentifier, activeUnit.position));
-      this.afterPlayerAction();
-      return;
+    if (chosenAction.kind === 'skill') {
+      const skill = this.battle.getSkillByIdentifier(chosenAction.identifier);
+      if (skill.targetingRange === 0) {
+        // Self-targeted skills need no tile choice.
+        this.logEvents(this.battle.useSkillWithActiveUnit(chosenAction.identifier, activeUnit.position));
+        this.afterPlayerAction();
+        return;
+      }
+      this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(skill.targetingRange, false);
+    } else {
+      this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(ITEM_USE_RANGE, true);
     }
-    this.chosenSkillIdentifier = skillIdentifier;
-    this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(skill.targetingRange);
+    this.chosenAction = chosenAction;
     this.highlightKind = 'targeting';
-    this.phase = 'choosingSkillTarget';
+    this.phase = 'choosingActionTarget';
     this.renderEverythingIncludingMenu();
   }
 
-  private tilesWithinRangeOfActiveUnit(targetingRange: number): GridPosition[] {
+  private tilesWithinRangeOfActiveUnit(
+    targetingRange: number,
+    includeOwnTile: boolean,
+  ): GridPosition[] {
     const activeUnit = this.battle.getActiveUnit();
     const tilesInRange: GridPosition[] = [];
     for (let row = 0; row < this.battle.map.heightInTiles; row += 1) {
       for (let column = 0; column < this.battle.map.widthInTiles; column += 1) {
         const candidate = { column, row };
         const distance = manhattanDistance(activeUnit.position, candidate);
-        if (distance > 0 && distance <= targetingRange) {
+        const minimumDistance = includeOwnTile ? 0 : 1;
+        if (distance >= minimumDistance && distance <= targetingRange) {
           tilesInRange.push(candidate);
         }
       }
@@ -358,7 +418,7 @@ export class BattleController {
     if (this.phase === 'battleOver' || this.phase === 'enemyActing') {
       return;
     }
-    this.chosenSkillIdentifier = undefined;
+    this.chosenAction = undefined;
     this.phase = 'unitCommands';
     this.clearHighlights();
     this.renderEverythingIncludingMenu();
@@ -393,7 +453,7 @@ export class BattleController {
       this.afterPlayerAction();
       return;
     }
-    if (this.phase === 'choosingSkillTarget' && this.chosenSkillIdentifier !== undefined) {
+    if (this.phase === 'choosingActionTarget' && this.chosenAction !== undefined) {
       const isHighlighted = this.highlightedTiles.some(
         (tile) => tile.column === clickedTile.column && tile.row === clickedTile.row,
       );
@@ -402,8 +462,18 @@ export class BattleController {
         this.returnToUnitCommands();
         return;
       }
-      this.logEvents(this.battle.useSkillWithActiveUnit(this.chosenSkillIdentifier, clickedTile));
-      this.chosenSkillIdentifier = undefined;
+      if (this.chosenAction.kind === 'item') {
+        const targetUnit = this.battle.getLivingUnitAtPosition(clickedTile);
+        if (targetUnit === undefined || targetUnit.team !== this.battle.getActiveUnit().team) {
+          this.sounds.playMenuCancel();
+          this.returnToUnitCommands();
+          return;
+        }
+        this.logEvents(this.battle.useItemWithActiveUnit(this.chosenAction.identifier, clickedTile));
+      } else {
+        this.logEvents(this.battle.useSkillWithActiveUnit(this.chosenAction.identifier, clickedTile));
+      }
+      this.chosenAction = undefined;
       this.afterPlayerAction();
     }
   }
@@ -417,6 +487,7 @@ export class BattleController {
     if (activeUnit.hasMovedThisTurn && activeUnit.hasActedThisTurn) {
       // Nothing left to do: go straight to the facing choice, FFTA-style.
       this.phase = 'choosingFacing';
+      this.hoveredFacingDirection = undefined;
       this.clearHighlights();
       this.renderEverythingIncludingMenu();
       return;
@@ -502,7 +573,9 @@ export class BattleController {
     });
 
     scheduledSteps.forEach((step, stepIndex) => {
-      window.setTimeout(step, ENEMY_ACTION_DELAY_MILLISECONDS * (stepIndex + 1));
+      this.pendingTimeoutIdentifiers.push(
+        window.setTimeout(step, ENEMY_ACTION_DELAY_MILLISECONDS * (stepIndex + 1)),
+      );
     });
   }
 
@@ -516,15 +589,13 @@ export class BattleController {
     this.phase = 'battleOver';
     this.clearHighlights();
     this.renderEverythingIncludingMenu();
-    this.hud.showOutcomeOverlay(outcome, () => this.restartBattle());
-  }
-
-  private restartBattle(): void {
-    this.hud.hideOutcomeOverlay();
-    this.battle = this.createBattle();
-    this.renderer.sizeCanvasToMap(this.battle);
-    this.hud.appendCombatLogLine('— A new skirmish begins —');
-    this.startTurnForActiveUnit();
+    const conclusion = this.onBattleFinished(outcome);
+    this.hud.showOutcomeOverlay(
+      outcome,
+      conclusion.summaryLines,
+      conclusion.continueButtonLabel,
+      conclusion.onContinue,
+    );
   }
 
   private clearHighlights(): void {

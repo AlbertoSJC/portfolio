@@ -13,7 +13,8 @@ import {
   isTargetTileWithinSkillRange,
 } from './SkillExecution';
 import { advanceToNextReadyUnit, forecastUpcomingTurnOrder } from './TurnOrderQueue';
-import { TURN_ORDER_FORECAST_LENGTH } from './combatConstants';
+import { ITEM_USE_RANGE, TURN_ORDER_FORECAST_LENGTH } from './combatConstants';
+import type { ConsumableItemDefinition } from '../items/ConsumableItemDefinition';
 
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
 
@@ -25,7 +26,11 @@ export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
 export class Battle {
   readonly map: BattleMap;
   readonly units: Unit[];
+  /** Levels of every enemy defeated so far — feeds kill experience after the battle. */
+  readonly defeatedEnemyLevels: number[] = [];
   private readonly skillTable: Record<string, SkillDefinition>;
+  private readonly itemTable: Record<string, ConsumableItemDefinition>;
+  private readonly itemPouch: Record<string, number>;
   private readonly randomNumberGenerator: SeededRandomNumberGenerator;
   private activeUnitIdentifier: string;
 
@@ -34,10 +39,14 @@ export class Battle {
     units: Unit[],
     skillTable: Record<string, SkillDefinition>,
     randomSeed: number,
+    itemTable: Record<string, ConsumableItemDefinition> = {},
+    itemPouch: Record<string, number> = {},
   ) {
     this.map = map;
     this.units = units;
     this.skillTable = skillTable;
+    this.itemTable = itemTable;
+    this.itemPouch = { ...itemPouch };
     this.randomNumberGenerator = new SeededRandomNumberGenerator(randomSeed);
     const firstUnit = advanceToNextReadyUnit(this.units);
     firstUnit.hasMovedThisTurn = false;
@@ -164,12 +173,104 @@ export class Battle {
       this.randomNumberGenerator,
     );
     activeUnit.hasActedThisTurn = true;
+    this.recordDefeatedEnemies(events);
 
     const outcome = this.getBattleOutcome();
     if (outcome !== 'ongoing') {
       events.push({ kind: 'battleEnded', outcome });
     }
     return events;
+  }
+
+  // ── Consumable items ─────────────────────────────────────────────────
+
+  getItemPouchEntries(): { item: ConsumableItemDefinition; count: number }[] {
+    return Object.entries(this.itemPouch)
+      .filter(([, count]) => count > 0)
+      .map(([itemIdentifier, count]) => ({
+        item: this.getItemByIdentifier(itemIdentifier),
+        count,
+      }));
+  }
+
+  /** What is left after the battle, to hand back to the guild inventory. */
+  getRemainingItemPouch(): Record<string, number> {
+    return { ...this.itemPouch };
+  }
+
+  getItemByIdentifier(itemIdentifier: string): ConsumableItemDefinition {
+    const item = this.itemTable[itemIdentifier];
+    if (item === undefined) {
+      throw new Error(`Unknown item "${itemIdentifier}"`);
+    }
+    return item;
+  }
+
+  /** Using an item is the unit's action for the turn, like a skill. */
+  useItemWithActiveUnit(itemIdentifier: string, targetTile: GridPosition): BattleEvent[] {
+    const activeUnit = this.getActiveUnit();
+    if (activeUnit.hasActedThisTurn) {
+      throw new Error(`${activeUnit.displayName} has already acted this turn`);
+    }
+    const item = this.getItemByIdentifier(itemIdentifier);
+    if ((this.itemPouch[itemIdentifier] ?? 0) <= 0) {
+      throw new Error(`The pouch holds no ${item.displayName}`);
+    }
+    if (manhattanDistance(activeUnit.position, targetTile) > ITEM_USE_RANGE) {
+      throw new Error(`Target tile is out of reach for ${item.displayName}`);
+    }
+    const targetUnit = this.getLivingUnitAtPosition(targetTile);
+    if (targetUnit === undefined || targetUnit.team !== activeUnit.team) {
+      throw new Error(`${item.displayName} must target a standing ally`);
+    }
+    this.itemPouch[itemIdentifier] = (this.itemPouch[itemIdentifier] ?? 0) - 1;
+    activeUnit.hasActedThisTurn = true;
+
+    const events: BattleEvent[] = [
+      {
+        kind: 'itemUsed',
+        unitIdentifier: activeUnit.identifier,
+        itemIdentifier,
+        targetIdentifier: targetUnit.identifier,
+      },
+    ];
+    if (item.effect.kind === 'restoreHitPoints') {
+      const healingRestored = Math.min(
+        item.effect.amount,
+        targetUnit.baseStatistics.hitPointsMaximum - targetUnit.currentHitPoints,
+      );
+      targetUnit.currentHitPoints += healingRestored;
+      events.push({
+        kind: 'healingReceived',
+        healerIdentifier: activeUnit.identifier,
+        targetIdentifier: targetUnit.identifier,
+        amount: healingRestored,
+      });
+    } else {
+      const manaRestored = Math.min(
+        item.effect.amount,
+        targetUnit.baseStatistics.manaPointsMaximum - targetUnit.currentManaPoints,
+      );
+      targetUnit.currentManaPoints += manaRestored;
+      events.push({
+        kind: 'manaRestored',
+        targetIdentifier: targetUnit.identifier,
+        amount: manaRestored,
+      });
+    }
+    return events;
+  }
+
+  private recordDefeatedEnemies(events: readonly BattleEvent[]): void {
+    for (const event of events) {
+      if (event.kind !== 'unitKnockedOut') {
+        continue;
+      }
+      const knockedOutUnit = this.getUnitByIdentifier(event.unitIdentifier);
+      if (knockedOutUnit !== undefined && knockedOutUnit.team === 'enemy') {
+        this.defeatedEnemyLevels.push(knockedOutUnit.level);
+      }
+    }
   }
 
   endActiveUnitTurn(finalFacing?: CardinalDirection): BattleEvent[] {

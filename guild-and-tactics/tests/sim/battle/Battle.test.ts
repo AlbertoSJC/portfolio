@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Battle } from '../../../src/sim/battle/Battle';
 import { parseBattleMapFromRows } from '../../../src/sim/grid/BattleMap';
+import { ITEMS } from '../../../src/content/items';
 import { SKILLS } from '../../../src/content/skills';
 import { createTestUnit } from '../../mocks/unitMocks';
 import type { Unit } from '../../../src/sim/units/Unit';
@@ -114,6 +115,65 @@ describe('Battle', () => {
     const battle = createTestBattle([guildUnit, enemy]);
     enemy.currentHitPoints = 0;
     expect(battle.getBattleOutcome()).toBe('victory');
+  });
+
+  it('uses a potion on an adjacent ally, consuming one charge and the action', () => {
+    const user = createTestUnit({ baseStatistics: { speed: 12 } });
+    const woundedAlly = createTestUnit({
+      position: { column: 1, row: 0 },
+      currentHitPoints: 5,
+      baseStatistics: { speed: 4 },
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 3 }, baseStatistics: { speed: 6 } });
+    const battle = new Battle(TEST_MAP, [user, woundedAlly, enemy], SKILLS, FIXED_TEST_SEED, ITEMS, {
+      potion: 2,
+    });
+    const events = battle.useItemWithActiveUnit('potion', woundedAlly.position);
+    expect(events.some((event) => event.kind === 'itemUsed')).toBe(true);
+    // Potion restores 30, capped by the 30-hit-point maximum: 5 → 30.
+    expect(woundedAlly.currentHitPoints).toBe(30);
+    expect(battle.getRemainingItemPouch()['potion']).toBe(1);
+    expect(battle.getActiveUnit().hasActedThisTurn).toBe(true);
+  });
+
+  it('restores mana with an ether and refuses items aimed at enemies', () => {
+    const user = createTestUnit({ currentManaPoints: 0, baseStatistics: { speed: 12 } });
+    const adjacentEnemy = createTestUnit({
+      team: 'enemy',
+      position: { column: 1, row: 0 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = new Battle(TEST_MAP, [user, adjacentEnemy], SKILLS, FIXED_TEST_SEED, ITEMS, {
+      ether: 1,
+    });
+    expect(() => battle.useItemWithActiveUnit('ether', adjacentEnemy.position)).toThrow();
+    battle.useItemWithActiveUnit('ether', user.position);
+    expect(user.currentManaPoints).toBe(10); // ether restores up to 12, capped at the 10 maximum
+  });
+
+  it('records the levels of defeated enemies for kill experience', () => {
+    const attacker = createTestUnit({ baseStatistics: { speed: 12, attack: 100 } });
+    const fragileEnemy = createTestUnit({
+      team: 'enemy',
+      position: { column: 1, row: 0 },
+      level: 4,
+      currentHitPoints: 1,
+      baseStatistics: { speed: 6, evasion: 0 },
+    });
+    const battle = new Battle(TEST_MAP, [attacker, fragileEnemy], SKILLS, FIXED_TEST_SEED);
+    // Attack until the dice land a hit (misses are possible, never fatal here).
+    while (battle.getBattleOutcome() === 'ongoing') {
+      if (battle.getActiveUnit().identifier === attacker.identifier) {
+        attacker.hasActedThisTurn = false;
+        battle.useSkillWithActiveUnit('basic_attack', fragileEnemy.position);
+        if (battle.getBattleOutcome() === 'ongoing') {
+          battle.endActiveUnitTurn();
+        }
+      } else {
+        battle.endActiveUnitTurn();
+      }
+    }
+    expect(battle.defeatedEnemyLevels).toEqual([4]);
   });
 
   it('declares defeat when every guild member is knocked out', () => {

@@ -385,8 +385,9 @@ days of work, not a rewrite.
 1. ✅ **M1 — Combat vertical slice**: one map, 4 base classes, basic attack +
    ~8 skills, turn order, movement/range/facing, enemy AI, win/lose. *Playable
    battle in the browser.* — **done 2026-06-12, browser-verified**
-2. ⬜ **M2 — Guild loop**: one village (tavern/store/recruitment), quest board,
-   gold/XP/levels, save/load. *The full loop is playable.* — **next up**
+2. ✅ **M2 — Guild loop**: one village (tavern/store/recruitment), quest board,
+   gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
+   browser-verified**
 3. ⬜ **M3 — Depth**: advanced classes + race gating, secondary skill sets,
    status effects, elements, equipment slots/tiers.
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
@@ -444,6 +445,47 @@ us, or a desktop/Steam port effort per §10) can follow the trail.
   `src/render/SpriteRegistry.ts` + the renderer's draw call — proof that
   the future real-art swap touches nothing else. Browser-verified with a
   fresh screenshot pass.
+
+**2026-06-12 — M2 complete: the guild loop.**
+
+- *Guild sim* (`src/sim/guild/`, `src/sim/progression/`): persistent
+  `GuildState` (gold, roster, shared consumable inventory, quest board,
+  recruits, completed-quest count); XP curve with multi-level-up handling
+  and the level-30 cap; kill XP per defeated enemy + quest XP on victory;
+  **defeat keeps kill XP but forfeits the reward** (PRD §5 retreat rule);
+  quest board that refills from the repeatable pool without duplicates;
+  recruit generation honoring race/class rules (a Feryan candidate can
+  never roll Mage — tested).
+- *Wanderer's Rest* (`src/ui/village/`): tabbed village screen — Tavern
+  (quest board with difficulty stars, lore descriptions, party muster up
+  to 6, Embark), Store (buy/sell consumables at half-back), Recruitment
+  Hall (3 rotating candidates, refreshed after each victory), Roster (XP
+  progress bars). Scene switch village ↔ battle handled by the new
+  `GameController`, which owns the guild state and persists it on every
+  change.
+- *Consumables in battle*: the store sells Potions/Ethers; battles carry
+  the guild inventory as an item pouch — an **Items** action (range 1,
+  ally or self, uses the turn's action) heals HP or restores MP, honoring
+  the FFTA rule that mana only comes back through items. Used charges stay
+  used, win or lose.
+- *Content*: 8 repeatable quests across 3 maps (Forest Clearing + new
+  Marsh Road and tiered Old Quarry), 2 new monsters (charging Twisted
+  Boar; flying **Hollow Wisp**, whose Dark Bolt heals undead party members
+  by absorption), recruit name pools per race, 3 consumables.
+- *Persistence* (`src/platform/SaveGameStorage.ts`): the platform boundary
+  from §10, with a versioned-JSON localStorage implementation; corrupt or
+  unknown-version saves load as "no save" instead of crashing. Battles are
+  not saved mid-fight — reloading returns to the village (deliberate M2
+  simplification).
+- *Verification*: 69 vitest tests (guild state, XP/level-ups, quest board,
+  recruit legality, item use in battle, save round-trip + corrupt-save
+  handling, and a content-validity sweep proving every quest spawn and
+  deployment tile is standable on its map); browser E2E
+  (`tmp/verify_village.mjs`, untracked) walking the real loop — buy a
+  potion (gold 300→270), muster 5, embark, battle starts with the bought
+  Potion ×3 in the Items menu, reload restores the save.
+- *Known M2 simplifications*: no mid-battle saves; no party pre-selection
+  memory; store stock is fixed (reputation tiers arrive in M4).
 
 ## 12. Open decisions
 

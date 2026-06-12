@@ -1,5 +1,7 @@
 import type { Battle, BattleOutcome } from '../sim/battle/Battle';
 import type { SkillDefinition } from '../sim/battle/SkillDefinition';
+import { ITEM_USE_RANGE } from '../sim/battle/combatConstants';
+import type { ConsumableItemDefinition } from '../sim/items/ConsumableItemDefinition';
 import { effectiveStatistic, type Unit } from '../sim/units/Unit';
 import { canUnitAffordSkill } from '../sim/battle/SkillExecution';
 import type { UserInterfaceSounds } from './UserInterfaceSounds';
@@ -9,8 +11,11 @@ const COMBAT_LOG_MAXIMUM_LINES = 60;
 export interface ActionMenuCallbacks {
   onMoveChosen: () => void;
   onSkillChosen: (skillIdentifier: string) => void;
+  onItemChosen: (itemIdentifier: string) => void;
   onEndTurnChosen: () => void;
   onCancelChosen: () => void;
+  /** Hovering an item button previews its use range. */
+  onItemPreviewStart: (itemIdentifier: string) => void;
   /** Hovering the Move button previews reachable tiles. */
   onMovePreviewStart: () => void;
   /** Hovering a skill button previews its targetable tiles. */
@@ -205,6 +210,27 @@ export class BattleHud {
         },
       });
     }
+    const pouchEntries = battle.getItemPouchEntries();
+    if (pouchEntries.length > 0) {
+      this.appendMenuTitle('Items');
+      for (const pouchEntry of pouchEntries) {
+        this.appendMenuButton(
+          `${pouchEntry.item.displayName} ×${pouchEntry.count}`,
+          () => this.callbacks.onItemChosen(pouchEntry.item.identifier),
+          {
+            isDisabled: activeUnit.hasActedThisTurn,
+            onHoverStart: () => {
+              this.showItemInfoBox(pouchEntry.item);
+              this.callbacks.onItemPreviewStart(pouchEntry.item.identifier);
+            },
+            onHoverEnd: () => {
+              this.hideSkillInfoBox();
+              this.callbacks.onPreviewEnd();
+            },
+          },
+        );
+      }
+    }
     this.appendMenuButton('End Turn', this.callbacks.onEndTurnChosen);
   }
 
@@ -223,6 +249,15 @@ export class BattleHud {
     `;
   }
 
+  private showItemInfoBox(item: ConsumableItemDefinition): void {
+    this.skillInfoBoxElement.classList.remove('hidden');
+    this.skillInfoBoxElement.innerHTML = `
+      <h3>${item.displayName}</h3>
+      <p>${item.description}</p>
+      <p class="skill-info-details">Range: ${ITEM_USE_RANGE} tile (any ally, or self) · Uses the turn's action</p>
+    `;
+  }
+
   private hideSkillInfoBox(): void {
     this.skillInfoBoxElement.classList.add('hidden');
   }
@@ -237,18 +272,30 @@ export class BattleHud {
     this.combatLogElement.scrollTop = this.combatLogElement.scrollHeight;
   }
 
-  showOutcomeOverlay(outcome: Exclude<BattleOutcome, 'ongoing'>, onRestart: () => void): void {
+  showOutcomeOverlay(
+    outcome: Exclude<BattleOutcome, 'ongoing'>,
+    summaryLines: readonly string[],
+    continueButtonLabel: string,
+    onContinue: () => void,
+  ): void {
     this.outcomeOverlayElement.classList.remove('hidden');
     this.outcomeOverlayElement.replaceChildren();
     const headline = document.createElement('div');
     headline.textContent = outcome === 'victory' ? 'Victory!' : 'Defeat…';
-    const restartButton = document.createElement('button');
-    restartButton.textContent = 'Fight Again';
-    restartButton.addEventListener('click', () => {
+    const summaryBlock = document.createElement('div');
+    summaryBlock.className = 'outcome-summary';
+    for (const summaryLine of summaryLines) {
+      const lineParagraph = document.createElement('p');
+      lineParagraph.textContent = summaryLine;
+      summaryBlock.appendChild(lineParagraph);
+    }
+    const continueButton = document.createElement('button');
+    continueButton.textContent = continueButtonLabel;
+    continueButton.addEventListener('click', () => {
       this.sounds.playMenuConfirm();
-      onRestart();
+      onContinue();
     });
-    this.outcomeOverlayElement.append(headline, restartButton);
+    this.outcomeOverlayElement.append(headline, summaryBlock, continueButton);
   }
 
   hideOutcomeOverlay(): void {

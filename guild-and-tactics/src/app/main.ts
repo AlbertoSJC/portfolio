@@ -1,22 +1,25 @@
-import { Battle } from '../sim/battle/Battle';
-import { SKILLS } from '../content/skills';
-import { createDemoBattleUnits } from '../content/demoBattle';
-import { FOREST_CLEARING_MAP } from '../content/maps/forestClearing';
-import { BattleController } from './BattleController';
+import { BrowserLocalStorageSaveGameStorage } from '../platform/SaveGameStorage';
+import { GameController } from './GameController';
 
-const RANDOM_SEED_BIT_MASK = 0x7fffffff;
-
-function createDemoBattle(): Battle {
-  const randomSeed = Date.now() & RANDOM_SEED_BIT_MASK;
-  return new Battle(FOREST_CLEARING_MAP, createDemoBattleUnits(), SKILLS, randomSeed);
+function requiredElement<ElementType extends HTMLElement>(elementId: string): ElementType {
+  const element = document.getElementById(elementId);
+  if (element === null) {
+    throw new Error(`Missing required element "#${elementId}"`);
+  }
+  return element as ElementType;
 }
 
 function startGame(): void {
-  const canvas = document.getElementById('battle-canvas');
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    throw new Error('Missing #battle-canvas element');
+  const battleCanvas = requiredElement<HTMLCanvasElement>('battle-canvas');
+  if (!(battleCanvas instanceof HTMLCanvasElement)) {
+    throw new Error('#battle-canvas is not a canvas element');
   }
-  new BattleController(canvas, createDemoBattle);
+  new GameController(
+    requiredElement('battle-root'),
+    battleCanvas,
+    requiredElement('village-root'),
+    new BrowserLocalStorageSaveGameStorage(window.localStorage),
+  );
 }
 
 startGame();

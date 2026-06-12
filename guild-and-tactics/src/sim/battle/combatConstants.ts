@@ -30,3 +30,6 @@ export const KNOCKED_OUT_HIT_POINTS = 0;
 
 /** How many upcoming turns the turn-order forecast computes. */
 export const TURN_ORDER_FORECAST_LENGTH = 8;
+
+/** Consumables reach the user's own tile or an adjacent one. */
+export const ITEM_USE_RANGE = 1;

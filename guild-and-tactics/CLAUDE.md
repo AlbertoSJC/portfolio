@@ -31,13 +31,15 @@ canvas isometric; ALL unit visuals go through `SpriteRegistry.ts`.
 - `npm run dev` — dev server on :5173
 - `npm test` / `npm run typecheck` / `npm run build` — all three must pass
   before declaring work done
-- `node tmp/verify_battle.mjs` — browser E2E screenshot pass (needs the
-  dev server running; tmp/ is untracked, recreate from the dev log's
-  description if absent)
+- `node tmp/verify_battle.mjs` / `node tmp/verify_village.mjs` — browser
+  E2E screenshot passes (need the dev server running; tmp/ is untracked,
+  recreate from the dev log's description if absent)
 
-## Status (2026-06-12)
+## Status (2026-06-12, end of session 2)
 
-M1 (combat slice) complete and browser-verified. **Next: M2 — the guild
-loop**: Wanderer's Rest village UI (tavern quest board / store /
-recruitment hall), gold/XP/leveling, save/load via a `SaveGameStorage`
-interface in `src/platform/`. See README §11 for the full plan.
+M1 (combat slice) and M2 (guild loop: Wanderer's Rest, quest board, store
+with battle consumables, recruitment, XP/levels, localStorage saves via
+`src/platform/SaveGameStorage.ts`) are complete and browser-verified.
+**Next: M3 — depth**: advanced classes + race gating (§4 matrix),
+secondary skill sets, status effects, the full element wheel, equipment
+slots/tiers. See README §11 for status and the development log.

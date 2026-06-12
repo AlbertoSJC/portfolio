@@ -434,8 +434,68 @@ function drawUnknownCreature(
   outlineAndFill(drawingContext, '#4a3f55');
 }
 
+function drawTwistedBoar(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const hideColor = '#5d4636';
+  drawingContext.strokeStyle = FIGURE_OUTLINE_COLOR;
+  for (const legX of [-9, -4, 5, 9]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + legX, anchorY - 8);
+    drawingContext.lineTo(anchorX + legX, anchorY - 1);
+    drawingContext.stroke();
+  }
+  // Heavy barrel body with a humped back.
+  drawingContext.beginPath();
+  drawingContext.ellipse(anchorX - 1, anchorY - 13, 14, 9, 0, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  // Snouted head low to the ground.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX + 13, anchorY - 11, 6, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  // Tusks.
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 2;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX + 16, anchorY - 8);
+  drawingContext.lineTo(anchorX + 20, anchorY - 13);
+  drawingContext.moveTo(anchorX + 12, anchorY - 7);
+  drawingContext.lineTo(anchorX + 15, anchorY - 3);
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawHollowWisp(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const wispGlowColor = '#b9d8ff';
+  const wispCoreColor = '#5a78b8';
+  // Drifting trail beneath the floating core.
+  drawingContext.strokeStyle = wispGlowColor;
+  drawingContext.lineWidth = 2;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX, anchorY - 4);
+  drawingContext.quadraticCurveTo(anchorX - 6, anchorY - 12, anchorX - 1, anchorY - 18);
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+  // Pale outer glow and a colder core.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 26, 9, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, wispGlowColor);
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 26, 4.5, 0, Math.PI * 2);
+  drawingContext.fillStyle = wispCoreColor;
+  drawingContext.fill();
+}
+
 const MONSTER_DRAWERS: Record<string, MonsterDrawer> = {
   'Twisted Wolf': drawTwistedWolf,
   Stoneling: drawStoneling,
   Gnarlroot: drawGnarlroot,
+  'Twisted Boar': drawTwistedBoar,
+  'Hollow Wisp': drawHollowWisp,
 };
