@@ -1,0 +1,223 @@
+:root {
+  --hud-panel-background: rgba(20, 24, 32, 0.92);
+  --hud-panel-border: #5a6478;
+  --hud-text-color: #e8e6df;
+  --hud-accent-color: #ffe066;
+  --hud-guild-color: #6ea8ff;
+  --hud-enemy-color: #ff6e5e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #181c24;
+  color: var(--hud-text-color);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#game-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#battle-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  cursor: pointer;
+}
+
+.hud-panel {
+  position: absolute;
+  background: var(--hud-panel-background);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+#turn-order-strip {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.turn-order-entry {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 15px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.turn-order-entry:hover {
+  background: #2c3340;
+  border-color: #5ff0e0;
+}
+
+.turn-order-entry.team-guild {
+  border-color: var(--hud-guild-color);
+}
+
+.turn-order-entry.team-enemy {
+  border-color: var(--hud-enemy-color);
+}
+
+.turn-order-entry.is-active {
+  background: var(--hud-accent-color);
+  color: #1c1c1c;
+  font-weight: 600;
+}
+
+#active-unit-panel,
+#inspected-unit-panel {
+  left: 14px;
+  width: 320px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+#active-unit-panel {
+  bottom: 14px;
+}
+
+#inspected-unit-panel {
+  top: 80px;
+}
+
+#active-unit-panel h2,
+#inspected-unit-panel h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+  color: var(--hud-accent-color);
+}
+
+.resource-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: #333a46;
+  overflow: hidden;
+  margin: 3px 0 8px;
+}
+
+.resource-bar-fill {
+  height: 100%;
+}
+
+.resource-bar-fill.hit-points {
+  background: #4caf50;
+}
+
+.resource-bar-fill.mana-points {
+  background: #4f8fd0;
+}
+
+#action-menu {
+  right: 14px;
+  bottom: 14px;
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#action-menu button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 11px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+#skill-info-box {
+  right: 14px;
+  bottom: 360px;
+  width: 290px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+#skill-info-box h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: var(--hud-accent-color);
+}
+
+#skill-info-box p {
+  margin: 0 0 6px;
+}
+
+#skill-info-box .skill-info-details {
+  opacity: 0.85;
+  font-size: 14px;
+}
+
+#action-menu button:hover:not(:disabled) {
+  background: #3a4254;
+  border-color: var(--hud-accent-color);
+}
+
+#action-menu button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.menu-section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin: 4px 0 0;
+}
+
+#combat-log {
+  right: 14px;
+  top: 14px;
+  width: 340px;
+  max-height: 36vh;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+#combat-log p {
+  margin: 0 0 2px;
+}
+
+#battle-outcome-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(10, 12, 18, 0.85);
+  font-size: 42px;
+  font-weight: 700;
+}
+
+#battle-outcome-overlay button {
+  font-size: 16px;
+  padding: 10px 26px;
+  border-radius: 6px;
+  border: 1px solid var(--hud-panel-border);
+  background: #2c3340;
+  color: var(--hud-text-color);
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
