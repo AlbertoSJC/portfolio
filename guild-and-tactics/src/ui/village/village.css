@@ -171,6 +171,223 @@ button.village-card:hover {
   background: var(--hud-accent-color);
 }
 
+/* ── Modal layer ─────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 15, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  position: relative;
+  background: #1e242f;
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 10px;
+  padding: 26px 30px;
+  width: min(860px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--hud-text-color);
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--hud-text-color);
+  font-size: 26px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close-button:hover {
+  color: var(--hud-accent-color);
+}
+
+/* ── Portraits and muster cards ──────────────────────────────────────── */
+
+.member-portrait {
+  flex-shrink: 0;
+  background: radial-gradient(circle at 50% 75%, #2c3340 0%, #232936 70%);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 6px;
+}
+
+.village-card.with-portrait {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.muster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+.muster-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #262d3a;
+  border: 2px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--hud-text-color);
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.muster-card span {
+  display: block;
+  opacity: 0.85;
+}
+
+.muster-card:hover {
+  border-color: var(--hud-accent-color);
+}
+
+.muster-card.is-selected {
+  border-color: var(--hud-accent-color);
+  background: #3a3a26;
+  box-shadow: 0 0 0 1px var(--hud-accent-color);
+}
+
+/* ── Character sheet ─────────────────────────────────────────────────── */
+
+.character-sheet-header {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.character-sheet-header h2 {
+  margin: 0 0 4px;
+  color: var(--hud-accent-color);
+}
+
+.character-sheet-header p {
+  margin: 0 0 4px;
+}
+
+.character-sheet-statistics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  background: #232936;
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.character-sheet-statistics div {
+  display: flex;
+  flex-direction: column;
+}
+
+.character-sheet-statistics span {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+}
+
+.character-sheet-statistics strong {
+  font-size: 17px;
+}
+
+.equipment-slot-row {
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.equipment-slot-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.equipment-slot-name {
+  width: 96px;
+  font-weight: 600;
+  color: var(--hud-accent-color);
+}
+
+.equipment-slot-summary em {
+  opacity: 0.75;
+  font-style: normal;
+  font-size: 13px;
+}
+
+.equipment-slot-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.equipment-slot-buttons button,
+.equipment-choice-row button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.equipment-slot-buttons button:hover,
+.equipment-choice-row button:hover {
+  border-color: var(--hud-accent-color);
+}
+
+.equipment-slot-picker {
+  margin-top: 10px;
+  border-top: 1px solid var(--hud-panel-border);
+  padding-top: 10px;
+}
+
+.equipment-choice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.equipment-choice-row em {
+  opacity: 0.75;
+  font-style: normal;
+  font-size: 13px;
+}
+
+.guild-stores-summary {
+  background: #232936;
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.guild-stores-summary p {
+  margin: 2px 0;
+}
+
 .outcome-summary {
   font-size: 18px;
   font-weight: 400;

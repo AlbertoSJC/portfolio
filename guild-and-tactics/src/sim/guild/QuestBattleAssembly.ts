@@ -1,14 +1,17 @@
 import type { GridPosition } from '../grid/GridPosition';
+import type { EquipmentDefinition } from '../items/EquipmentDefinition';
 import type { Unit } from '../units/Unit';
 import type { BaseClassDefinition, MonsterDefinition, RaceDefinition } from '../units/UnitDefinitions';
 import { createUnitFromCharacter, createUnitFromMonster } from '../units/UnitFactory';
 import type { GuildMember } from './GuildState';
+import { equippedDefinitionsForMember } from './MemberEquipment';
 import type { QuestDefinition } from './QuestDefinition';
 
 export interface UnitContentTables {
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
   monsters: Record<string, MonsterDefinition>;
+  equipment: Record<string, EquipmentDefinition>;
 }
 
 /**
@@ -46,6 +49,7 @@ export function createUnitsForQuestBattle(
       level: member.level,
       position: deploymentTile,
       facing: 'north',
+      equipment: equippedDefinitionsForMember(member.equippedItemIdentifiers, contentTables.equipment),
     });
   });
 

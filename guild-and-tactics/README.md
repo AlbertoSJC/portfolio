@@ -410,8 +410,9 @@ days of work, not a rewrite.
    gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
    browser-verified**
 3. ⬜ **M3 — Depth**: advanced classes + race gating, secondary skill sets,
-   status effects, elements, equipment slots/tiers, **village map screen
-   (§6.0)** — buildings as walkable map nodes instead of tabs.
+   status effects, elements, equipment **tiers** (slots + buy/equip/sell
+   shipped early in M2.5), **village map screen (§6.0)** — buildings as
+   walkable map nodes instead of tabs.
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
    villages, **overworld map** (§6.0) with travel + random encounters
    (§6.1), reputation tiers, dispatch quests, balancing pass, audio,
@@ -509,6 +510,37 @@ us, or a desktop/Steam port effort per §10) can follow the trail.
   Potion ×3 in the Items menu, reload restores the save.
 - *Known M2 simplifications*: no mid-battle saves; no party pre-selection
   memory; store stock is fixed (reputation tiers arrive in M4).
+
+**2026-06-12 — M2.5: village UX iteration + equipment basics (pulled
+forward from M3).**
+
+- *Equipment system* (`src/sim/items/EquipmentDefinition.ts`,
+  `src/sim/guild/MemberEquipment.ts`): three slots (weapon / armor /
+  accessory), flat stat bonuses folded into unit derivation, weapons
+  class-bound (a thief cannot take the mage's staff — tested), guild
+  stores hold unequipped pieces, equipping swaps the old piece back.
+  11 pieces in `src/content/equipment.ts`. Save format bumped to **v2
+  with a v1 migration** (old saves gain the empty equipment fields
+  instead of being discarded — tested).
+- *Character sheet* (`src/ui/village/CharacterSheet.ts`): click a roster
+  member → modal with portrait, XP bar, full derived battle statistics
+  (equipment included), and per-slot equipment management with an inline
+  picker of suitable gear from the stores.
+- *Portraits everywhere* (`src/ui/village/MemberPortrait.ts`): the
+  battlefield's procedural miniatures drawn onto small canvases in the
+  roster, recruitment hall, character sheet, and party muster — what you
+  see in the village is exactly what fights.
+- *Tavern flow*: quest postings open as a **modal** (reusable
+  `ModalDialog`: backdrop / × / Escape) with lore text and a card-based
+  party muster (click to select, gold highlight, selection counter) —
+  no more checkboxes.
+- *Store*: split into Consumables and Equipment sections; equipment cards
+  show slot, class restriction, stat bonuses, price, and stock; buy/sell
+  verified (Swift Charm round-trip 300→180→240 gold at the half-back
+  rule). Roster tab gained a "Guild stores" inventory summary.
+- *Verification*: 78 vitest tests; browser E2E (`tmp/verify_sheet.mjs`)
+  confirming sheet ATK 12→15 on equipping the Iron Sword, the picker,
+  buy/sell math, portraits, and the quest modal muster.
 
 ## 12. Open decisions
 

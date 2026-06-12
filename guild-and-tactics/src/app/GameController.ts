@@ -2,12 +2,20 @@ import { Battle, type BattleOutcome } from '../sim/battle/Battle';
 import { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator';
 import {
   addConsumable,
+  addEquipmentPiece,
   findRosterMember,
   hasRoomInRoster,
   removeConsumable,
+  removeEquipmentPiece,
   spendGold,
   type GuildState,
 } from '../sim/guild/GuildState';
+import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
+import {
+  sellPriceForEquipment,
+  type EquipmentSlot,
+} from '../sim/items/EquipmentDefinition';
+import { EQUIPMENT } from '../content/equipment';
 import { completeQuestOnBoard } from '../sim/guild/QuestBoard';
 import { createUnitsForQuestBattle } from '../sim/guild/QuestBattleAssembly';
 import { averageRosterLevel, generateRecruitOffers } from '../sim/guild/RecruitGeneration';
@@ -72,20 +80,22 @@ export class GameController {
       {
         quests: QUESTS,
         items: ITEMS,
+        equipment: EQUIPMENT,
         battleMapsByIdentifier: BATTLE_MAPS,
-        raceDisplayNames: Object.fromEntries(
-          Object.values(RACES).map((race) => [race.identifier, race.displayName]),
-        ),
-        classDisplayNames: Object.fromEntries(
-          Object.values(BASE_CLASSES).map((baseClass) => [baseClass.identifier, baseClass.displayName]),
-        ),
+        races: RACES,
+        baseClasses: BASE_CLASSES,
       },
       {
         onEmbarkQuest: (questIdentifier, memberIdentifiers) =>
           this.embarkOnQuest(questIdentifier, memberIdentifiers),
         onBuyItem: (itemIdentifier) => this.buyItem(itemIdentifier),
         onSellItem: (itemIdentifier) => this.sellItem(itemIdentifier),
+        onBuyEquipment: (equipmentIdentifier) => this.buyEquipment(equipmentIdentifier),
+        onSellEquipment: (equipmentIdentifier) => this.sellEquipment(equipmentIdentifier),
         onHireRecruit: (recruitMemberIdentifier) => this.hireRecruit(recruitMemberIdentifier),
+        onEquipItem: (memberIdentifier, equipmentIdentifier) =>
+          this.equipItem(memberIdentifier, equipmentIdentifier),
+        onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
       },
     );
 
@@ -126,6 +136,39 @@ export class GameController {
       return;
     }
     this.guild.gold += sellPriceForItem(item);
+    this.persistAndRerenderVillage();
+  }
+
+  private buyEquipment(equipmentIdentifier: string): void {
+    const equipment = EQUIPMENT[equipmentIdentifier];
+    if (equipment === undefined || !spendGold(this.guild, equipment.priceInGold)) {
+      return;
+    }
+    addEquipmentPiece(this.guild, equipmentIdentifier);
+    this.persistAndRerenderVillage();
+  }
+
+  private sellEquipment(equipmentIdentifier: string): void {
+    const equipment = EQUIPMENT[equipmentIdentifier];
+    if (equipment === undefined || !removeEquipmentPiece(this.guild, equipmentIdentifier)) {
+      return;
+    }
+    this.guild.gold += sellPriceForEquipment(equipment);
+    this.persistAndRerenderVillage();
+  }
+
+  private equipItem(memberIdentifier: string, equipmentIdentifier: string): void {
+    const equipment = EQUIPMENT[equipmentIdentifier];
+    if (equipment === undefined || !equipItemOnMember(this.guild, memberIdentifier, equipment)) {
+      return;
+    }
+    this.persistAndRerenderVillage();
+  }
+
+  private unequipSlot(memberIdentifier: string, slot: EquipmentSlot): void {
+    if (!unequipMemberSlot(this.guild, memberIdentifier, slot)) {
+      return;
+    }
     this.persistAndRerenderVillage();
   }
 
@@ -170,6 +213,7 @@ export class GameController {
       races: RACES,
       baseClasses: BASE_CLASSES,
       monsters: MONSTERS,
+      equipment: EQUIPMENT,
     });
     const battle = new Battle(
       mapEntry.map,

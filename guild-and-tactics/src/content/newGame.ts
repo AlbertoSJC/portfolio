@@ -1,4 +1,4 @@
-import type { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator';
+﻿import type { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator';
 import type { GuildState } from '../sim/guild/GuildState';
 import { STARTING_GOLD } from '../sim/guild/GuildState';
 import { refillQuestBoard } from '../sim/guild/QuestBoard';
@@ -27,6 +27,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
         baseClassIdentifier: 'warrior',
         level: STARTING_MEMBER_LEVEL,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
       {
         identifier: 'member_nyssa',
@@ -35,6 +36,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
         baseClassIdentifier: 'thief',
         level: STARTING_MEMBER_LEVEL,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
       {
         identifier: 'member_morvane',
@@ -43,6 +45,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
         baseClassIdentifier: 'mage',
         level: STARTING_MEMBER_LEVEL,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
       {
         identifier: 'member_brakka',
@@ -51,6 +54,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
         baseClassIdentifier: 'priest',
         level: STARTING_MEMBER_LEVEL,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
       {
         identifier: 'member_skreel',
@@ -59,9 +63,12 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
         baseClassIdentifier: 'warrior',
         level: STARTING_MEMBER_LEVEL,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
     ],
     consumableInventory: { potion: STARTING_POTIONS, ether: STARTING_ETHERS },
+    // A couple of starter pieces so the equipment flow is discoverable.
+    equipmentInventory: { iron_sword: 1, leather_vest: 1 },
     questIdentifiersOnBoard: [],
     recruitsOnOffer: [],
     completedQuestCount: 0,

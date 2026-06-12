@@ -70,6 +70,36 @@ describe('createUnitFromCharacter', () => {
     expect(feryanWarrior.baseStatistics.movementRange).toBe(6);
   });
 
+  it('folds equipment bonuses into the derived statistics', () => {
+    const recipeWithoutEquipment = {
+      identifier: 'test_bare_warrior',
+      displayName: 'Bare Warrior',
+      team: 'guild' as const,
+      race: raceOrThrow('human'),
+      baseClass: baseClassOrThrow('warrior'),
+      level: 2,
+      position: { column: 0, row: 0 },
+      facing: 'north' as const,
+    };
+    const bareWarrior = createUnitFromCharacter(recipeWithoutEquipment);
+    const armedWarrior = createUnitFromCharacter({
+      ...recipeWithoutEquipment,
+      identifier: 'test_armed_warrior',
+      equipment: [
+        {
+          identifier: 'test_blade',
+          displayName: 'Test Blade',
+          description: 'Test-only weapon.',
+          slot: 'weapon',
+          priceInGold: 0,
+          statisticBonuses: { attack: 3, speed: -1 },
+        },
+      ],
+    });
+    expect(armedWarrior.baseStatistics.attack).toBe(bareWarrior.baseStatistics.attack + 3);
+    expect(armedWarrior.baseStatistics.speed).toBe(bareWarrior.baseStatistics.speed - 1);
+  });
+
   it('always grants the basic attack on top of class skills', () => {
     const humanThief = createUnitFromCharacter({
       identifier: 'test_thief',

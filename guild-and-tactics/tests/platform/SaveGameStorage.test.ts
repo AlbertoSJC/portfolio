@@ -39,6 +39,39 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(storage.loadGuildSave()).toBeUndefined();
   });
 
+  it('migrates a version-1 save by adding the missing equipment fields', () => {
+    const keyValueStore = createInMemoryKeyValueStore();
+    const versionOneGuild = {
+      gold: 150,
+      roster: [
+        {
+          identifier: 'member_old',
+          displayName: 'Old Save Member',
+          raceIdentifier: 'human',
+          baseClassIdentifier: 'warrior',
+          level: 3,
+          experiencePoints: 40,
+          // version 1 members had no equippedItemIdentifiers
+        },
+      ],
+      consumableInventory: { potion: 1 },
+      // version 1 had no equipmentInventory
+      questIdentifiersOnBoard: [],
+      recruitsOnOffer: [],
+      completedQuestCount: 2,
+    };
+    keyValueStore.setItem(
+      'guild-and-tactics.save',
+      JSON.stringify({ saveFormatVersion: 1, guild: versionOneGuild }),
+    );
+    const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
+    const migratedGuild = storage.loadGuildSave();
+    expect(migratedGuild).toBeDefined();
+    expect(migratedGuild?.equipmentInventory).toEqual({});
+    expect(migratedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
+    expect(migratedGuild?.gold).toBe(150);
+  });
+
   it('refuses saves from an unknown format version', () => {
     const keyValueStore = createInMemoryKeyValueStore();
     keyValueStore.setItem(

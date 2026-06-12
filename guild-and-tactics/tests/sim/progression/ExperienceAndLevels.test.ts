@@ -15,6 +15,7 @@ function createTestMember(level: number, experiencePoints = 0): GuildMember {
     baseClassIdentifier: 'warrior',
     level,
     experiencePoints,
+    equippedItemIdentifiers: {},
   };
 }
 

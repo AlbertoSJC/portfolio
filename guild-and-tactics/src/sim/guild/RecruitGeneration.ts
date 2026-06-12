@@ -55,6 +55,7 @@ export function generateRecruitOffers(
         baseClassIdentifier,
         level,
         experiencePoints: 0,
+        equippedItemIdentifiers: {},
       },
       hireCostInGold: hireCostForLevel(level),
     });

@@ -12,11 +12,20 @@ export interface SaveGameStorage {
 }
 
 const SAVE_STORAGE_KEY = 'guild-and-tactics.save';
-const CURRENT_SAVE_FORMAT_VERSION = 1;
+const CURRENT_SAVE_FORMAT_VERSION = 2;
 
 interface VersionedSaveFile {
   saveFormatVersion: number;
   guild: GuildState;
+}
+
+/** Version 1 predates equipment: add the empty fields it lacked. */
+function migrateVersionOneSave(guild: GuildState): GuildState {
+  guild.equipmentInventory ??= {};
+  for (const member of guild.roster) {
+    member.equippedItemIdentifiers ??= {};
+  }
+  return guild;
 }
 
 /** Minimal slice of the Web Storage API, so tests can inject a stub. */
@@ -40,9 +49,12 @@ export class BrowserLocalStorageSaveGameStorage implements SaveGameStorage {
     }
     try {
       const parsedSave = JSON.parse(rawSave) as VersionedSaveFile;
+      if (parsedSave.saveFormatVersion === 1) {
+        return migrateVersionOneSave(parsedSave.guild);
+      }
       if (parsedSave.saveFormatVersion !== CURRENT_SAVE_FORMAT_VERSION) {
-        // Older/newer format than this build understands: start fresh
-        // rather than corrupt; migrations arrive when the format changes.
+        // Newer/unknown format than this build understands: start fresh
+        // rather than corrupt.
         return undefined;
       }
       return parsedSave.guild;

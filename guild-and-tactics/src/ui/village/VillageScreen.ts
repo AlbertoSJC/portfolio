@@ -1,30 +1,64 @@
-import { BATTLE_PARTY_CAPACITY, GUILD_ROSTER_CAPACITY } from '../../sim/guild/GuildState';
-import type { GuildState, GuildMember, RecruitOffer } from '../../sim/guild/GuildState';
+import {
+  BATTLE_PARTY_CAPACITY,
+  GUILD_ROSTER_CAPACITY,
+  canAffordGoldCost,
+  countConsumable,
+  countEquipmentPieces,
+  hasRoomInRoster,
+  type GuildMember,
+  type GuildState,
+  type RecruitOffer,
+} from '../../sim/guild/GuildState';
 import type { QuestDefinition } from '../../sim/guild/QuestDefinition';
 import type { ConsumableItemDefinition } from '../../sim/items/ConsumableItemDefinition';
 import { sellPriceForItem } from '../../sim/items/ConsumableItemDefinition';
+import {
+  EQUIPMENT_SLOT_DISPLAY_NAMES,
+  sellPriceForEquipment,
+  type EquipmentDefinition,
+  type EquipmentSlot,
+} from '../../sim/items/EquipmentDefinition';
 import { experienceRequiredToLevelUpFrom } from '../../sim/progression/ExperienceAndLevels';
-import { canAffordGoldCost, countConsumable, hasRoomInRoster } from '../../sim/guild/GuildState';
 import type { BattleMap } from '../../sim/grid/BattleMap';
+import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
+import {
+  buildCharacterSheetContent,
+  describeStatisticBonuses,
+} from './CharacterSheet';
+import { createMemberPortraitCanvas } from './MemberPortrait';
+import { ModalDialog } from './ModalDialog';
 
 export interface VillageCallbacks {
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
   onBuyItem: (itemIdentifier: string) => void;
   onSellItem: (itemIdentifier: string) => void;
+  onBuyEquipment: (equipmentIdentifier: string) => void;
+  onSellEquipment: (equipmentIdentifier: string) => void;
   onHireRecruit: (recruitMemberIdentifier: string) => void;
+  onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
+  onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
 }
 
 /** Content the village needs for display, injected so the UI stays data-driven. */
 export interface VillageContentTables {
   quests: Record<string, QuestDefinition>;
   items: Record<string, ConsumableItemDefinition>;
+  equipment: Record<string, EquipmentDefinition>;
   battleMapsByIdentifier: Record<string, { map: BattleMap }>;
-  raceDisplayNames: Record<string, string>;
-  classDisplayNames: Record<string, string>;
+  races: Record<string, RaceDefinition>;
+  baseClasses: Record<string, BaseClassDefinition>;
 }
 
 type VillageTab = 'tavern' | 'store' | 'recruitment' | 'roster';
+
+type VillageModalState =
+  | { kind: 'questDetail'; questIdentifier: string }
+  | {
+      kind: 'characterSheet';
+      memberIdentifier: string;
+      expandedEquipmentSlot: EquipmentSlot | undefined;
+    };
 
 const DIFFICULTY_RANK_LABELS: Record<number, string> = {
   1: '★',
@@ -42,8 +76,9 @@ export class VillageScreen {
   private readonly sounds: UserInterfaceSounds;
   private readonly callbacks: VillageCallbacks;
   private readonly content: VillageContentTables;
+  private readonly modal: ModalDialog;
   private activeTab: VillageTab = 'tavern';
-  private selectedQuestIdentifier: string | undefined;
+  private modalState: VillageModalState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
   private lastRenderedGuild: GuildState | undefined;
 
@@ -57,6 +92,7 @@ export class VillageScreen {
     this.sounds = sounds;
     this.content = content;
     this.callbacks = callbacks;
+    this.modal = new ModalDialog(document.body, sounds);
   }
 
   render(guild: GuildState): void {
@@ -114,6 +150,7 @@ export class VillageScreen {
         break;
     }
     this.rootElement.appendChild(tabContent);
+    this.synchronizeModalWithState(guild);
   }
 
   private rerender(): void {
@@ -122,9 +159,78 @@ export class VillageScreen {
     }
   }
 
+  // ── Modal management ─────────────────────────────────────────────────
+
+  private synchronizeModalWithState(guild: GuildState): void {
+    if (this.modalState === undefined) {
+      if (this.modal.isOpen()) {
+        this.modal.close();
+      }
+      return;
+    }
+    const modalContent = this.buildModalContent(guild, this.modalState);
+    if (modalContent === undefined) {
+      this.modalState = undefined;
+      this.modal.close();
+      return;
+    }
+    if (this.modal.isOpen()) {
+      this.modal.refreshContent(modalContent);
+    } else {
+      this.modal.open(modalContent, () => {
+        this.modalState = undefined;
+      });
+    }
+  }
+
+  private buildModalContent(
+    guild: GuildState,
+    modalState: VillageModalState,
+  ): HTMLElement | undefined {
+    if (modalState.kind === 'questDetail') {
+      const quest = this.content.quests[modalState.questIdentifier];
+      return quest === undefined ? undefined : this.buildQuestDetailContent(guild, quest);
+    }
+    const member = guild.roster.find(
+      (rosterMember) => rosterMember.identifier === modalState.memberIdentifier,
+    );
+    if (member === undefined) {
+      return undefined;
+    }
+    return buildCharacterSheetContent(
+      member,
+      guild,
+      this.content,
+      modalState.expandedEquipmentSlot,
+      {
+        onEquipItem: (memberIdentifier, equipmentIdentifier) => {
+          this.sounds.playMenuConfirm();
+          this.callbacks.onEquipItem(memberIdentifier, equipmentIdentifier);
+        },
+        onUnequipSlot: (memberIdentifier, slot) => {
+          this.sounds.playMenuCancel();
+          this.callbacks.onUnequipSlot(memberIdentifier, slot);
+        },
+        onToggleSlotPicker: (slot) => {
+          this.sounds.playMenuConfirm();
+          if (this.modalState?.kind === 'characterSheet') {
+            this.modalState.expandedEquipmentSlot =
+              this.modalState.expandedEquipmentSlot === slot ? undefined : slot;
+          }
+          this.rerender();
+        },
+      },
+    );
+  }
+
   // ── Tavern ───────────────────────────────────────────────────────────
 
   private renderTavern(container: HTMLElement, guild: GuildState): void {
+    const boardHint = document.createElement('p');
+    boardHint.className = 'village-hint';
+    boardHint.textContent = 'Postings on the board — pick one to read it and muster a party.';
+    container.appendChild(boardHint);
+
     const questList = document.createElement('div');
     questList.className = 'village-card-list';
     for (const questIdentifier of guild.questIdentifiersOnBoard) {
@@ -134,7 +240,7 @@ export class VillageScreen {
       }
       const mapEntry = this.content.battleMapsByIdentifier[quest.battleMapIdentifier];
       const questCard = document.createElement('button');
-      questCard.className = `village-card ${questIdentifier === this.selectedQuestIdentifier ? 'is-selected' : ''}`;
+      questCard.className = 'village-card';
       questCard.innerHTML = `
         <h3>${quest.displayName} <span class="difficulty-stars">${DIFFICULTY_RANK_LABELS[quest.difficultyRank] ?? ''}</span></h3>
         <p>${mapEntry?.map.displayName ?? quest.battleMapIdentifier} · ${quest.enemySpawns.length} foes</p>
@@ -143,63 +249,31 @@ export class VillageScreen {
       questCard.addEventListener('mouseenter', () => this.sounds.playMenuHover());
       questCard.addEventListener('click', () => {
         this.sounds.playMenuConfirm();
-        this.selectedQuestIdentifier = questIdentifier;
+        this.modalState = { kind: 'questDetail', questIdentifier };
         this.rerender();
       });
       questList.appendChild(questCard);
     }
     container.appendChild(questList);
+  }
 
-    const selectedQuest =
-      this.selectedQuestIdentifier === undefined
-        ? undefined
-        : this.content.quests[this.selectedQuestIdentifier];
-    if (selectedQuest === undefined) {
-      const hint = document.createElement('p');
-      hint.className = 'village-hint';
-      hint.textContent = 'Pick a posting from the board to read it and muster a party.';
-      container.appendChild(hint);
-      return;
-    }
-
-    const questDetail = document.createElement('section');
-    questDetail.className = 'quest-detail';
-    questDetail.innerHTML = `
-      <h2>${selectedQuest.displayName}</h2>
-      <p class="quest-description">${selectedQuest.description}</p>
-      <p class="menu-section-title">Muster the party (up to ${BATTLE_PARTY_CAPACITY})</p>
+  private buildQuestDetailContent(guild: GuildState, quest: QuestDefinition): HTMLElement {
+    const mapEntry = this.content.battleMapsByIdentifier[quest.battleMapIdentifier];
+    const questContent = document.createElement('div');
+    questContent.className = 'quest-detail';
+    questContent.innerHTML = `
+      <h2>${quest.displayName} <span class="difficulty-stars">${DIFFICULTY_RANK_LABELS[quest.difficultyRank] ?? ''}</span></h2>
+      <p class="quest-description">${quest.description}</p>
+      <p>${mapEntry?.map.displayName ?? quest.battleMapIdentifier} · ${quest.enemySpawns.length} foes · Reward: ${quest.rewardGold} gold, ${quest.rewardExperience} XP</p>
+      <p class="menu-section-title">Muster the party — ${this.selectedMemberIdentifiers.size} / ${BATTLE_PARTY_CAPACITY} selected</p>
     `;
 
-    const partyPicker = document.createElement('div');
-    partyPicker.className = 'party-picker';
+    const musterGrid = document.createElement('div');
+    musterGrid.className = 'muster-grid';
     for (const member of guild.roster) {
-      const memberLabel = document.createElement('label');
-      memberLabel.className = 'party-picker-member';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = this.selectedMemberIdentifiers.has(member.identifier);
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          if (this.selectedMemberIdentifiers.size >= BATTLE_PARTY_CAPACITY) {
-            checkbox.checked = false;
-            this.sounds.playMenuCancel();
-            return;
-          }
-          this.selectedMemberIdentifiers.add(member.identifier);
-          this.sounds.playMenuConfirm();
-        } else {
-          this.selectedMemberIdentifiers.delete(member.identifier);
-          this.sounds.playMenuCancel();
-        }
-        this.rerender();
-      });
-      memberLabel.appendChild(checkbox);
-      memberLabel.appendChild(
-        document.createTextNode(` ${member.displayName} — ${this.describeMember(member)}`),
-      );
-      partyPicker.appendChild(memberLabel);
+      musterGrid.appendChild(this.buildMusterCard(member));
     }
-    questDetail.appendChild(partyPicker);
+    questContent.appendChild(musterGrid);
 
     const embarkButton = document.createElement('button');
     embarkButton.className = 'primary-action-button';
@@ -210,49 +284,134 @@ export class VillageScreen {
     embarkButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
     embarkButton.addEventListener('click', () => {
       this.sounds.playMenuConfirm();
-      this.callbacks.onEmbarkQuest(selectedQuest.identifier, [...this.selectedMemberIdentifiers]);
+      this.callbacks.onEmbarkQuest(quest.identifier, [...this.selectedMemberIdentifiers]);
     });
-    questDetail.appendChild(embarkButton);
-    container.appendChild(questDetail);
+    questContent.appendChild(embarkButton);
+    return questContent;
+  }
+
+  private buildMusterCard(member: GuildMember): HTMLElement {
+    const isSelected = this.selectedMemberIdentifiers.has(member.identifier);
+    const musterCard = document.createElement('button');
+    musterCard.className = `muster-card ${isSelected ? 'is-selected' : ''}`;
+    musterCard.appendChild(this.buildPortraitFor(member));
+    const cardText = document.createElement('div');
+    cardText.innerHTML = `
+      <strong>${member.displayName}</strong>
+      <span>${this.describeMember(member)}</span>
+    `;
+    musterCard.appendChild(cardText);
+    musterCard.addEventListener('mouseenter', () => this.sounds.playMenuHover());
+    musterCard.addEventListener('click', () => {
+      if (isSelected) {
+        this.selectedMemberIdentifiers.delete(member.identifier);
+        this.sounds.playMenuCancel();
+      } else {
+        if (this.selectedMemberIdentifiers.size >= BATTLE_PARTY_CAPACITY) {
+          this.sounds.playMenuCancel();
+          return;
+        }
+        this.selectedMemberIdentifiers.add(member.identifier);
+        this.sounds.playMenuConfirm();
+      }
+      this.rerender();
+    });
+    return musterCard;
   }
 
   // ── Store ────────────────────────────────────────────────────────────
 
   private renderStore(container: HTMLElement, guild: GuildState): void {
-    const storeList = document.createElement('div');
-    storeList.className = 'village-card-list';
+    const consumablesTitle = document.createElement('p');
+    consumablesTitle.className = 'menu-section-title';
+    consumablesTitle.textContent = 'Consumables';
+    container.appendChild(consumablesTitle);
+
+    const consumablesList = document.createElement('div');
+    consumablesList.className = 'village-card-list';
     for (const item of Object.values(this.content.items)) {
-      const ownedCount = countConsumable(guild, item.identifier);
-      const itemCard = document.createElement('div');
-      itemCard.className = 'village-card';
-      itemCard.innerHTML = `
-        <h3>${item.displayName}</h3>
-        <p>${item.description}</p>
-        <p>Price: ${item.priceInGold} gold · Owned: ${ownedCount}</p>
-      `;
-      const buttonRow = document.createElement('div');
-      buttonRow.className = 'village-card-buttons';
-      const buyButton = document.createElement('button');
-      buyButton.textContent = `Buy (${item.priceInGold}g)`;
-      buyButton.disabled = !canAffordGoldCost(guild, item.priceInGold);
-      buyButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
-      buyButton.addEventListener('click', () => {
-        this.sounds.playMenuConfirm();
-        this.callbacks.onBuyItem(item.identifier);
-      });
-      const sellButton = document.createElement('button');
-      sellButton.textContent = `Sell (${sellPriceForItem(item)}g)`;
-      sellButton.disabled = ownedCount === 0;
-      sellButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
-      sellButton.addEventListener('click', () => {
-        this.sounds.playMenuConfirm();
-        this.callbacks.onSellItem(item.identifier);
-      });
-      buttonRow.append(buyButton, sellButton);
-      itemCard.appendChild(buttonRow);
-      storeList.appendChild(itemCard);
+      consumablesList.appendChild(
+        this.buildStoreCard(
+          guild,
+          item.displayName,
+          item.description,
+          `Price: ${item.priceInGold} gold · Owned: ${countConsumable(guild, item.identifier)}`,
+          item.priceInGold,
+          sellPriceForItem(item),
+          countConsumable(guild, item.identifier) > 0,
+          () => this.callbacks.onBuyItem(item.identifier),
+          () => this.callbacks.onSellItem(item.identifier),
+        ),
+      );
     }
-    container.appendChild(storeList);
+    container.appendChild(consumablesList);
+
+    const equipmentTitle = document.createElement('p');
+    equipmentTitle.className = 'menu-section-title';
+    equipmentTitle.textContent = 'Equipment';
+    container.appendChild(equipmentTitle);
+
+    const equipmentList = document.createElement('div');
+    equipmentList.className = 'village-card-list';
+    for (const equipment of Object.values(this.content.equipment)) {
+      const classRestrictionNote =
+        equipment.allowedBaseClasses === undefined
+          ? 'Anyone'
+          : equipment.allowedBaseClasses
+              .map((classIdentifier) => this.content.baseClasses[classIdentifier]?.displayName ?? classIdentifier)
+              .join(', ');
+      equipmentList.appendChild(
+        this.buildStoreCard(
+          guild,
+          `${equipment.displayName} (${describeStatisticBonuses(equipment.statisticBonuses)})`,
+          equipment.description,
+          `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${classRestrictionNote} · Price: ${equipment.priceInGold} gold · In stores: ${countEquipmentPieces(guild, equipment.identifier)}`,
+          equipment.priceInGold,
+          sellPriceForEquipment(equipment),
+          countEquipmentPieces(guild, equipment.identifier) > 0,
+          () => this.callbacks.onBuyEquipment(equipment.identifier),
+          () => this.callbacks.onSellEquipment(equipment.identifier),
+        ),
+      );
+    }
+    container.appendChild(equipmentList);
+  }
+
+  private buildStoreCard(
+    guild: GuildState,
+    title: string,
+    description: string,
+    detailLine: string,
+    buyPrice: number,
+    sellPrice: number,
+    canSell: boolean,
+    onBuy: () => void,
+    onSell: () => void,
+  ): HTMLElement {
+    const storeCard = document.createElement('div');
+    storeCard.className = 'village-card';
+    storeCard.innerHTML = `<h3>${title}</h3><p>${description}</p><p>${detailLine}</p>`;
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'village-card-buttons';
+    const buyButton = document.createElement('button');
+    buyButton.textContent = `Buy (${buyPrice}g)`;
+    buyButton.disabled = !canAffordGoldCost(guild, buyPrice);
+    buyButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
+    buyButton.addEventListener('click', () => {
+      this.sounds.playMenuConfirm();
+      onBuy();
+    });
+    const sellButton = document.createElement('button');
+    sellButton.textContent = `Sell (${sellPrice}g)`;
+    sellButton.disabled = !canSell;
+    sellButton.addEventListener('mouseenter', () => this.sounds.playMenuHover());
+    sellButton.addEventListener('click', () => {
+      this.sounds.playMenuConfirm();
+      onSell();
+    });
+    buttonRow.append(buyButton, sellButton);
+    storeCard.appendChild(buttonRow);
+    return storeCard;
   }
 
   // ── Recruitment hall ─────────────────────────────────────────────────
@@ -275,8 +434,10 @@ export class VillageScreen {
 
   private buildRecruitCard(guild: GuildState, recruitOffer: RecruitOffer): HTMLElement {
     const recruitCard = document.createElement('div');
-    recruitCard.className = 'village-card';
-    recruitCard.innerHTML = `
+    recruitCard.className = 'village-card with-portrait';
+    recruitCard.appendChild(this.buildPortraitFor(recruitOffer.member));
+    const cardBody = document.createElement('div');
+    cardBody.innerHTML = `
       <h3>${recruitOffer.member.displayName}</h3>
       <p>${this.describeMember(recruitOffer.member)}</p>
       <p>Hiring fee: ${recruitOffer.hireCostInGold} gold</p>
@@ -290,34 +451,95 @@ export class VillageScreen {
       this.sounds.playMenuConfirm();
       this.callbacks.onHireRecruit(recruitOffer.member.identifier);
     });
-    recruitCard.appendChild(hireButton);
+    cardBody.appendChild(hireButton);
+    recruitCard.appendChild(cardBody);
     return recruitCard;
   }
 
   // ── Roster ───────────────────────────────────────────────────────────
 
   private renderRoster(container: HTMLElement, guild: GuildState): void {
+    container.appendChild(this.buildGuildStoresSummary(guild));
+
+    const rosterHint = document.createElement('p');
+    rosterHint.className = 'village-hint';
+    rosterHint.textContent = 'Select a member to open their character sheet and manage equipment.';
+    container.appendChild(rosterHint);
+
     const rosterList = document.createElement('div');
     rosterList.className = 'village-card-list';
     for (const member of guild.roster) {
       const experienceRequired = experienceRequiredToLevelUpFrom(member.level);
-      const memberCard = document.createElement('div');
-      memberCard.className = 'village-card';
-      memberCard.innerHTML = `
+      const equippedNames = Object.values(member.equippedItemIdentifiers)
+        .map((equipmentIdentifier) => this.content.equipment[equipmentIdentifier]?.displayName)
+        .filter((displayName) => displayName !== undefined)
+        .join(', ');
+      const memberCard = document.createElement('button');
+      memberCard.className = 'village-card with-portrait';
+      memberCard.appendChild(this.buildPortraitFor(member));
+      const cardBody = document.createElement('div');
+      cardBody.innerHTML = `
         <h3>${member.displayName}</h3>
         <p>${this.describeMember(member)}</p>
-        <p>XP: ${member.experiencePoints} / ${experienceRequired} to next level</p>
+        <p>XP: ${member.experiencePoints} / ${experienceRequired}</p>
         <div class="resource-bar"><div class="resource-bar-fill experience" style="width:${Math.min(100, (member.experiencePoints / experienceRequired) * 100)}%"></div></div>
+        <p>${equippedNames === '' ? 'No equipment' : equippedNames}</p>
       `;
+      memberCard.appendChild(cardBody);
+      memberCard.addEventListener('mouseenter', () => this.sounds.playMenuHover());
+      memberCard.addEventListener('click', () => {
+        this.sounds.playMenuConfirm();
+        this.modalState = {
+          kind: 'characterSheet',
+          memberIdentifier: member.identifier,
+          expandedEquipmentSlot: undefined,
+        };
+        this.rerender();
+      });
       rosterList.appendChild(memberCard);
     }
     container.appendChild(rosterList);
   }
 
+  private buildGuildStoresSummary(guild: GuildState): HTMLElement {
+    const consumableSummary = Object.entries(guild.consumableInventory)
+      .map(([itemIdentifier, count]) => {
+        const item = this.content.items[itemIdentifier];
+        return `${item?.displayName ?? itemIdentifier} ×${count}`;
+      })
+      .join(' · ');
+    const equipmentSummary = Object.entries(guild.equipmentInventory)
+      .map(([equipmentIdentifier, count]) => {
+        const equipment = this.content.equipment[equipmentIdentifier];
+        return `${equipment?.displayName ?? equipmentIdentifier} ×${count}`;
+      })
+      .join(' · ');
+    const summaryElement = document.createElement('div');
+    summaryElement.className = 'guild-stores-summary';
+    summaryElement.innerHTML = `
+      <p class="menu-section-title">Guild stores</p>
+      <p>Consumables: ${consumableSummary === '' ? '—' : consumableSummary}</p>
+      <p>Unequipped gear: ${equipmentSummary === '' ? '—' : equipmentSummary}</p>
+    `;
+    return summaryElement;
+  }
+
+  // ── Shared helpers ───────────────────────────────────────────────────
+
+  private buildPortraitFor(member: GuildMember): HTMLCanvasElement {
+    const raceDisplayName =
+      this.content.races[member.raceIdentifier]?.displayName ?? member.raceIdentifier;
+    const classDisplayName =
+      this.content.baseClasses[member.baseClassIdentifier]?.displayName ??
+      member.baseClassIdentifier;
+    return createMemberPortraitCanvas(raceDisplayName, classDisplayName);
+  }
+
   private describeMember(member: GuildMember): string {
-    const raceName = this.content.raceDisplayNames[member.raceIdentifier] ?? member.raceIdentifier;
+    const raceName = this.content.races[member.raceIdentifier]?.displayName ?? member.raceIdentifier;
     const className =
-      this.content.classDisplayNames[member.baseClassIdentifier] ?? member.baseClassIdentifier;
+      this.content.baseClasses[member.baseClassIdentifier]?.displayName ??
+      member.baseClassIdentifier;
     return `${raceName} ${className} · Level ${member.level}`;
   }
 }

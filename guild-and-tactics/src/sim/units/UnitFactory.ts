@@ -1,4 +1,5 @@
 import type { CardinalDirection, GridPosition } from '../grid/GridPosition';
+import type { EquipmentDefinition } from '../items/EquipmentDefinition';
 import type { BattleTeam, Unit, UnitStatistics } from './Unit';
 import type { BaseClassDefinition, MonsterDefinition, RaceDefinition } from './UnitDefinitions';
 
@@ -13,19 +14,27 @@ export interface CharacterRecipe {
   level: number;
   position: GridPosition;
   facing: CardinalDirection;
+  /** Worn gear; its statistic bonuses fold into the derived statistics. */
+  equipment?: EquipmentDefinition[];
 }
 
 function deriveStatisticsForLevel(
   baseClass: BaseClassDefinition,
   race: RaceDefinition,
   level: number,
+  equipment: readonly EquipmentDefinition[],
 ): UnitStatistics {
   const levelsGained = level - 1;
   const derived = { ...baseClass.statisticsAtLevelOne };
   for (const statisticName of Object.keys(derived) as (keyof UnitStatistics)[]) {
     const growthPerLevel = baseClass.statisticGrowthPerLevel[statisticName] ?? 0;
     const raceBonus = race.statisticBonuses[statisticName] ?? 0;
-    const rawValue = derived[statisticName] + growthPerLevel * levelsGained + raceBonus;
+    const equipmentBonus = equipment.reduce(
+      (bonusSum, equipmentPiece) => bonusSum + (equipmentPiece.statisticBonuses[statisticName] ?? 0),
+      0,
+    );
+    const rawValue =
+      derived[statisticName] + growthPerLevel * levelsGained + raceBonus + equipmentBonus;
     // Evasion is a probability and stays fractional; every other statistic is a whole number.
     derived[statisticName] = statisticName === 'evasion' ? rawValue : Math.floor(rawValue);
   }
@@ -38,7 +47,12 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
       `Race "${recipe.race.displayName}" cannot take the ${recipe.baseClass.displayName} class`,
     );
   }
-  const statistics = deriveStatisticsForLevel(recipe.baseClass, recipe.race, recipe.level);
+  const statistics = deriveStatisticsForLevel(
+    recipe.baseClass,
+    recipe.race,
+    recipe.level,
+    recipe.equipment ?? [],
+  );
   return {
     identifier: recipe.identifier,
     displayName: recipe.displayName,

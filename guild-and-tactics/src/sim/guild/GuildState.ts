@@ -1,3 +1,4 @@
+import type { EquipmentSlot } from '../items/EquipmentDefinition';
 import type { BaseClassIdentifier, RaceIdentifier } from '../units/Unit';
 
 export const GUILD_ROSTER_CAPACITY = 20;
@@ -13,6 +14,8 @@ export interface GuildMember {
   level: number;
   /** Progress toward the next level (see ExperienceAndLevels). */
   experiencePoints: number;
+  /** What the member is wearing, by slot. Pieces here are NOT in the guild inventory. */
+  equippedItemIdentifiers: Partial<Record<EquipmentSlot, string>>;
 }
 
 /** A candidate in the recruitment hall: a member plus their hiring fee. */
@@ -26,6 +29,8 @@ export interface GuildState {
   roster: GuildMember[];
   /** Shared consumables by item identifier (potions, ethers …). */
   consumableInventory: Record<string, number>;
+  /** Unequipped gear in the guild stores, by equipment identifier. */
+  equipmentInventory: Record<string, number>;
   questIdentifiersOnBoard: string[];
   recruitsOnOffer: RecruitOffer[];
   completedQuestCount: number;
@@ -62,6 +67,28 @@ export function removeConsumable(guild: GuildState, itemIdentifier: string, amou
     delete guild.consumableInventory[itemIdentifier];
   } else {
     guild.consumableInventory[itemIdentifier] = owned - amount;
+  }
+  return true;
+}
+
+export function countEquipmentPieces(guild: GuildState, equipmentIdentifier: string): number {
+  return guild.equipmentInventory[equipmentIdentifier] ?? 0;
+}
+
+export function addEquipmentPiece(guild: GuildState, equipmentIdentifier: string): void {
+  guild.equipmentInventory[equipmentIdentifier] = countEquipmentPieces(guild, equipmentIdentifier) + 1;
+}
+
+/** Returns false (and changes nothing) when none are in the stores. */
+export function removeEquipmentPiece(guild: GuildState, equipmentIdentifier: string): boolean {
+  const owned = countEquipmentPieces(guild, equipmentIdentifier);
+  if (owned < 1) {
+    return false;
+  }
+  if (owned === 1) {
+    delete guild.equipmentInventory[equipmentIdentifier];
+  } else {
+    guild.equipmentInventory[equipmentIdentifier] = owned - 1;
   }
   return true;
 }

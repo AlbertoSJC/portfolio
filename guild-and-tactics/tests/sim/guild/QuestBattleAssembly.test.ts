@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createUnitsForQuestBattle } from '../../../src/sim/guild/QuestBattleAssembly';
 import { BASE_CLASSES } from '../../../src/content/baseClasses';
+import { EQUIPMENT } from '../../../src/content/equipment';
 import { BATTLE_MAPS } from '../../../src/content/maps/battleMapRegistry';
 import { MONSTERS } from '../../../src/content/monsters';
 import { QUESTS } from '../../../src/content/quests';
@@ -8,7 +9,12 @@ import { RACES } from '../../../src/content/races';
 import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
 import type { GuildMember } from '../../../src/sim/guild/GuildState';
 
-const CONTENT_TABLES = { races: RACES, baseClasses: BASE_CLASSES, monsters: MONSTERS };
+const CONTENT_TABLES = {
+  races: RACES,
+  baseClasses: BASE_CLASSES,
+  monsters: MONSTERS,
+  equipment: EQUIPMENT,
+};
 
 const TEST_MEMBER: GuildMember = {
   identifier: 'member_test',
@@ -17,6 +23,7 @@ const TEST_MEMBER: GuildMember = {
   baseClassIdentifier: 'warrior',
   level: 2,
   experiencePoints: 0,
+  equippedItemIdentifiers: {},
 };
 
 describe('createUnitsForQuestBattle', () => {
