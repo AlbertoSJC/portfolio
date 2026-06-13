@@ -1,7 +1,10 @@
 import type { Battle, BattleOutcome } from '../sim/battle/Battle';
 import type { SkillDefinition } from '../sim/battle/SkillDefinition';
 import { ITEM_USE_RANGE } from '../sim/battle/combatConstants';
-import type { ConsumableItemDefinition } from '../sim/items/ConsumableItemDefinition';
+import {
+  describeConsumableEffect,
+  type ConsumableItemDefinition,
+} from '../sim/items/ConsumableItemDefinition';
 import { effectiveStatistic, type Unit } from '../sim/units/Unit';
 import { canUnitAffordSkill } from '../sim/battle/SkillExecution';
 import type { UserInterfaceSounds } from './UserInterfaceSounds';
@@ -254,7 +257,10 @@ export class BattleHud {
     this.skillInfoBoxElement.innerHTML = `
       <h3>${item.displayName}</h3>
       <p>${item.description}</p>
-      <p class="skill-info-details">Range: ${ITEM_USE_RANGE} tile (any ally, or self) · Uses the turn's action</p>
+      <p class="skill-info-details">
+        ${describeConsumableEffect(item)}<br>
+        Range: ${ITEM_USE_RANGE} tile (any ally, or self) · Uses the turn's action
+      </p>
     `;
   }
 

@@ -17,3 +17,9 @@ export const ITEM_SELL_PRICE_FRACTION = 0.5;
 export function sellPriceForItem(item: ConsumableItemDefinition): number {
   return Math.floor(item.priceInGold * ITEM_SELL_PRICE_FRACTION);
 }
+
+export function describeConsumableEffect(item: ConsumableItemDefinition): string {
+  return item.effect.kind === 'restoreHitPoints'
+    ? `Restores ${item.effect.amount} HP`
+    : `Restores ${item.effect.amount} MP`;
+}

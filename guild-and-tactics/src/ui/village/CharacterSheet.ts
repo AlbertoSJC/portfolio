@@ -14,9 +14,10 @@ import {
 import { experienceRequiredToLevelUpFrom } from '../../sim/progression/ExperienceAndLevels';
 import { createUnitFromCharacter } from '../../sim/units/UnitFactory';
 import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
-import type { BaseClassIdentifier, UnitStatistics } from '../../sim/units/Unit';
+import type { BaseClassIdentifier } from '../../sim/units/Unit';
 import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import { createMemberPortraitCanvas } from './MemberPortrait';
+import { describeStatisticBonuses } from './presenters/StatisticDescriptions';
 
 export interface CharacterSheetCallbacks {
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
@@ -32,39 +33,6 @@ export interface CharacterSheetContentTables {
   skills: Record<string, SkillDefinition>;
 }
 
-const STATISTIC_SHORT_LABELS: Record<keyof UnitStatistics, string> = {
-  hitPointsMaximum: 'HP',
-  manaPointsMaximum: 'MP',
-  attack: 'ATK',
-  defense: 'DEF',
-  magicPower: 'MAG',
-  magicResistance: 'RES',
-  speed: 'SPD',
-  movementRange: 'MOVE',
-  jumpHeight: 'JUMP',
-  evasion: 'EVA',
-};
-
-export function describeStatisticBonuses(bonuses: Partial<UnitStatistics>): string {
-  const bonusDescriptions: string[] = [];
-  for (const [statisticName, amount] of Object.entries(bonuses) as [keyof UnitStatistics, number][]) {
-    if (amount === 0) {
-      continue;
-    }
-    const displayAmount =
-      statisticName === 'evasion' ? `${Math.round(amount * 100)}%` : `${Math.abs(amount)}`;
-    bonusDescriptions.push(
-      `${amount > 0 ? '+' : '−'}${displayAmount} ${STATISTIC_SHORT_LABELS[statisticName]}`,
-    );
-  }
-  return bonusDescriptions.join(', ');
-}
-
-/**
- * The full character sheet shown in the village modal: portrait, derived
- * battle statistics (equipment included), equipment slots with a change
- * picker, and the guild stores at a glance.
- */
 export function buildCharacterSheetContent(
   member: GuildMember,
   guild: GuildState,
@@ -97,7 +65,6 @@ export function buildCharacterSheetContent(
     equipment: equippedDefinitions,
   }).baseStatistics;
 
-  // ── Header ─────────────────────────────────────────────────────────────
   const header = document.createElement('div');
   header.className = 'character-sheet-header';
   header.appendChild(createMemberPortraitCanvas(race.displayName, baseClass.displayName));
@@ -112,7 +79,6 @@ export function buildCharacterSheetContent(
   header.appendChild(headerText);
   sheetElement.appendChild(header);
 
-  // ── Battle statistics (equipment folded in) ────────────────────────────
   const statisticsGrid = document.createElement('div');
   statisticsGrid.className = 'character-sheet-statistics';
   const statisticEntries: [string, string][] = [
@@ -134,7 +100,6 @@ export function buildCharacterSheetContent(
   }
   sheetElement.appendChild(statisticsGrid);
 
-  // ── Equipment slots ────────────────────────────────────────────────────
   const equipmentSection = document.createElement('div');
   equipmentSection.className = 'character-sheet-equipment';
   const equipmentTitle = document.createElement('p');
@@ -154,7 +119,6 @@ export function buildCharacterSheetContent(
   return sheetElement;
 }
 
-/** Skills the member commands in their current class. */
 function buildSkillsSection(
   baseClass: BaseClassDefinition,
   content: CharacterSheetContentTables,
@@ -184,11 +148,6 @@ function buildSkillsSection(
   return skillsSection;
 }
 
-/**
- * Every base class the member's race allows, with its skill list, and a
- * switch button (PRD §4: class changes happen in the village). Per-level
- * skill learning and advanced classes arrive in M3.
- */
 function buildClassesSection(
   member: GuildMember,
   race: RaceDefinition,

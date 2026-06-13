@@ -452,16 +452,43 @@ button.village-card:hover {
   cursor: default;
 }
 
-.guild-stores-summary {
-  background: #232936;
-  border: 1px solid var(--hud-panel-border);
-  border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 14px;
+.card-bonus-note {
+  font-style: normal;
+  font-size: 13px;
+  opacity: 0.75;
+  color: var(--hud-text-color);
 }
 
-.guild-stores-summary p {
-  margin: 2px 0;
+/* Store cards: equal heights, price and buttons pinned to the bottom. */
+.store-card {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.store-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
+.card-type-line {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+
+.card-effect-line {
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.store-card-price {
+  margin-top: auto !important;
+  padding-top: 8px;
+  opacity: 0.85;
 }
 
 .outcome-summary {
