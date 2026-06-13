@@ -27,7 +27,7 @@ export function buildMemberIdentity(
 ): MemberIdentityViewModel {
   const raceDisplayName = content.races[member.raceIdentifier]?.displayName ?? member.raceIdentifier;
   const classDisplayName =
-    content.baseClasses[member.baseClassIdentifier]?.displayName ?? member.baseClassIdentifier;
+    content.baseClasses[member.classIdentifier]?.displayName ?? member.classIdentifier;
   return {
     memberIdentifier: member.identifier,
     displayName: member.displayName,

@@ -22,7 +22,7 @@ describe('generateRecruitOffers', () => {
       expect(offers).toHaveLength(RECRUITS_ON_OFFER_COUNT);
       for (const offer of offers) {
         const race = RACES[offer.member.raceIdentifier];
-        expect(race?.allowedBaseClasses).toContain(offer.member.baseClassIdentifier);
+        expect(race?.allowedBaseClasses).toContain(offer.member.classIdentifier);
         expect(offer.member.level).toBeGreaterThanOrEqual(1);
         expect(offer.hireCostInGold).toBe(hireCostForLevel(offer.member.level));
       }

@@ -30,22 +30,14 @@ type InteractionPhase =
   | 'enemyActing'
   | 'battleOver';
 
-/** What the player is aiming: a skill or a consumable item. */
 type ChosenAction = { kind: 'skill'; identifier: string } | { kind: 'item'; identifier: string };
 
-/** What the outcome overlay shows when the battle ends. */
 export interface BattleConclusion {
   summaryLines: string[];
   continueButtonLabel: string;
   onContinue: () => void;
 }
 
-/**
- * Owns the player interaction state machine and drives enemy turns for one
- * battle. All rule decisions stay in the Battle; this class only sequences
- * input, rendering, sound, and timing. The GameController creates one per
- * quest and disposes it afterwards.
- */
 export class BattleController {
   private readonly battle: Battle;
   private readonly canvas: HTMLCanvasElement;
@@ -64,9 +56,7 @@ export class BattleController {
   private previewKind: TileHighlightKind | undefined;
   private hoveredTile: GridPosition | undefined;
   private chosenAction: ChosenAction | undefined;
-  /** Which chooser arrow the cursor is over while picking end-of-turn facing. */
   private hoveredFacingDirection: CardinalDirection | undefined;
-  /** Unit hovered in the turn-order strip, marked on the map. */
   private spotlightedUnitIdentifier: string | undefined;
 
   constructor(
@@ -108,7 +98,6 @@ export class BattleController {
     this.startTurnForActiveUnit();
   }
 
-  /** Detaches listeners and cancels queued enemy steps when leaving the battle. */
   dispose(): void {
     this.canvas.removeEventListener('click', this.boundHandleCanvasClick);
     this.canvas.removeEventListener('mousemove', this.boundHandleCanvasHover);
@@ -163,8 +152,6 @@ export class BattleController {
     this.hud.renderActionMenu(this.battle, this.phaseAsMenuMode());
   }
 
-  // ── Turn-order strip spotlight ───────────────────────────────────────
-
   private spotlightUnit(unitIdentifier: string): void {
     this.spotlightedUnitIdentifier = unitIdentifier;
     this.hud.renderInspectedUnitPanel(this.battle.getUnitByIdentifier(unitIdentifier));
@@ -177,7 +164,6 @@ export class BattleController {
     this.renderBattleCanvasOnly();
   }
 
-  /** While aiming an area skill, show exactly which tiles the burst would cover. */
   private areaOfEffectPreviewTiles(): GridPosition[] {
     if (
       this.phase !== 'choosingActionTarget' ||
@@ -292,8 +278,6 @@ export class BattleController {
     this.renderEverythingIncludingMenu();
   }
 
-  // ── Hover previews ───────────────────────────────────────────────────
-
   private showMovePreview(): void {
     if (this.phase !== 'unitCommands') {
       return;
@@ -330,8 +314,6 @@ export class BattleController {
     this.previewKind = undefined;
     this.renderEverything();
   }
-
-  // ── Player input ─────────────────────────────────────────────────────
 
   private beginChoosingMoveDestination(): void {
     if (this.phase !== 'unitCommands') {
@@ -406,7 +388,6 @@ export class BattleController {
     this.startTurnForActiveUnit();
   }
 
-  /** The chooser arrow (if any) sitting on the given grid position. */
   private facingDirectionAtPosition(position: GridPosition): CardinalDirection | undefined {
     const activeUnitPosition = this.battle.getActiveUnit().position;
     return ALL_CARDINAL_DIRECTIONS.find((direction) =>
@@ -426,56 +407,65 @@ export class BattleController {
 
   private handleCanvasClick(clickEvent: MouseEvent): void {
     if (this.phase === 'choosingFacing') {
-      // Facing arrows may point off the map edge, so use the unbounded position.
-      const clickedDirection = this.facingDirectionAtPosition(
-        this.gridPositionFromMouseEvent(clickEvent),
-      );
-      if (clickedDirection !== undefined) {
-        this.sounds.playMenuConfirm();
-        this.finishTurnWithFacing(clickedDirection);
-      }
+      this.handleFacingPhaseClick(clickEvent);
       return;
     }
     const clickedTile = this.tileFromMouseEvent(clickEvent);
-    if (clickedTile === undefined) {
-      return;
-    }
+    if (clickedTile === undefined) return;
     if (this.phase === 'choosingMoveDestination') {
-      const isHighlighted = this.highlightedTiles.some(
-        (tile) => tile.column === clickedTile.column && tile.row === clickedTile.row,
-      );
-      if (!isHighlighted) {
-        this.sounds.playMenuCancel();
-        this.returnToUnitCommands();
-        return;
-      }
-      this.logEvents(this.battle.moveActiveUnit(clickedTile));
-      this.afterPlayerAction();
+      this.handleMovementPhaseClick(clickedTile);
+    } else if (this.phase === 'choosingActionTarget') {
+      this.handleActionTargetPhaseClick(clickedTile);
+    }
+  }
+
+  private handleFacingPhaseClick(clickEvent: MouseEvent): void {
+    // Facing arrows may point off the map edge, so use the unbounded position.
+    const clickedDirection = this.facingDirectionAtPosition(
+      this.gridPositionFromMouseEvent(clickEvent),
+    );
+    if (clickedDirection !== undefined) {
+      this.sounds.playMenuConfirm();
+      this.finishTurnWithFacing(clickedDirection);
+    }
+  }
+
+  private handleMovementPhaseClick(clickedTile: GridPosition): void {
+    const isReachable = this.highlightedTiles.some(
+      (tile) => tile.column === clickedTile.column && tile.row === clickedTile.row,
+    );
+    if (!isReachable) {
+      this.sounds.playMenuCancel();
+      this.returnToUnitCommands();
       return;
     }
-    if (this.phase === 'choosingActionTarget' && this.chosenAction !== undefined) {
-      const isHighlighted = this.highlightedTiles.some(
-        (tile) => tile.column === clickedTile.column && tile.row === clickedTile.row,
-      );
-      if (!isHighlighted) {
+    this.logEvents(this.battle.moveActiveUnit(clickedTile));
+    this.afterPlayerAction();
+  }
+
+  private handleActionTargetPhaseClick(clickedTile: GridPosition): void {
+    if (this.chosenAction === undefined) return;
+    const isInRange = this.highlightedTiles.some(
+      (tile) => tile.column === clickedTile.column && tile.row === clickedTile.row,
+    );
+    if (!isInRange) {
+      this.sounds.playMenuCancel();
+      this.returnToUnitCommands();
+      return;
+    }
+    if (this.chosenAction.kind === 'item') {
+      const targetUnit = this.battle.getLivingUnitAtPosition(clickedTile);
+      if (targetUnit === undefined || targetUnit.team !== this.battle.getActiveUnit().team) {
         this.sounds.playMenuCancel();
         this.returnToUnitCommands();
         return;
       }
-      if (this.chosenAction.kind === 'item') {
-        const targetUnit = this.battle.getLivingUnitAtPosition(clickedTile);
-        if (targetUnit === undefined || targetUnit.team !== this.battle.getActiveUnit().team) {
-          this.sounds.playMenuCancel();
-          this.returnToUnitCommands();
-          return;
-        }
-        this.logEvents(this.battle.useItemWithActiveUnit(this.chosenAction.identifier, clickedTile));
-      } else {
-        this.logEvents(this.battle.useSkillWithActiveUnit(this.chosenAction.identifier, clickedTile));
-      }
-      this.chosenAction = undefined;
-      this.afterPlayerAction();
+      this.logEvents(this.battle.useItemWithActiveUnit(this.chosenAction.identifier, clickedTile));
+    } else {
+      this.logEvents(this.battle.useSkillWithActiveUnit(this.chosenAction.identifier, clickedTile));
     }
+    this.chosenAction = undefined;
+    this.afterPlayerAction();
   }
 
   private afterPlayerAction(): void {
@@ -485,7 +475,6 @@ export class BattleController {
     }
     const activeUnit = this.battle.getActiveUnit();
     if (activeUnit.hasMovedThisTurn && activeUnit.hasActedThisTurn) {
-      // Nothing left to do: go straight to the facing choice, FFTA-style.
       this.phase = 'choosingFacing';
       this.hoveredFacingDirection = undefined;
       this.clearHighlights();
@@ -522,7 +511,6 @@ export class BattleController {
     this.renderEverything();
   }
 
-  /** Grid position under the cursor, even outside the map bounds. */
   private gridPositionFromMouseEvent(mouseEvent: MouseEvent): GridPosition {
     const canvas = mouseEvent.currentTarget as HTMLCanvasElement;
     const canvasBounds = canvas.getBoundingClientRect();
@@ -535,8 +523,6 @@ export class BattleController {
     const gridPosition = this.gridPositionFromMouseEvent(mouseEvent);
     return isPositionInsideMap(this.battle.map, gridPosition) ? gridPosition : undefined;
   }
-
-  // ── Enemy turns ──────────────────────────────────────────────────────
 
   private runEnemyTurn(): void {
     const enemyUnit = this.battle.getActiveUnit();
@@ -578,8 +564,6 @@ export class BattleController {
       );
     });
   }
-
-  // ── Battle end ───────────────────────────────────────────────────────
 
   private finishBattle(): void {
     const outcome = this.battle.getBattleOutcome();

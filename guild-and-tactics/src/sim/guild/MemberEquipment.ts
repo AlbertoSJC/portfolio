@@ -21,7 +21,7 @@ export function equipItemOnMember(
   if (member === undefined) {
     return false;
   }
-  if (!canClassEquip(equipment, member.baseClassIdentifier)) {
+  if (!canClassEquip(equipment, member.classIdentifier)) {
     return false;
   }
   if (!removeEquipmentPiece(guild, equipment.identifier)) {

@@ -38,6 +38,7 @@ export function createTestUnit(
     skillIdentifiers: ['basic_attack'],
     elementalAffinities: {},
     activeStatModifiers: [],
+    activeStatusEffects: [],
     hasMovedThisTurn: false,
     hasActedThisTurn: false,
     turnCharge: 0,

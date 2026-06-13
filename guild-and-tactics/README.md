@@ -6,7 +6,7 @@ races, take quests from village taverns, fight tactical grid battles, level
 up, learn skills, upgrade gear — and repeat. There is no main story; the game
 *is* the guild loop.
 
-> **Status**: PRD / design document. No code yet.
+> **Status**: M1 (combat) and M2 (guild loop) complete and browser-verified. M3 type scaffolding done (class identifiers, status-effect types, save v3 migration). M3 implementation is next.
 
 ---
 
@@ -409,165 +409,39 @@ days of work, not a rewrite.
 2. ✅ **M2 — Guild loop**: one village (tavern/store/recruitment), quest board,
    gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
    browser-verified**
-3. ⬜ **M3 — Depth**: advanced classes + race gating, secondary skill sets,
-   status effects, elements, equipment **tiers** (slots + buy/equip/sell
-   shipped early in M2.5), **village map screen (§6.0)** — buildings as
-   walkable map nodes instead of tabs.
+3. 🔧 **M3 — Depth** (type scaffolding done; implementation steps below):
+   - **Advanced class definitions** — `src/content/advancedClasses.ts` with
+     `AdvancedClassDefinition` (statistics, growth, skills, prerequisite base
+     class + level). Start with the shared classes (Knight, Berserker, Ranger,
+     Duelist, Sage, Assassin) before race-exclusive ones.
+   - **Populate `allowedAdvancedClasses`** in `src/content/races.ts` per the
+     §4 matrix; each entry is already an `AdvancedClassIdentifier`.
+   - **Class mastery tracking** — replace `masteredClasses: BaseClassIdentifier[]`
+     with `classLevelsReached: Partial<Record<BaseClassIdentifier, number>>`
+     (records highest level while in each base class); update `ClassChange` unlock
+     gate to check prerequisite levels (pure: 5 in base; hybrid: 5 primary + 3
+     secondary) + class-unlock quest completion.
+   - **Per-level skill learning** — `GuildMember` needs `learnedSkillIdentifiers`
+     (skills unlocked through leveling); `applyExperienceGain` triggers unlock;
+     battle unit assembly merges class skills with learned ones.
+   - **Secondary skill set** — `GuildMember.secondarySkillClassIdentifier?:
+     BaseClassIdentifier`; character sheet lets player pick a mastered class;
+     `QuestBattleAssembly` adds that class's skills to the battle unit.
+   - **Status effects** — wire `tickDownStatusEffects` into
+     `Battle.endActiveUnitTurn`; add poison damage, sleep turn-skip, and blind
+     hit-chance penalty to the existing functions; add status-inflicting skills
+     to `src/content/skills.ts`.
+   - **Full element wheel** — populate `elementalAffinities` on more monsters
+     and equipment; add element-boosting passive skills.
+   - **Village map screen (§6.0)** — replace the tab bar with a walkable
+     building-node map (canvas-drawn, same swap-point principle as
+     `SpriteRegistry`).
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
    villages, **overworld map** (§6.0) with travel + random encounters
    (§6.1), reputation tiers, dispatch quests, balancing pass, audio,
    visual polish.
 
-### Development log
-
-A short record of what was built and decided, so anyone (including future
-us, or a desktop/Steam port effort per §10) can follow the trail.
-
-**2026-06-12 — M1 complete.**
-
-- *Scaffold*: Vite + Vitest + strict TypeScript, zero runtime dependencies.
-  Folder skeleton per §9.1; `tests/` mirrors `src/` one-to-one.
-- *Sim core* (`src/sim/`, no DOM imports, seeded RNG): charge-time turn
-  order (FFTA-style), BFS movement with height/jump and Feryan flight,
-  facing with side/back hit + crit bonuses, damage/heal/buff skill effects,
-  elemental affinities (Sacred vs Undead, Dark absorption), win/lose
-  detection, utility-scoring enemy AI (expected damage + knockout bonus +
-  flanking preference).
-- *Content as data* (`src/content/`): 5 races, 4 base classes, 12 skills in
-  the shared pool, 3 Darkness monsters, demo party (one member per race),
-  map authored as readable string rows.
-- *Rendering* (`src/render/`): isometric diamond grid on canvas, height
-  cliffs, facing wedges, highlight/preview overlays. Units are **procedural
-  vector miniatures** drawn by `SpriteRegistry` (still the single swap
-  point for future art): one parametric humanoid with per-race features
-  (werecat ears + tail, werelizard bulk + snout, undead skull face, feryan
-  wings + eagle hindquarters), a class item in hand (sword / dagger / orb
-  staff / cross staff), a team-colored base plate, and bespoke shapes for
-  each monster (wolf, stoneling, gnarlroot) — race, class, and team read
-  at one glance with zero asset files.
-- *Battle UX* (`src/ui/` + `src/app/`): action menu with hover **range
-  previews** and an AoE blast preview while aiming; skill info box
-  (description, effect, range, cost); hover-to-inspect any unit on map or
-  in the turn-order strip (with map spotlight); end-turn facing chosen by
-  clicking arrows around the unit, with live facing preview on hover.
-- *Audio* (`src/ui/UserInterfaceSounds.ts`): fully procedural WebAudio —
-  Kingdom Hearts–style celesta chimes through a generated convolution
-  reverb (filtered-noise impulse, ~0.35 s room), lowpassed thuds for
-  impacts. No audio files. Audio unlocks on first click (browser autoplay
-  policy forbids sound before the first gesture).
-- *Verification*: 46 vitest tests on the sim (formulas, movement, turn
-  order, AI, factory rules — including "Feryan Mage throws"); browser E2E
-  pass with puppeteer-core (`tmp/verify_battle.mjs`, untracked) confirming
-  render, menus, previews, inspection, facing chooser, and enemy turns
-  with zero page errors.
-- *Known cosmetic quirks*: no favicon yet (harmless 404 in the console).
-- *Post-verification fix*: the turn-order strip now always leads with the
-  acting unit (highlighted), followed by the predicted upcoming turns.
-- *Visual upgrade (same day)*: replaced the disc-with-letter placeholders
-  with **procedural vector miniatures** (see §9 rendering bullet) so every
-  unit's race, class, and team read at one glance. Contained entirely in
-  `src/render/SpriteRegistry.ts` + the renderer's draw call — proof that
-  the future real-art swap touches nothing else. Browser-verified with a
-  fresh screenshot pass.
-
-**2026-06-12 — M2 complete: the guild loop.**
-
-- *Guild sim* (`src/sim/guild/`, `src/sim/progression/`): persistent
-  `GuildState` (gold, roster, shared consumable inventory, quest board,
-  recruits, completed-quest count); XP curve with multi-level-up handling
-  and the level-30 cap; kill XP per defeated enemy + quest XP on victory;
-  **defeat keeps kill XP but forfeits the reward** (PRD §5 retreat rule);
-  quest board that refills from the repeatable pool without duplicates;
-  recruit generation honoring race/class rules (a Feryan candidate can
-  never roll Mage — tested).
-- *Wanderer's Rest* (`src/ui/village/`): tabbed village screen — Tavern
-  (quest board with difficulty stars, lore descriptions, party muster up
-  to 6, Embark), Store (buy/sell consumables at half-back), Recruitment
-  Hall (3 rotating candidates, refreshed after each victory), Roster (XP
-  progress bars). Scene switch village ↔ battle handled by the new
-  `GameController`, which owns the guild state and persists it on every
-  change.
-- *Consumables in battle*: the store sells Potions/Ethers; battles carry
-  the guild inventory as an item pouch — an **Items** action (range 1,
-  ally or self, uses the turn's action) heals HP or restores MP, honoring
-  the FFTA rule that mana only comes back through items. Used charges stay
-  used, win or lose.
-- *Content*: 8 repeatable quests across 3 maps (Forest Clearing + new
-  Marsh Road and tiered Old Quarry), 2 new monsters (charging Twisted
-  Boar; flying **Hollow Wisp**, whose Dark Bolt heals undead party members
-  by absorption), recruit name pools per race, 3 consumables.
-- *Persistence* (`src/platform/SaveGameStorage.ts`): the platform boundary
-  from §10, with a versioned-JSON localStorage implementation; corrupt or
-  unknown-version saves load as "no save" instead of crashing. Battles are
-  not saved mid-fight — reloading returns to the village (deliberate M2
-  simplification).
-- *Verification*: 69 vitest tests (guild state, XP/level-ups, quest board,
-  recruit legality, item use in battle, save round-trip + corrupt-save
-  handling, and a content-validity sweep proving every quest spawn and
-  deployment tile is standable on its map); browser E2E
-  (`tmp/verify_village.mjs`, untracked) walking the real loop — buy a
-  potion (gold 300→270), muster 5, embark, battle starts with the bought
-  Potion ×3 in the Items menu, reload restores the save.
-- *Known M2 simplifications*: no mid-battle saves; no party pre-selection
-  memory; store stock is fixed (reputation tiers arrive in M4).
-
-**2026-06-12 — M2.5: village UX iteration + equipment basics (pulled
-forward from M3).**
-
-- *Equipment system* (`src/sim/items/EquipmentDefinition.ts`,
-  `src/sim/guild/MemberEquipment.ts`): three slots (weapon / armor /
-  accessory), flat stat bonuses folded into unit derivation, weapons
-  class-bound (a thief cannot take the mage's staff — tested), guild
-  stores hold unequipped pieces, equipping swaps the old piece back.
-  11 pieces in `src/content/equipment.ts`. Save format bumped to **v2
-  with a v1 migration** (old saves gain the empty equipment fields
-  instead of being discarded — tested).
-- *Character sheet* (`src/ui/village/CharacterSheet.ts`): click a roster
-  member → modal with portrait, XP bar, full derived battle statistics
-  (equipment included), and per-slot equipment management with an inline
-  picker of suitable gear from the stores.
-- *Portraits everywhere* (`src/ui/village/MemberPortrait.ts`): the
-  battlefield's procedural miniatures drawn onto small canvases in the
-  roster, recruitment hall, character sheet, and party muster — what you
-  see in the village is exactly what fights.
-- *Tavern flow*: quest postings open as a **modal** (reusable
-  `ModalDialog`: backdrop / × / Escape) with lore text and a card-based
-  party muster (click to select, gold highlight, selection counter) —
-  no more checkboxes.
-- *Store*: split into Consumables and Equipment sections; equipment cards
-  show slot, class restriction, stat bonuses, price, and stock; buy/sell
-  verified (Swift Charm round-trip 300→180→240 gold at the half-back
-  rule). Roster tab gained a "Guild stores" inventory summary.
-- *Verification*: 78 vitest tests; browser E2E (`tmp/verify_sheet.mjs`)
-  confirming sheet ATK 12→15 on equipping the Iron Sword, the picker,
-  buy/sell math, portraits, and the quest modal muster.
-
-**2026-06-12 — M2.6: store depth + class switching.**
-
-- *Store stock* (`src/sim/guild/StoreStock.ts`): shelves hold limited
-  stock (5 per consumable, 2 per equipment piece), shown on every card;
-  buying decrements it and "Out of stock" disables the button. Caravans
-  restock fully after every completed quest. Multi-buying verified in the
-  browser (3 potions: stock 5→2, gold 300→210).
-- *Item icons* (`src/ui/village/ItemIcons.ts`): procedural canvas icons
-  by item type — healing/mana flasks, sword/dagger/staff/rod (weapon
-  silhouette picked from the wielding class), breastplate, ring. Same
-  swap-point principle as the unit miniatures.
-- *Store filters*: pill sub-tabs under the main tabs — All / Consumables
-  / Weapons / Armor / Accessories.
-- *Character sheet completed*: **Skills section** (current class's skills
-  with description, range, MP cost) and **Classes section** — every base
-  class the member's race allows, each with its skill list and a switch
-  button. *Class switching* (`src/sim/guild/ClassChange.ts`) keeps level
-  and XP, and gear the new class cannot use returns to the guild stores
-  automatically (browser-verified: Garrick Warrior→Mage dropped the Iron
-  Sword back into the stores). Per-level skill learning, mastered-class
-  secondary skill sets, and advanced classes remain M3.
-- *Save format*: storeStock field added; load-normalization treats a
-  missing/empty stock map as "never stocked" and refills it.
-- *Verification*: 86 vitest tests (stock, class-change legality including
-  the Feryan no-magic rule, illegal-gear auto-unequip); browser E2E
-  (`tmp/verify_store_classes.mjs`).
+> Build history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## 12. Open decisions
 

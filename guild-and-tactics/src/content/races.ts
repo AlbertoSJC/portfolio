@@ -11,6 +11,7 @@ export const RACES: Record<string, RaceDefinition> = {
     statisticBonuses: { attack: 1, defense: 1, magicPower: 1, magicResistance: 1 },
     canFly: false,
     allowedBaseClasses: ['warrior', 'thief', 'mage', 'priest'],
+    allowedAdvancedClasses: [],
     elementalAffinities: {},
   },
   werecat: {
@@ -19,6 +20,7 @@ export const RACES: Record<string, RaceDefinition> = {
     statisticBonuses: { speed: 2, evasion: 0.08, defense: -1 },
     canFly: false,
     allowedBaseClasses: ['warrior', 'thief', 'mage', 'priest'],
+    allowedAdvancedClasses: [],
     elementalAffinities: {},
   },
   werelizard: {
@@ -28,6 +30,7 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: false,
     // Too slow and heavy for thievery (PRD §4).
     allowedBaseClasses: ['warrior', 'mage', 'priest'],
+    allowedAdvancedClasses: [],
     elementalAffinities: {},
   },
   undead: {
@@ -37,6 +40,7 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: false,
     // Holy magic rejects the unliving (PRD §4) — no Priest.
     allowedBaseClasses: ['warrior', 'thief', 'mage'],
+    allowedAdvancedClasses: [],
     // Sacred wounds them deeply; Dark knits them back together.
     elementalAffinities: { sacred: 1.5, dark: -1 },
   },
@@ -47,6 +51,7 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: true,
     // Feryans renounce magic (locked rule, PRD §3/§4) — Warrior and Thief only.
     allowedBaseClasses: ['warrior', 'thief'],
+    allowedAdvancedClasses: [],
     elementalAffinities: {},
   },
 };

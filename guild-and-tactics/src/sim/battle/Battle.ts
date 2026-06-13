@@ -182,8 +182,6 @@ export class Battle {
     return events;
   }
 
-  // ── Consumable items ─────────────────────────────────────────────────
-
   getItemPouchEntries(): { item: ConsumableItemDefinition; count: number }[] {
     return Object.entries(this.itemPouch)
       .filter(([, count]) => count > 0)

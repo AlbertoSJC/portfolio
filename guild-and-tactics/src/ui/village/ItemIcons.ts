@@ -40,7 +40,7 @@ export function iconKindForEquipment(equipment: EquipmentDefinition): ItemIconKi
     return 'accessory';
   }
   // Weapons: pick the silhouette from the class that wields them.
-  const wieldingClass = equipment.allowedBaseClasses?.[0];
+  const wieldingClass = equipment.allowedClasses?.[0];
   switch (wieldingClass) {
     case 'thief':
       return 'dagger';

@@ -1,4 +1,5 @@
 import type {
+  AdvancedClassIdentifier,
   BaseClassIdentifier,
   ElementalAffinities,
   RaceIdentifier,
@@ -12,6 +13,7 @@ export interface RaceDefinition {
   statisticBonuses: Partial<UnitStatistics>;
   canFly: boolean;
   allowedBaseClasses: BaseClassIdentifier[];
+  allowedAdvancedClasses: AdvancedClassIdentifier[];
   elementalAffinities: ElementalAffinities;
 }
 

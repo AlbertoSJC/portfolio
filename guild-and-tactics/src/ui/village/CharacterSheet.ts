@@ -41,7 +41,7 @@ export function buildCharacterSheetContent(
   callbacks: CharacterSheetCallbacks,
 ): HTMLElement {
   const race = content.races[member.raceIdentifier];
-  const baseClass = content.baseClasses[member.baseClassIdentifier];
+  const baseClass = content.baseClasses[member.classIdentifier];
   const sheetElement = document.createElement('div');
   sheetElement.className = 'character-sheet';
   if (race === undefined || baseClass === undefined) {
@@ -166,7 +166,7 @@ function buildClassesSection(
     if (baseClass === undefined) {
       continue;
     }
-    const isCurrentClass = classIdentifier === member.baseClassIdentifier;
+    const isCurrentClass = classIdentifier === member.classIdentifier;
     const skillNames = baseClass.skillIdentifiers
       .map((skillIdentifier) => content.skills[skillIdentifier]?.displayName)
       .filter((displayName) => displayName !== undefined)
@@ -256,7 +256,7 @@ function buildSlotPicker(
     (equipment) =>
       equipment.slot === slot &&
       countEquipmentPieces(guild, equipment.identifier) > 0 &&
-      canClassEquip(equipment, member.baseClassIdentifier),
+      canClassEquip(equipment, member.classIdentifier),
   );
   if (equippableChoices.length === 0) {
     const emptyNote = document.createElement('p');

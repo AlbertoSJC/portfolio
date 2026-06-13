@@ -35,7 +35,7 @@ export function createUnitsForQuestBattle(
 
   const guildUnits = deployedMembers.map((member, memberIndex) => {
     const race = contentTables.races[member.raceIdentifier];
-    const baseClass = contentTables.baseClasses[member.baseClassIdentifier];
+    const baseClass = contentTables.baseClasses[member.classIdentifier];
     const deploymentTile = deploymentTiles[memberIndex];
     if (race === undefined || baseClass === undefined || deploymentTile === undefined) {
       throw new Error(`Broken content for guild member "${member.displayName}"`);

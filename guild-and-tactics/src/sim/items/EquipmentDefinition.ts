@@ -1,4 +1,4 @@
-import type { BaseClassIdentifier, UnitStatistics } from '../units/Unit';
+import type { ClassIdentifier, UnitStatistics } from '../units/Unit';
 import { ITEM_SELL_PRICE_FRACTION } from './ConsumableItemDefinition';
 
 export type EquipmentSlot = 'weapon' | 'armor' | 'accessory';
@@ -19,8 +19,8 @@ export interface EquipmentDefinition {
   priceInGold: number;
   /** Flat additions to the wearer's derived statistics. */
   statisticBonuses: Partial<UnitStatistics>;
-  /** When set, only these base classes may equip it (weapons mostly). */
-  allowedBaseClasses?: BaseClassIdentifier[];
+  /** When set, only these classes may equip it (weapons mostly; advanced classes added in M3). */
+  allowedClasses?: ClassIdentifier[];
 }
 
 export function sellPriceForEquipment(equipment: EquipmentDefinition): number {
@@ -29,10 +29,10 @@ export function sellPriceForEquipment(equipment: EquipmentDefinition): number {
 
 export function canClassEquip(
   equipment: EquipmentDefinition,
-  baseClassIdentifier: BaseClassIdentifier,
+  classIdentifier: ClassIdentifier,
 ): boolean {
   return (
-    equipment.allowedBaseClasses === undefined ||
-    equipment.allowedBaseClasses.includes(baseClassIdentifier)
+    equipment.allowedClasses === undefined ||
+    (equipment.allowedClasses as string[]).includes(classIdentifier)
   );
 }

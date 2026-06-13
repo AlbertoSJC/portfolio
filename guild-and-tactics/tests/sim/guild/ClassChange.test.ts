@@ -23,14 +23,15 @@ describe('changeMemberBaseClass', () => {
       identifier: 'member_human',
       displayName: 'Test Human',
       raceIdentifier: 'human',
-      baseClassIdentifier: 'warrior',
+      classIdentifier: 'warrior',
+      masteredClasses: [],
       level: 3,
       experiencePoints: 20,
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
     expect(changeMemberBaseClass(guild, human.identifier, 'mage', RACES, EQUIPMENT)).toBe(true);
-    expect(human.baseClassIdentifier).toBe('mage');
+    expect(human.classIdentifier).toBe('mage');
     expect(human.level).toBe(3); // level and XP survive the change
     expect(human.experiencePoints).toBe(20);
   });
@@ -40,14 +41,15 @@ describe('changeMemberBaseClass', () => {
       identifier: 'member_feryan',
       displayName: 'Test Feryan',
       raceIdentifier: 'feryan',
-      baseClassIdentifier: 'warrior',
+      classIdentifier: 'warrior',
+      masteredClasses: [],
       level: 2,
       experiencePoints: 0,
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(feryan);
     expect(changeMemberBaseClass(guild, feryan.identifier, 'mage', RACES, EQUIPMENT)).toBe(false);
-    expect(feryan.baseClassIdentifier).toBe('warrior');
+    expect(feryan.classIdentifier).toBe('warrior');
   });
 
   it('returns gear the new class cannot use to the guild stores', () => {
@@ -55,7 +57,8 @@ describe('changeMemberBaseClass', () => {
       identifier: 'member_armed',
       displayName: 'Armed Human',
       raceIdentifier: 'human',
-      baseClassIdentifier: 'warrior',
+      classIdentifier: 'warrior',
+      masteredClasses: [],
       level: 2,
       experiencePoints: 0,
       equippedItemIdentifiers: { weapon: 'iron_sword', armor: 'leather_vest' },
@@ -73,7 +76,8 @@ describe('changeMemberBaseClass', () => {
       identifier: 'member_same',
       displayName: 'Same Class Human',
       raceIdentifier: 'human',
-      baseClassIdentifier: 'warrior',
+      classIdentifier: 'warrior',
+      masteredClasses: [],
       level: 2,
       experiencePoints: 0,
       equippedItemIdentifiers: {},

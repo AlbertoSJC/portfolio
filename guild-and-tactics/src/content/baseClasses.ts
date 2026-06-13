@@ -1,6 +1,5 @@
 import type { BaseClassDefinition } from '../sim/units/UnitDefinitions';
 
-/** The four base classes (PRD §4). Advanced classes arrive in M3. */
 export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
   warrior: {
     identifier: 'warrior',

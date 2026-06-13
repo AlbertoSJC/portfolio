@@ -47,11 +47,6 @@ function canAffordAndInStock(guild: GuildState, priceInGold: number, itemIdentif
   return guild.gold >= priceInGold && (guild.storeStock[itemIdentifier] ?? 0) > 0;
 }
 
-/**
- * The top of the game: owns the guild state, the save storage, and the
- * village ↔ battle scene switch. Every state change is persisted through
- * the SaveGameStorage platform boundary.
- */
 export class GameController {
   private readonly battleRootElement: HTMLElement;
   private readonly battleCanvas: HTMLCanvasElement;
@@ -116,8 +111,6 @@ export class GameController {
     this.showVillage();
   }
 
-  // ── Scene switching ──────────────────────────────────────────────────
-
   private showVillage(): void {
     this.activeBattleController?.dispose();
     this.activeBattleController = undefined;
@@ -132,8 +125,6 @@ export class GameController {
     this.villageRootElement.classList.add('hidden');
     this.battleRootElement.classList.remove('hidden');
   }
-
-  // ── Village actions ──────────────────────────────────────────────────
 
   private buyItem(itemIdentifier: string): void {
     const item = ITEMS[itemIdentifier];
@@ -222,8 +213,6 @@ export class GameController {
     this.villageScreen.render(this.guild);
   }
 
-  // ── Quest battles ────────────────────────────────────────────────────
-
   private embarkOnQuest(questIdentifier: string, memberIdentifiers: string[]): void {
     const quest = QUESTS[questIdentifier];
     const mapEntry = quest === undefined ? undefined : BATTLE_MAPS[quest.battleMapIdentifier];
@@ -265,7 +254,6 @@ export class GameController {
     this.activeBattleController.appendCombatLogLine(`— ${quest.displayName} —`);
   }
 
-  /** Applies rewards and experience, saves, and describes it all for the overlay. */
   private concludeQuestBattle(outcome: Exclude<BattleOutcome, 'ongoing'>): BattleConclusion {
     const quest =
       this.activeQuestIdentifier === undefined ? undefined : QUESTS[this.activeQuestIdentifier];
@@ -278,7 +266,6 @@ export class GameController {
       };
     }
 
-    // Consumables used in battle stay used, win or lose.
     this.guild.consumableInventory = battle.getRemainingItemPouch();
 
     const killExperience = battle.defeatedEnemyLevels.reduce(
@@ -317,9 +304,7 @@ export class GameController {
         Object.keys(QUESTS),
         this.randomNumberGenerator,
       );
-      // The cleared road lets a caravan through: full shelves again.
       restockStore(this.guild, ITEMS, EQUIPMENT);
-      // New faces drift into the hall after every job well done.
       this.guild.recruitsOnOffer = generateRecruitOffers(
         this.randomNumberGenerator,
         RACES,

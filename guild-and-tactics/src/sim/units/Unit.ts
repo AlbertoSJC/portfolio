@@ -8,6 +8,51 @@ export type RaceIdentifier = 'human' | 'werecat' | 'werelizard' | 'undead' | 'fe
 
 export type BaseClassIdentifier = 'warrior' | 'thief' | 'mage' | 'priest';
 
+export type AdvancedClassIdentifier =
+  | 'knight'
+  | 'dragoon'
+  | 'ranger'
+  | 'duelist'
+  | 'black_mage'
+  | 'illusionist'
+  | 'bishop'
+  | 'assassin'
+  | 'rune_knight'
+  | 'paladin'
+  | 'spellthief'
+  | 'inquisitor'
+  | 'sage'
+  | 'berserker'
+  | 'shadowdancer'
+  | 'galeweaver'
+  | 'windwanderer'
+  | 'priest_of_the_8_lives'
+  | 'phantom'
+  | 'shrine_warden'
+  | 'geomancer'
+  | 'shaman'
+  | 'stonefist'
+  | 'totem_guard'
+  | 'dread_knight'
+  | 'pyromancer'
+  | 'necromancer'
+  | 'revenant'
+  | 'ashguard'
+  | 'wraith'
+  | 'skylancer'
+  | 'spellblade'
+  | 'skytalon';
+
+export type ClassIdentifier = BaseClassIdentifier | AdvancedClassIdentifier;
+
+export type StatusEffectKind = 'poison' | 'sleep' | 'blind';
+
+export interface ActiveStatusEffect {
+  kind: StatusEffectKind;
+  remainingTurns: number;
+  sourceSkillName: string;
+}
+
 export interface UnitStatistics {
   hitPointsMaximum: number;
   manaPointsMaximum: number;
@@ -55,6 +100,7 @@ export interface Unit {
   skillIdentifiers: string[];
   elementalAffinities: ElementalAffinities;
   activeStatModifiers: ActiveStatModifier[];
+  activeStatusEffects: ActiveStatusEffect[];
   hasMovedThisTurn: boolean;
   hasActedThisTurn: boolean;
   /** Turn-order charge; the unit acts when it reaches TURN_READY_CHARGE_THRESHOLD. */
@@ -78,6 +124,15 @@ export function elementalAffinityFor(unit: Unit, element: Element | undefined): 
     return 1;
   }
   return unit.elementalAffinities[element] ?? 1;
+}
+
+export function tickDownStatusEffects(unit: Unit): void {
+  for (const effect of unit.activeStatusEffects) {
+    effect.remainingTurns -= 1;
+  }
+  unit.activeStatusEffects = unit.activeStatusEffects.filter(
+    (effect) => effect.remainingTurns > 0,
+  );
 }
 
 /** Called when a unit's turn ends: counts down buff durations and drops expired ones. */

@@ -59,10 +59,10 @@ export function describeClassRestriction(
   equipment: EquipmentDefinition,
   baseClasses: Record<string, BaseClassDefinition>,
 ): string {
-  if (equipment.allowedBaseClasses === undefined) {
+  if (equipment.allowedClasses === undefined) {
     return 'Anyone';
   }
-  return equipment.allowedBaseClasses
+  return equipment.allowedClasses
     .map((classIdentifier) => baseClasses[classIdentifier]?.displayName ?? classIdentifier)
     .join(', ');
 }

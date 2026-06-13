@@ -12,7 +12,7 @@ export interface SaveGameStorage {
 }
 
 const SAVE_STORAGE_KEY = 'guild-and-tactics.save';
-const CURRENT_SAVE_FORMAT_VERSION = 2;
+const CURRENT_SAVE_FORMAT_VERSION = 3;
 
 interface VersionedSaveFile {
   saveFormatVersion: number;
@@ -32,6 +32,13 @@ function normalizeLoadedGuild(guild: GuildState): GuildState {
   guild.storeStock ??= {};
   for (const member of guild.roster) {
     member.equippedItemIdentifiers ??= {};
+    const raw = member as unknown as Record<string, unknown>;
+    // v2 → v3: field renamed from baseClassIdentifier to classIdentifier.
+    if (raw['classIdentifier'] === undefined && raw['baseClassIdentifier'] !== undefined) {
+      raw['classIdentifier'] = raw['baseClassIdentifier'];
+      delete raw['baseClassIdentifier'];
+    }
+    member.masteredClasses ??= [];
   }
   return guild;
 }
@@ -59,6 +66,7 @@ export class BrowserLocalStorageSaveGameStorage implements SaveGameStorage {
       const parsedSave = JSON.parse(rawSave) as VersionedSaveFile;
       const isKnownVersion =
         parsedSave.saveFormatVersion === 1 ||
+        parsedSave.saveFormatVersion === 2 ||
         parsedSave.saveFormatVersion === CURRENT_SAVE_FORMAT_VERSION;
       if (!isKnownVersion) {
         // Newer/unknown format than this build understands: start fresh

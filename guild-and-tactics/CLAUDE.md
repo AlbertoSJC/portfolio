@@ -35,11 +35,25 @@ canvas isometric; ALL unit visuals go through `SpriteRegistry.ts`.
   E2E screenshot passes (need the dev server running; tmp/ is untracked,
   recreate from the dev log's description if absent)
 
-## Status (2026-06-12, end of session 2)
+## Status (2026-06-13, end of session 3)
 
-M1 (combat slice) and M2 (guild loop: Wanderer's Rest, quest board, store
-with battle consumables, recruitment, XP/levels, localStorage saves via
-`src/platform/SaveGameStorage.ts`) are complete and browser-verified.
-**Next: M3 — depth**: advanced classes + race gating (§4 matrix),
-secondary skill sets, status effects, the full element wheel, equipment
-slots/tiers. See README §11 for status and the development log.
+M1 and M2 (through M2.6) are complete and browser-verified. M3 type
+scaffolding is in place and ready to build on:
+
+- `AdvancedClassIdentifier` (all 33 from PRD §4) + `ClassIdentifier` union
+  in `src/sim/units/Unit.ts`.
+- `GuildMember.classIdentifier: ClassIdentifier` (renamed from
+  `baseClassIdentifier`; save format v3 migrates old saves automatically).
+- `GuildMember.masteredClasses: BaseClassIdentifier[]` — empty for now;
+  M3 level-up logic populates it.
+- `RaceDefinition.allowedAdvancedClasses: AdvancedClassIdentifier[]` — empty
+  arrays in `src/content/races.ts`; M3 fills them per the §4 matrix.
+- `StatusEffectKind` (`poison | sleep | blind`), `ActiveStatusEffect`, and
+  `activeStatusEffects: []` on every `Unit`; `StatusEffectSkillEffect` in
+  `SkillDefinition.ts`.
+- Village UI refactored into presenter/view split; code comment pass done.
+
+**Next: M3 implementation** — populate `allowedAdvancedClasses` per race,
+add advanced class definitions to `src/content/`, wire class-unlock quest
+gates, fill status-effect processing in `Battle.endActiveUnitTurn`, add
+status-inflicting skills. See README §11 and CHANGELOG.md.

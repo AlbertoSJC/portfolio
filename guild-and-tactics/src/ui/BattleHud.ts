@@ -17,14 +17,10 @@ export interface ActionMenuCallbacks {
   onItemChosen: (itemIdentifier: string) => void;
   onEndTurnChosen: () => void;
   onCancelChosen: () => void;
-  /** Hovering an item button previews its use range. */
   onItemPreviewStart: (itemIdentifier: string) => void;
-  /** Hovering the Move button previews reachable tiles. */
   onMovePreviewStart: () => void;
-  /** Hovering a skill button previews its targetable tiles. */
   onSkillPreviewStart: (skillIdentifier: string) => void;
   onPreviewEnd: () => void;
-  /** Hovering a name in the turn-order strip inspects and spotlights that unit. */
   onTurnOrderUnitHoverStart: (unitIdentifier: string) => void;
   onTurnOrderUnitHoverEnd: () => void;
 }
@@ -90,14 +86,11 @@ function describeSkillEffect(skill: SkillDefinition): string {
       const signedAmount = effect.amount >= 0 ? `+${effect.amount}` : `${effect.amount}`;
       return `${signedAmount} ${effect.statistic} for ${effect.durationTurns} turns`;
     }
+    case 'statusEffect':
+      return `Inflicts ${effect.statusEffect} for ${effect.durationTurns} turns`;
   }
 }
 
-/**
- * The HTML overlay: turn-order strip, unit panels, action menu with skill
- * info box, combat log, and the victory/defeat overlay. Reads the Battle,
- * never writes to it — player intent flows out through the callbacks.
- */
 export class BattleHud {
   private readonly turnOrderStripElement = requiredElement<HTMLDivElement>('turn-order-strip');
   private readonly activeUnitPanelElement = requiredElement<HTMLDivElement>('active-unit-panel');
@@ -154,7 +147,6 @@ export class BattleHud {
     this.activeUnitPanelElement.innerHTML = buildUnitSummaryHtml(unit);
   }
 
-  /** Shows full details of whatever unit the cursor is over — friend or foe. */
   renderInspectedUnitPanel(unit: Unit | undefined): void {
     if (unit === undefined) {
       this.inspectedUnitPanelElement.classList.add('hidden');

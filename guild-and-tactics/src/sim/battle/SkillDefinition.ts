@@ -1,4 +1,4 @@
-import type { Element, ModifiableStatistic } from '../units/Unit';
+import type { Element, ModifiableStatistic, StatusEffectKind } from '../units/Unit';
 
 export type SkillTargetTeam = 'enemies' | 'allies' | 'self';
 
@@ -24,7 +24,17 @@ export interface StatModifierSkillEffect {
   durationTurns: number;
 }
 
-export type SkillEffect = DamageSkillEffect | HealSkillEffect | StatModifierSkillEffect;
+export interface StatusEffectSkillEffect {
+  kind: 'statusEffect';
+  statusEffect: StatusEffectKind;
+  durationTurns: number;
+}
+
+export type SkillEffect =
+  | DamageSkillEffect
+  | HealSkillEffect
+  | StatModifierSkillEffect
+  | StatusEffectSkillEffect;
 
 export interface SkillDefinition {
   identifier: string;

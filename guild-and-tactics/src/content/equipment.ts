@@ -13,7 +13,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'weapon',
     priceInGold: 90,
     statisticBonuses: { attack: 3 },
-    allowedBaseClasses: ['warrior'],
+    allowedClasses: ['warrior'],
   },
   steel_greatblade: {
     identifier: 'steel_greatblade',
@@ -22,7 +22,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'weapon',
     priceInGold: 210,
     statisticBonuses: { attack: 6, speed: -1 },
-    allowedBaseClasses: ['warrior'],
+    allowedClasses: ['warrior'],
   },
   hunting_dagger: {
     identifier: 'hunting_dagger',
@@ -31,7 +31,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'weapon',
     priceInGold: 80,
     statisticBonuses: { attack: 2, speed: 1 },
-    allowedBaseClasses: ['thief'],
+    allowedClasses: ['thief'],
   },
   oak_focus_staff: {
     identifier: 'oak_focus_staff',
@@ -40,7 +40,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'weapon',
     priceInGold: 95,
     statisticBonuses: { magicPower: 3 },
-    allowedBaseClasses: ['mage'],
+    allowedClasses: ['mage'],
   },
   blessed_rod: {
     identifier: 'blessed_rod',
@@ -49,7 +49,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'weapon',
     priceInGold: 95,
     statisticBonuses: { magicPower: 2, magicResistance: 2 },
-    allowedBaseClasses: ['priest'],
+    allowedClasses: ['priest'],
   },
   // ── Armor ──────────────────────────────────────────────────────────────
   leather_vest: {

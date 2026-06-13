@@ -1,5 +1,5 @@
 import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator';
-import type { BaseClassIdentifier, RaceIdentifier } from '../units/Unit';
+import type { ClassIdentifier, RaceIdentifier } from '../units/Unit';
 import type { RaceDefinition } from '../units/UnitDefinitions';
 import type { RecruitOffer } from './GuildState';
 
@@ -38,13 +38,13 @@ export function generateRecruitOffers(
       continue;
     }
     const allowedClasses = race.allowedBaseClasses;
-    const baseClassIdentifier: BaseClassIdentifier | undefined =
+    const classIdentifier: ClassIdentifier | undefined =
       allowedClasses[randomNumberGenerator.nextIntegerBetween(0, allowedClasses.length - 1)];
     const namePool = namePoolByRace[raceIdentifier];
     const displayName =
       namePool[randomNumberGenerator.nextIntegerBetween(0, namePool.length - 1)] ?? 'Wanderer';
     const level = Math.max(1, guildAverageLevel + randomNumberGenerator.nextIntegerBetween(-1, 1));
-    if (baseClassIdentifier === undefined) {
+    if (classIdentifier === undefined) {
       continue;
     }
     offers.push({
@@ -52,7 +52,8 @@ export function generateRecruitOffers(
         identifier: `recruit_${nextRecruitNumber++}`,
         displayName,
         raceIdentifier,
-        baseClassIdentifier,
+        classIdentifier,
+        masteredClasses: [],
         level,
         experiencePoints: 0,
         equippedItemIdentifiers: {},

@@ -48,7 +48,7 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
           identifier: 'member_old',
           displayName: 'Old Save Member',
           raceIdentifier: 'human',
-          baseClassIdentifier: 'warrior',
+          baseClassIdentifier: 'warrior', // pre-v3 field name — migration renames it
           level: 3,
           experiencePoints: 40,
           // version 1 members had no equippedItemIdentifiers
@@ -69,6 +69,8 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(migratedGuild).toBeDefined();
     expect(migratedGuild?.equipmentInventory).toEqual({});
     expect(migratedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
+    expect(migratedGuild?.roster[0]?.classIdentifier).toBe('warrior');
+    expect(migratedGuild?.roster[0]?.masteredClasses).toEqual([]);
     expect(migratedGuild?.gold).toBe(150);
   });
 
@@ -81,7 +83,7 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
           identifier: 'member_broken',
           displayName: 'Broken Save Member',
           raceIdentifier: 'werecat',
-          baseClassIdentifier: 'thief',
+          baseClassIdentifier: 'thief', // pre-v3 field name — migration renames it
           level: 2,
           experiencePoints: 10,
           // v2 label but no equippedItemIdentifiers — written by an in-between build
@@ -101,6 +103,8 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     const healedGuild = storage.loadGuildSave();
     expect(healedGuild?.equipmentInventory).toEqual({});
     expect(healedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
+    expect(healedGuild?.roster[0]?.classIdentifier).toBe('thief');
+    expect(healedGuild?.roster[0]?.masteredClasses).toEqual([]);
     expect(healedGuild?.gold).toBe(270);
   });
 

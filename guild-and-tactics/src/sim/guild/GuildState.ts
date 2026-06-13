@@ -1,20 +1,18 @@
 import type { EquipmentSlot } from '../items/EquipmentDefinition';
-import type { BaseClassIdentifier, RaceIdentifier } from '../units/Unit';
+import type { BaseClassIdentifier, ClassIdentifier, RaceIdentifier } from '../units/Unit';
 
 export const GUILD_ROSTER_CAPACITY = 20;
 export const BATTLE_PARTY_CAPACITY = 6;
 export const STARTING_GOLD = 300;
 
-/** A persistent guild character; battle units are derived from this + content tables. */
 export interface GuildMember {
   identifier: string;
   displayName: string;
   raceIdentifier: RaceIdentifier;
-  baseClassIdentifier: BaseClassIdentifier;
+  classIdentifier: ClassIdentifier;
+  masteredClasses: BaseClassIdentifier[];
   level: number;
-  /** Progress toward the next level (see ExperienceAndLevels). */
   experiencePoints: number;
-  /** What the member is wearing, by slot. Pieces here are NOT in the guild inventory. */
   equippedItemIdentifiers: Partial<Record<EquipmentSlot, string>>;
 }
 
