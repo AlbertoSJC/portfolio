@@ -1,0 +1,137 @@
+import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import {
+  PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
+  HYBRID_PRIMARY_UNLOCK_LEVEL,
+  HYBRID_SECONDARY_UNLOCK_LEVEL,
+} from './shared';
+
+/** Werelizard-exclusive advanced classes (PRD §4 — 4 classes; 7 total with shared). */
+export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
+  geomancer: {
+    identifier: 'geomancer',
+    displayName: 'Geomancer',
+    prerequisite: {
+      primaryBaseClass: 'mage',
+      primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
+    },
+    statisticsAtLevelOne: {
+      hitPointsMaximum: 24,
+      manaPointsMaximum: 24,
+      attack: 4,
+      defense: 5,
+      magicPower: 11,
+      magicResistance: 8,
+      speed: 5,
+      movementRange: 3,
+      jumpHeight: 1,
+      evasion: 0.03,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 4,
+      manaPointsMaximum: 4,
+      attack: 0.5,
+      defense: 1,
+      magicPower: 2,
+      magicResistance: 1.5,
+      speed: 0.3,
+    },
+    skillIdentifiers: [],
+  },
+
+  shaman: {
+    identifier: 'shaman',
+    displayName: 'Shaman',
+    prerequisite: {
+      primaryBaseClass: 'priest',
+      primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
+    },
+    statisticsAtLevelOne: {
+      hitPointsMaximum: 24,
+      manaPointsMaximum: 22,
+      attack: 4,
+      defense: 6,
+      magicPower: 8,
+      magicResistance: 10,
+      speed: 5,
+      movementRange: 3,
+      jumpHeight: 1,
+      evasion: 0.03,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 5,
+      manaPointsMaximum: 3.5,
+      attack: 0.5,
+      defense: 1,
+      magicPower: 1.5,
+      magicResistance: 2,
+      speed: 0.3,
+    },
+    skillIdentifiers: [],
+  },
+
+  stonefist: {
+    identifier: 'stonefist',
+    displayName: 'Stonefist',
+    prerequisite: {
+      primaryBaseClass: 'warrior',
+      primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
+      secondaryBaseClass: 'mage',
+      secondaryBaseClassLevel: HYBRID_SECONDARY_UNLOCK_LEVEL,
+    },
+    statisticsAtLevelOne: {
+      hitPointsMaximum: 34,
+      manaPointsMaximum: 14,
+      attack: 12,
+      defense: 9,
+      magicPower: 7,
+      magicResistance: 6,
+      speed: 5,
+      movementRange: 3,
+      jumpHeight: 1,
+      evasion: 0.02,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 7,
+      manaPointsMaximum: 2,
+      attack: 2.5,
+      defense: 2,
+      magicPower: 1.5,
+      magicResistance: 1,
+      speed: 0.3,
+    },
+    skillIdentifiers: [],
+  },
+
+  totem_guard: {
+    identifier: 'totem_guard',
+    displayName: 'Totem Guard',
+    prerequisite: {
+      primaryBaseClass: 'warrior',
+      primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
+      secondaryBaseClass: 'priest',
+      secondaryBaseClassLevel: HYBRID_SECONDARY_UNLOCK_LEVEL,
+    },
+    statisticsAtLevelOne: {
+      hitPointsMaximum: 32,
+      manaPointsMaximum: 14,
+      attack: 10,
+      defense: 10,
+      magicPower: 6,
+      magicResistance: 8,
+      speed: 5,
+      movementRange: 3,
+      jumpHeight: 1,
+      evasion: 0.02,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 7,
+      manaPointsMaximum: 2,
+      attack: 2,
+      defense: 2,
+      magicPower: 1,
+      magicResistance: 1.5,
+      speed: 0.3,
+    },
+    skillIdentifiers: [],
+  },
+};

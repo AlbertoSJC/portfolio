@@ -25,6 +25,24 @@ export interface BaseClassDefinition {
   skillIdentifiers: string[];
 }
 
+/** Base class level requirements that must be met before this advanced class unlocks. */
+export interface AdvancedClassPrerequisite {
+  primaryBaseClass: BaseClassIdentifier;
+  primaryBaseClassLevel: number;
+  /** Only present on hybrid (two-base) advanced classes. */
+  secondaryBaseClass?: BaseClassIdentifier;
+  secondaryBaseClassLevel?: number;
+}
+
+export interface AdvancedClassDefinition {
+  identifier: AdvancedClassIdentifier;
+  displayName: string;
+  prerequisite: AdvancedClassPrerequisite;
+  statisticsAtLevelOne: UnitStatistics;
+  statisticGrowthPerLevel: Partial<UnitStatistics>;
+  skillIdentifiers: string[];
+}
+
 /** A monster is defined directly with its battle-ready statistics. */
 export interface MonsterDefinition {
   identifier: string;

@@ -11,7 +11,15 @@ export const RACES: Record<string, RaceDefinition> = {
     statisticBonuses: { attack: 1, defense: 1, magicPower: 1, magicResistance: 1 },
     canFly: false,
     allowedBaseClasses: ['warrior', 'thief', 'mage', 'priest'],
-    allowedAdvancedClasses: [],
+    // Breadth over exclusivity; Hortian sacred tradition (PRD §4 — 13 classes).
+    allowedAdvancedClasses: [
+      'knight', 'dragoon',
+      'ranger', 'duelist',
+      'black_mage', 'illusionist',
+      'bishop',
+      'assassin', 'rune_knight', 'paladin', 'spellthief', 'inquisitor',
+      'sage',
+    ],
     elementalAffinities: {},
   },
   werecat: {
@@ -20,7 +28,14 @@ export const RACES: Record<string, RaceDefinition> = {
     statisticBonuses: { speed: 2, evasion: 0.08, defense: -1 },
     canFly: false,
     allowedBaseClasses: ['warrior', 'thief', 'mage', 'priest'],
-    allowedAdvancedClasses: [],
+    // Wind and earth, speed and stealth; Breir and Taurk (PRD §4 — 10 classes).
+    allowedAdvancedClasses: [
+      'berserker',
+      'duelist', 'shadowdancer',
+      'galeweaver',
+      'assassin', 'windwanderer', 'priest_of_the_8_lives', 'phantom', 'shrine_warden',
+      'sage',
+    ],
     elementalAffinities: {},
   },
   werelizard: {
@@ -30,7 +45,14 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: false,
     // Too slow and heavy for thievery (PRD §4).
     allowedBaseClasses: ['warrior', 'mage', 'priest'],
-    allowedAdvancedClasses: [],
+    // Earth and water, enhancement and healing; Taurk and Yiern (PRD §4 — 7 classes).
+    allowedAdvancedClasses: [
+      'knight', 'berserker',
+      'geomancer',
+      'shaman',
+      'stonefist', 'totem_guard',
+      'sage',
+    ],
     elementalAffinities: {},
   },
   undead: {
@@ -40,7 +62,12 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: false,
     // Holy magic rejects the unliving (PRD §4) — no Priest.
     allowedBaseClasses: ['warrior', 'thief', 'mage'],
-    allowedAdvancedClasses: [],
+    // Fire, darkness, and the grave; Kosh's faithful (PRD §4 — 7 classes).
+    allowedAdvancedClasses: [
+      'knight', 'dread_knight',
+      'pyromancer', 'necromancer',
+      'revenant', 'ashguard', 'wraith',
+    ],
     // Sacred wounds them deeply; Dark knits them back together.
     elementalAffinities: { sacred: 1.5, dark: -1 },
   },
@@ -51,7 +78,8 @@ export const RACES: Record<string, RaceDefinition> = {
     canFly: true,
     // Feryans renounce magic (locked rule, PRD §3/§4) — Warrior and Thief only.
     allowedBaseClasses: ['warrior', 'thief'],
-    allowedAdvancedClasses: [],
+    // Godless weapon-experts of the sky (PRD §4 — 5 classes).
+    allowedAdvancedClasses: ['skylancer', 'spellblade', 'ranger', 'duelist', 'skytalon'],
     elementalAffinities: {},
   },
 };
