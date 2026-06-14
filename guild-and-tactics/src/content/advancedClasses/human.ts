@@ -35,7 +35,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 0.5,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   black_mage: {
@@ -66,7 +66,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   illusionist: {
@@ -97,7 +97,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   bishop: {
@@ -129,7 +129,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 2,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   paladin: {
@@ -163,7 +163,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   rune_knight: {
@@ -197,7 +197,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   spellthief: {
@@ -231,7 +231,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   inquisitor: {
@@ -265,6 +265,6 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

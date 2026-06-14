@@ -136,13 +136,14 @@ export function buildCharacterSheetContent(
   }
   sheetElement.appendChild(equipmentSection);
 
-  sheetElement.appendChild(buildSkillsSection(classDefinition, content));
+  sheetElement.appendChild(buildSkillsSection(classDefinition, content, member.level));
   return sheetElement;
 }
 
 function buildSkillsSection(
   classDefinition: BaseClassDefinition | AdvancedClassDefinition,
   content: CharacterSheetContentTables,
+  memberLevel: number,
 ): HTMLElement {
   const skillsSection = document.createElement('div');
   skillsSection.className = 'character-sheet-skills';
@@ -150,23 +151,32 @@ function buildSkillsSection(
   skillsTitle.className = 'menu-section-title';
   skillsTitle.textContent = `Skills — ${classDefinition.displayName}`;
   skillsSection.appendChild(skillsTitle);
-  for (const skillIdentifier of ['basic_attack', ...classDefinition.skillIdentifiers]) {
-    const skill = content.skills[skillIdentifier];
-    if (skill === undefined) {
-      continue;
-    }
-    const skillRow = document.createElement('div');
-    skillRow.className = 'skill-row';
-    const costNote = skill.manaPointCost === 0 ? '' : ` · ${skill.manaPointCost} MP`;
-    const rangeNote = skill.targetingRange === 0 ? 'Self' : `Range ${skill.targetingRange}`;
-    skillRow.innerHTML = `
-      <strong>${skill.displayName}</strong>
-      <span>${skill.description}</span>
-      <em>${rangeNote}${costNote}</em>
-    `;
-    skillsSection.appendChild(skillRow);
+
+  const basicAttack = content.skills['basic_attack'];
+  if (basicAttack !== undefined) {
+    skillsSection.appendChild(buildSkillRow(basicAttack, true));
+  }
+
+  for (const entry of classDefinition.skills) {
+    const skill = content.skills[entry.skillIdentifier];
+    if (skill === undefined) continue;
+    skillsSection.appendChild(buildSkillRow(skill, entry.learnedAtLevel <= memberLevel, entry.learnedAtLevel));
   }
   return skillsSection;
+}
+
+function buildSkillRow(skill: SkillDefinition, isUnlocked: boolean, learnedAtLevel?: number): HTMLElement {
+  const skillRow = document.createElement('div');
+  skillRow.className = isUnlocked ? 'skill-row' : 'skill-row is-locked';
+  const costNote = skill.manaPointCost === 0 ? '' : ` · ${skill.manaPointCost} MP`;
+  const rangeNote = skill.targetingRange === 0 ? 'Self' : `Range ${skill.targetingRange}`;
+  const levelNote = !isUnlocked && learnedAtLevel !== undefined ? `Unlocks at Lv.${learnedAtLevel}` : `${rangeNote}${costNote}`;
+  skillRow.innerHTML = `
+    <strong>${skill.displayName}</strong>
+    <span>${skill.description}</span>
+    <em>${levelNote}</em>
+  `;
+  return skillRow;
 }
 
 export function buildClassPickerContent(

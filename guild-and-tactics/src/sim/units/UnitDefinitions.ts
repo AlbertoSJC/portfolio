@@ -17,13 +17,18 @@ export interface RaceDefinition {
   elementalAffinities: ElementalAffinities;
 }
 
+export interface ClassSkillEntry {
+  skillIdentifier: string;
+  learnedAtLevel: number;
+}
+
 export interface BaseClassDefinition {
   identifier: BaseClassIdentifier;
   displayName: string;
   description: string;
   statisticsAtLevelOne: UnitStatistics;
   statisticGrowthPerLevel: Partial<UnitStatistics>;
-  skillIdentifiers: string[];
+  skills: ClassSkillEntry[];
 }
 
 /** Base class level requirements that must be met before this advanced class unlocks. */
@@ -42,7 +47,7 @@ export interface AdvancedClassDefinition {
   prerequisite: AdvancedClassPrerequisite;
   statisticsAtLevelOne: UnitStatistics;
   statisticGrowthPerLevel: Partial<UnitStatistics>;
-  skillIdentifiers: string[];
+  skills: ClassSkillEntry[];
 }
 
 /** A monster is defined directly with its battle-ready statistics. */

@@ -25,7 +25,10 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
       magicResistance: 0.5,
       speed: 0.4,
     },
-    skillIdentifiers: ['power_strike', 'war_cry'],
+    skills: [
+      { skillIdentifier: 'power_strike', learnedAtLevel: 1 },
+      { skillIdentifier: 'war_cry', learnedAtLevel: 3 },
+    ],
   },
   thief: {
     identifier: 'thief',
@@ -51,7 +54,10 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
       speed: 0.7,
       evasion: 0.005,
     },
-    skillIdentifiers: ['flanking_strike', 'thrown_dagger'],
+    skills: [
+      { skillIdentifier: 'flanking_strike', learnedAtLevel: 1 },
+      { skillIdentifier: 'thrown_dagger', learnedAtLevel: 3 },
+    ],
   },
   mage: {
     identifier: 'mage',
@@ -78,7 +84,10 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skillIdentifiers: ['fire_bolt', 'flame_burst'],
+    skills: [
+      { skillIdentifier: 'fire_bolt', learnedAtLevel: 1 },
+      { skillIdentifier: 'flame_burst', learnedAtLevel: 3 },
+    ],
   },
   priest: {
     identifier: 'priest',
@@ -105,6 +114,9 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
       magicResistance: 1.8,
       speed: 0.4,
     },
-    skillIdentifiers: ['first_aid', 'sacred_bolt'],
+    skills: [
+      { skillIdentifier: 'first_aid', learnedAtLevel: 1 },
+      { skillIdentifier: 'sacred_bolt', learnedAtLevel: 3 },
+    ],
   },
 };

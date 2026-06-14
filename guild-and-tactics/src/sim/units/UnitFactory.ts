@@ -75,7 +75,12 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
     position: { ...recipe.position },
     facing: recipe.facing,
     canFly: recipe.race.canFly,
-    skillIdentifiers: [BASIC_ATTACK_SKILL_IDENTIFIER, ...recipe.baseClass.skillIdentifiers],
+    skillIdentifiers: [
+      BASIC_ATTACK_SKILL_IDENTIFIER,
+      ...recipe.baseClass.skills
+        .filter((entry) => entry.learnedAtLevel <= recipe.level)
+        .map((entry) => entry.skillIdentifier),
+    ],
     elementalAffinities: { ...recipe.race.elementalAffinities },
     activeStatModifiers: [],
     activeStatusEffects: [],

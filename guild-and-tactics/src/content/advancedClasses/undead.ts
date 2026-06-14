@@ -36,7 +36,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   pyromancer: {
@@ -67,7 +67,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   necromancer: {
@@ -98,7 +98,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   revenant: {
@@ -132,7 +132,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   ashguard: {
@@ -166,7 +166,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   wraith: {
@@ -200,6 +200,6 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

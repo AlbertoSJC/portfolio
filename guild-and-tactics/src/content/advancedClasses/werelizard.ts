@@ -36,7 +36,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   shaman: {
@@ -68,7 +68,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 2,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   stonefist: {
@@ -102,7 +102,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   totem_guard: {
@@ -136,6 +136,6 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

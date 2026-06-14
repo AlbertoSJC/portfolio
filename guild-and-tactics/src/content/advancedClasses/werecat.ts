@@ -35,7 +35,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       speed: 0.8,
       evasion: 0.008,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   galeweaver: {
@@ -66,7 +66,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   windwanderer: {
@@ -100,7 +100,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1,
       speed: 0.7,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   priest_of_the_8_lives: {
@@ -134,7 +134,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   phantom: {
@@ -168,7 +168,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 0.5,
       speed: 0.7,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   shrine_warden: {
@@ -202,6 +202,6 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

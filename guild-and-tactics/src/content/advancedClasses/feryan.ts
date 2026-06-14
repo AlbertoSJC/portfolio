@@ -35,7 +35,7 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   spellblade: {
@@ -67,7 +67,7 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   skytalon: {
@@ -99,6 +99,6 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 1,
       speed: 0.7,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

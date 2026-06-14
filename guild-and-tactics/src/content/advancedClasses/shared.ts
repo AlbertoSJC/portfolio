@@ -37,7 +37,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.3,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   berserker: {
@@ -66,7 +66,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 0.5,
       speed: 0.5,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   ranger: {
@@ -96,7 +96,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 0.5,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   duelist: {
@@ -127,7 +127,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       speed: 0.7,
       evasion: 0.007,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   sage: {
@@ -161,7 +161,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 2,
       speed: 0.4,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 
   assassin: {
@@ -193,6 +193,6 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 1,
       speed: 0.6,
     },
-    skillIdentifiers: [],
+    skills: [],
   },
 };

@@ -481,6 +481,10 @@ button.village-card:hover {
   font-style: normal;
 }
 
+.skill-row.is-locked {
+  opacity: 0.45;
+}
+
 .class-row {
   display: flex;
   align-items: center;
