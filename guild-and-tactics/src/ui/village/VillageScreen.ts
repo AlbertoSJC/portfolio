@@ -166,9 +166,13 @@ export class VillageScreen {
     if (this.modal.isOpen()) {
       this.modal.refreshContent(modalContent);
     } else {
-      this.modal.open(modalContent, () => {
-        this.modalState = undefined;
-      });
+      this.modal.open(
+        modalContent,
+        () => {
+          this.modalState = undefined;
+        },
+        { closeable: this.modalState.kind !== 'questDetail' },
+      );
     }
   }
 
@@ -255,6 +259,8 @@ export class VillageScreen {
         this.rerender();
       },
       onEmbark: () => {
+        this.modalState = undefined;
+        this.modal.forceClose();
         this.callbacks.onEmbarkQuest(quest.identifier, [...this.selectedMemberIdentifiers]);
       },
     });
