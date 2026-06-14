@@ -28,6 +28,12 @@ export interface CharacterSheetCallbacks {
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
   onToggleSlotPicker: (slot: EquipmentSlot) => void;
   onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
+  onOpenClassPicker: () => void;
+}
+
+export interface ClassPickerCallbacks {
+  onGoBack: () => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
 }
 
 export interface CharacterSheetContentTables {
@@ -77,12 +83,21 @@ export function buildCharacterSheetContent(
   header.appendChild(createMemberPortraitCanvas(race.displayName, classDefinition.displayName));
   const experienceRequired = experienceRequiredToLevelUpFrom(member.level);
   const headerText = document.createElement('div');
-  headerText.innerHTML = `
-    <h2>${member.displayName}</h2>
+  const nameRow = document.createElement('div');
+  nameRow.className = 'character-sheet-name-row';
+  const nameHeading = document.createElement('h2');
+  nameHeading.textContent = member.displayName;
+  const classChangeButton = document.createElement('button');
+  classChangeButton.textContent = 'Class Change';
+  classChangeButton.addEventListener('click', callbacks.onOpenClassPicker);
+  nameRow.appendChild(nameHeading);
+  nameRow.appendChild(classChangeButton);
+  headerText.appendChild(nameRow);
+  headerText.insertAdjacentHTML('beforeend', `
     <p>${race.displayName} ${classDefinition.displayName} · Level ${member.level}</p>
     <p>XP ${member.experiencePoints} / ${experienceRequired}</p>
     <div class="resource-bar"><div class="resource-bar-fill experience" style="width:${Math.min(100, (member.experiencePoints / experienceRequired) * 100)}%"></div></div>
-  `;
+  `);
   header.appendChild(headerText);
   sheetElement.appendChild(header);
 
@@ -122,7 +137,6 @@ export function buildCharacterSheetContent(
   sheetElement.appendChild(equipmentSection);
 
   sheetElement.appendChild(buildSkillsSection(classDefinition, content));
-  sheetElement.appendChild(buildClassesSection(member, race, content, callbacks));
   return sheetElement;
 }
 
@@ -155,24 +169,35 @@ function buildSkillsSection(
   return skillsSection;
 }
 
-function buildClassesSection(
+export function buildClassPickerContent(
   member: GuildMember,
   race: RaceDefinition,
   content: CharacterSheetContentTables,
-  callbacks: CharacterSheetCallbacks,
+  callbacks: ClassPickerCallbacks,
 ): HTMLElement {
-  const classesSection = document.createElement('div');
-  classesSection.className = 'character-sheet-classes';
+  const pickerElement = document.createElement('div');
+  pickerElement.className = 'character-sheet-class-picker';
 
-  classesSection.appendChild(buildClassSectionTitle(`Base classes`));
+  const pickerHeader = document.createElement('div');
+  pickerHeader.className = 'class-picker-header';
+  const backButton = document.createElement('button');
+  backButton.textContent = '← Back';
+  backButton.addEventListener('click', callbacks.onGoBack);
+  const pickerTitle = document.createElement('h2');
+  pickerTitle.textContent = `${member.displayName} — Class Change`;
+  pickerHeader.appendChild(backButton);
+  pickerHeader.appendChild(pickerTitle);
+  pickerElement.appendChild(pickerHeader);
+
+  pickerElement.appendChild(buildClassSectionTitle('Base classes'));
   for (const classIdentifier of race.allowedBaseClasses) {
     const baseClass = content.baseClasses[classIdentifier];
     if (baseClass === undefined) continue;
-    const isCurrentClass = classIdentifier === member.classIdentifier;
-    classesSection.appendChild(
+    pickerElement.appendChild(
       buildClassRow({
         displayName: baseClass.displayName,
-        isCurrentClass,
+        description: baseClass.description,
+        isCurrentClass: classIdentifier === member.classIdentifier,
         isUnlocked: true,
         prerequisiteLabel: undefined,
         onSwitch: () => callbacks.onChangeClass(member.identifier, classIdentifier as BaseClassIdentifier),
@@ -180,36 +205,34 @@ function buildClassesSection(
     );
   }
 
-  classesSection.appendChild(buildClassSectionTitle(`Advanced classes`));
+  pickerElement.appendChild(buildClassSectionTitle('Advanced classes'));
   for (const classIdentifier of race.allowedAdvancedClasses) {
     const advancedClass = content.advancedClasses[classIdentifier];
     if (advancedClass === undefined) continue;
-    const isCurrentClass = classIdentifier === member.classIdentifier;
     const { prerequisite } = advancedClass;
-    const primaryLevelReached = member.classLevelsReached[prerequisite.primaryBaseClass] ?? 0;
-    const primaryMet = primaryLevelReached >= prerequisite.primaryBaseClassLevel;
+    const primaryMet =
+      (member.classLevelsReached[prerequisite.primaryBaseClass] ?? 0) >= prerequisite.primaryBaseClassLevel;
     const secondaryMet =
       prerequisite.secondaryBaseClass === undefined ||
       (member.classLevelsReached[prerequisite.secondaryBaseClass] ?? 0) >=
         (prerequisite.secondaryBaseClassLevel ?? 0);
-    const isUnlocked = primaryMet && secondaryMet;
-    classesSection.appendChild(
+    pickerElement.appendChild(
       buildClassRow({
         displayName: advancedClass.displayName,
-        isCurrentClass,
-        isUnlocked,
+        description: advancedClass.description,
+        isCurrentClass: classIdentifier === member.classIdentifier,
+        isUnlocked: primaryMet && secondaryMet,
         prerequisiteLabel: buildPrerequisiteLabel(advancedClass),
         onSwitch: () => callbacks.onChangeClass(member.identifier, classIdentifier),
       }),
     );
   }
 
-  const classChangeNote = document.createElement('p');
-  classChangeNote.className = 'village-hint';
-  classChangeNote.textContent =
-    'Switching class keeps level and XP. Gear the new class cannot use returns to the guild stores.';
-  classesSection.appendChild(classChangeNote);
-  return classesSection;
+  const note = document.createElement('p');
+  note.className = 'village-hint';
+  note.textContent = 'Switching class keeps level and XP. Gear the new class cannot use returns to the guild inventory.';
+  pickerElement.appendChild(note);
+  return pickerElement;
 }
 
 function buildClassSectionTitle(title: string): HTMLElement {
@@ -234,19 +257,30 @@ function capitalize(word: string): string {
 
 function buildClassRow(options: {
   displayName: string;
+  description: string;
   isCurrentClass: boolean;
   isUnlocked: boolean;
   prerequisiteLabel: string | undefined;
   onSwitch: () => void;
 }): HTMLElement {
-  const { displayName, isCurrentClass, isUnlocked, prerequisiteLabel, onSwitch } = options;
+  const { displayName, description, isCurrentClass, isUnlocked, prerequisiteLabel, onSwitch } = options;
   const classRow = document.createElement('div');
-  classRow.className = `class-row ${isCurrentClass ? 'is-current' : ''} ${isUnlocked ? '' : 'is-locked'}`;
-  const prereqHint = prerequisiteLabel !== undefined ? `<em>${prerequisiteLabel}</em>` : '';
-  classRow.innerHTML = `
-    <strong>${displayName}${isCurrentClass ? ' · current' : ''}${!isUnlocked ? ' 🔒' : ''}</strong>
-    ${prereqHint}
-  `;
+  classRow.className = ['class-row', isCurrentClass ? 'is-current' : '', isUnlocked ? '' : 'is-locked']
+    .filter(Boolean).join(' ');
+
+  const info = document.createElement('div');
+  info.className = 'class-row-info';
+  const nameEl = document.createElement('strong');
+  nameEl.textContent = `${displayName}${isCurrentClass ? ' · current' : ''}${!isUnlocked ? ' 🔒' : ''}`;
+  const descEl = document.createElement('p');
+  descEl.className = 'class-description';
+  descEl.textContent = description;
+  info.appendChild(nameEl);
+  info.appendChild(descEl);
+  classRow.appendChild(info);
+
+  const action = document.createElement('div');
+  action.className = 'class-row-action';
   const switchButton = document.createElement('button');
   if (isCurrentClass) {
     switchButton.textContent = 'Current class';
@@ -258,7 +292,14 @@ function buildClassRow(options: {
     switchButton.textContent = `Become ${displayName}`;
     switchButton.addEventListener('click', onSwitch);
   }
-  classRow.appendChild(switchButton);
+  action.appendChild(switchButton);
+  if (prerequisiteLabel !== undefined) {
+    const prereqEl = document.createElement('em');
+    prereqEl.className = 'class-prereq';
+    prereqEl.textContent = prerequisiteLabel;
+    action.appendChild(prereqEl);
+  }
+  classRow.appendChild(action);
   return classRow;
 }
 

@@ -282,6 +282,60 @@ button.village-card:hover {
   margin: 0 0 4px;
 }
 
+.character-sheet-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.character-sheet-name-row h2 {
+  margin: 0;
+}
+
+.character-sheet-name-row button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 5px 11px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.character-sheet-name-row button:hover {
+  border-color: var(--hud-accent-color);
+}
+
+.class-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.class-picker-header h2 {
+  margin: 0;
+  color: var(--hud-accent-color);
+}
+
+.class-picker-header button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.class-picker-header button:hover {
+  border-color: var(--hud-accent-color);
+}
+
 .character-sheet-statistics {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -410,8 +464,7 @@ button.village-card:hover {
   margin-top: 16px;
 }
 
-.skill-row,
-.class-row {
+.skill-row {
   display: grid;
   grid-template-columns: 150px 1fr auto;
   gap: 12px;
@@ -423,14 +476,56 @@ button.village-card:hover {
   font-size: 14px;
 }
 
-.skill-row em,
-.class-row span {
+.skill-row em {
   opacity: 0.8;
   font-style: normal;
 }
 
+.class-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
 .class-row.is-current {
   border-color: var(--hud-accent-color);
+}
+
+.class-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.class-row-info strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.class-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.75;
+}
+
+.class-row-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.class-prereq {
+  font-size: 12px;
+  opacity: 0.65;
+  font-style: normal;
+  text-align: right;
 }
 
 .class-row button {
@@ -441,6 +536,7 @@ button.village-card:hover {
   padding: 6px 12px;
   font-size: 14px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .class-row button:hover:not(:disabled) {

@@ -7,7 +7,7 @@ import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
 import type { ClassIdentifier } from '../../sim/units/Unit';
 import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
-import { buildCharacterSheetContent } from './CharacterSheet';
+import { buildCharacterSheetContent, buildClassPickerContent } from './CharacterSheet';
 import { ModalDialog } from './ModalDialog';
 import { buildQuestCardViewModels, buildQuestDetailViewModel } from './presenters/TavernPresenters';
 import {
@@ -58,6 +58,7 @@ type VillageModalState =
       kind: 'characterSheet';
       memberIdentifier: string;
       expandedEquipmentSlot: EquipmentSlot | undefined;
+      view: 'sheet' | 'classPicker';
     };
 
 const TAB_ENTRIES: { identifier: VillageTab; label: string }[] = [
@@ -172,7 +173,7 @@ export class VillageScreen {
         () => {
           this.modalState = undefined;
         },
-        { closeable: this.modalState.kind !== 'questDetail' },
+        { closeable: this.modalState.kind === 'characterSheet' },
       );
     }
   }
@@ -190,6 +191,24 @@ export class VillageScreen {
       (rosterMember) => rosterMember.identifier === modalState.memberIdentifier,
     );
     if (member === undefined) return undefined;
+    const race = this.content.races[member.raceIdentifier];
+    if (race === undefined) return undefined;
+
+    if (modalState.view === 'classPicker') {
+      return buildClassPickerContent(member, race, this.content, {
+        onGoBack: () => {
+          if (this.modalState?.kind === 'characterSheet') {
+            this.modalState.view = 'sheet';
+          }
+          this.rerender();
+        },
+        onChangeClass: (memberIdentifier, classIdentifier) => {
+          this.sounds.playMenuConfirm();
+          this.callbacks.onChangeClass(memberIdentifier, classIdentifier);
+        },
+      });
+    }
+
     return buildCharacterSheetContent(
       member,
       guild,
@@ -215,6 +234,13 @@ export class VillageScreen {
         onChangeClass: (memberIdentifier, classIdentifier) => {
           this.sounds.playMenuConfirm();
           this.callbacks.onChangeClass(memberIdentifier, classIdentifier);
+        },
+        onOpenClassPicker: () => {
+          this.sounds.playMenuConfirm();
+          if (this.modalState?.kind === 'characterSheet') {
+            this.modalState.view = 'classPicker';
+          }
+          this.rerender();
         },
       },
     );
@@ -333,6 +359,7 @@ export class VillageScreen {
             kind: 'characterSheet',
             memberIdentifier: viewModel.memberIdentifier,
             expandedEquipmentSlot: undefined,
+            view: 'sheet',
           };
           this.rerender();
         }),

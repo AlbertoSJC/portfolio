@@ -10,6 +10,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   shadowdancer: {
     identifier: 'shadowdancer',
     displayName: 'Shadowdancer',
+    description: 'A Werecat who learned to move with shadow itself. Shadowdancers are nearly impossible to pin down, striking and disappearing before any retaliation can land.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -40,6 +41,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   galeweaver: {
     identifier: 'galeweaver',
     displayName: 'Galeweaver',
+    description: 'A Werecat mage devoted to Breir\'s wind. Galeweavers reshape the field by controlling air, punishing clustered enemies and rewarding allies who keep moving.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -70,6 +72,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   windwanderer: {
     identifier: 'windwanderer',
     displayName: 'Windwanderer',
+    description: 'A Werecat warrior who channels Breir\'s wind into every strike and step. As fast as the gale they emulate — difficult to hit, impossible to outrun.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -103,6 +106,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   priest_of_the_8_lives: {
     identifier: 'priest_of_the_8_lives',
     displayName: 'Priest of the 8 Lives',
+    description: 'A Werecat who devoted one of their eight lives to the shrines of Breir and Taurk. They carry earth\'s endurance and wind\'s swiftness as blessings into every fight.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -136,6 +140,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   phantom: {
     identifier: 'phantom',
     displayName: 'Phantom',
+    description: 'A Werecat who perfected wind-image techniques, leaving after-images that baffle attackers. Phantoms strike from angles that shouldn\'t exist and vanish before the blow lands.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -169,6 +174,7 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
   shrine_warden: {
     identifier: 'shrine_warden',
     displayName: 'Shrine Warden',
+    description: 'A guardian of Breir\'s and Taurk\'s shrines who fights with the blessings of wind and earth. Wardens protect what is sacred — and make examples of those who threaten it.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,

@@ -12,6 +12,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   knight: {
     identifier: 'knight',
     displayName: 'Knight',
+    description: 'The unbreakable wall of the guild. Knights hold ground, shield allies, and outlast every blow thrown at them — trading speed for near-impenetrable defense.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -42,6 +43,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   berserker: {
     identifier: 'berserker',
     displayName: 'Berserker',
+    description: 'Fury given form. Berserkers sacrifice defense for overwhelming attack power, turning battle-rage into something barely controllable and entirely lethal.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -70,6 +72,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   ranger: {
     identifier: 'ranger',
     displayName: 'Ranger',
+    description: 'A hunter trained to strike from distance and cover vast ground. Rangers pick off targets before they can close the gap and fade before retaliation lands.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -99,6 +102,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   duelist: {
     identifier: 'duelist',
     displayName: 'Duelist',
+    description: 'A master of single combat who reads every enemy movement and turns it back on them. The Duelist is near-impossible to land a clean hit on.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -129,6 +133,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   sage: {
     identifier: 'sage',
     displayName: 'Sage',
+    description: 'A scholar who fused arcane study with healing devotion. Sages wield both the Mage\'s power and the Priest\'s restoration — without the full depth of either.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -162,6 +167,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   assassin: {
     identifier: 'assassin',
     displayName: 'Assassin',
+    description: 'A shadow operative trained to kill fast and vanish. Assassins combine a warrior\'s raw lethality with a thief\'s cunning — no target is truly safe.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,

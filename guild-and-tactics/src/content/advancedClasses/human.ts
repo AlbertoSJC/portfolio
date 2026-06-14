@@ -10,6 +10,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   dragoon: {
     identifier: 'dragoon',
     displayName: 'Dragoon',
+    description: 'A warrior who turned the battlefield vertical. Dragoons leap over obstacles and enemies alike, striking from above with force no grounded fighter can match.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -40,6 +41,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   black_mage: {
     identifier: 'black_mage',
     displayName: 'Black Mage',
+    description: 'Pure elemental destruction in Human form. Black Mages trade survivability for the highest offensive magic power attainable — pointed squarely at what needs to burn.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -70,6 +72,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   illusionist: {
     identifier: 'illusionist',
     displayName: 'Illusionist',
+    description: 'A mage who bends perception and shatters enemy focus. Illusionists favor confusion and mental disruption over direct destruction.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -100,6 +103,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   bishop: {
     identifier: 'bishop',
     displayName: 'Bishop',
+    description: 'A devoted servant of Hort whose prayers can restore the dying and strike down the impure. Bishops amplify healing and Sacred power beyond any ordinary priest.',
     prerequisite: {
       primaryBaseClass: 'priest',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -131,6 +135,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   paladin: {
     identifier: 'paladin',
     displayName: 'Paladin',
+    description: 'A holy warrior blessed by Hort to serve the church on the battlefield. Equal parts sword and healer, Paladins endure punishments that would break anyone else.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -164,6 +169,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   rune_knight: {
     identifier: 'rune_knight',
     displayName: 'Rune Knight',
+    description: 'A warrior who learned to etch magic into steel. Rune Knights combine martial skill with enchanted strikes — hits that carry weight both physical and arcane.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -197,6 +203,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   spellthief: {
     identifier: 'spellthief',
     displayName: 'Spellthief',
+    description: 'A rogue with a gift for magic — or a talent for taking it. Spellthieves weave speed and arcane cunning into an unpredictable fighting style.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -230,6 +237,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
   inquisitor: {
     identifier: 'inquisitor',
     displayName: 'Inquisitor',
+    description: 'An agent of the Hortian church who hunts the corrupt and the unholy. Fast, faithful, and relentless — part interrogator, part executioner, all conviction.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,

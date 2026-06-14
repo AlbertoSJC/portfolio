@@ -10,6 +10,7 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   skylancer: {
     identifier: 'skylancer',
     displayName: 'Skylancer',
+    description: 'A Feryan warrior who made their wings part of the attack. Skylancers dive from altitude with unstoppable force, hitting harder than any grounded fighter ever could.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -40,6 +41,7 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   spellblade: {
     identifier: 'spellblade',
     displayName: 'Spellblade',
+    description: 'A Feryan who forces lightning and fire into their steel under battle-fury. The godless element for a godless people — the Spellblade is the Feryan way made manifest.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -71,6 +73,7 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   skytalon: {
     identifier: 'skytalon',
     displayName: 'Skytalon',
+    description: 'A Feryan predator who strikes from altitude with lethal precision. Skytallons hunt down fast, evasive targets that no grounded fighter could ever catch.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,

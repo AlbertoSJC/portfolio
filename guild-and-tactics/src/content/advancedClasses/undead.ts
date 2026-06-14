@@ -10,6 +10,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   dread_knight: {
     identifier: 'dread_knight',
     displayName: 'Dread Knight',
+    description: 'An Undead warrior whose dark will bleeds into every blow. Dread Knights are relentless — the pain that stops any living soldier only drives them harder.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -41,6 +42,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   pyromancer: {
     identifier: 'pyromancer',
     displayName: 'Pyromancer',
+    description: 'An Undead devoted to Kosh, the fiery god. Pyromancers wield the highest fire power of any class, burning everything the Darkness once sent to kill them.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -71,6 +73,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   necromancer: {
     identifier: 'necromancer',
     displayName: 'Necromancer',
+    description: 'An Undead who turned death itself into a weapon. Necromancers wield darkness alongside arcane force — fighting fire with shadow and shadow with fire.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -101,6 +104,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   revenant: {
     identifier: 'revenant',
     displayName: 'Revenant',
+    description: 'An Undead warrior who refused to be put down. Revenants combine a warrior\'s force and a thief\'s speed, driven by sheer, furious refusal to stop fighting.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -134,6 +138,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   ashguard: {
     identifier: 'ashguard',
     displayName: 'Ashguard',
+    description: 'A battle-hardened Undead forged from ash and endurance. Ashguards absorb punishment that would fell anyone else, hardened by fire until nothing sticks.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -167,6 +172,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
   wraith: {
     identifier: 'wraith',
     displayName: 'Wraith',
+    description: 'An Undead who wields the darkness they despise — turned into a weapon against itself. Wraiths blend shadow magic with lethal speed into something the Darkness fears.',
     prerequisite: {
       primaryBaseClass: 'thief',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,

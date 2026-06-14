@@ -4,6 +4,7 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
   warrior: {
     identifier: 'warrior',
     displayName: 'Warrior',
+    description: 'Front-line fighters who master physical strength and endurance. They hold the line when others fall back and anchor any guild formation.',
     statisticsAtLevelOne: {
       hitPointsMaximum: 30,
       manaPointsMaximum: 8,
@@ -29,6 +30,7 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
   thief: {
     identifier: 'thief',
     displayName: 'Thief',
+    description: 'Quick and cunning fighters who exploit every opening. Speed and misdirection are their weapons — no guard, lock, or trap can stop a skilled thief.',
     statisticsAtLevelOne: {
       hitPointsMaximum: 24,
       manaPointsMaximum: 10,
@@ -54,6 +56,7 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
   mage: {
     identifier: 'mage',
     displayName: 'Mage',
+    description: 'Scholars of the arcane who channel the raw forces of the elements. Fragile but devastating at range, their spells reshape the battlefield.',
     statisticsAtLevelOne: {
       hitPointsMaximum: 20,
       manaPointsMaximum: 22,
@@ -80,6 +83,7 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
   priest: {
     identifier: 'priest',
     displayName: 'Priest',
+    description: 'Healers and holy conduits who channel divine or elemental power. They keep allies standing long after others would have fallen.',
     statisticsAtLevelOne: {
       hitPointsMaximum: 22,
       manaPointsMaximum: 20,

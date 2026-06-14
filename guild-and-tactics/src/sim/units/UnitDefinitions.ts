@@ -20,6 +20,7 @@ export interface RaceDefinition {
 export interface BaseClassDefinition {
   identifier: BaseClassIdentifier;
   displayName: string;
+  description: string;
   statisticsAtLevelOne: UnitStatistics;
   statisticGrowthPerLevel: Partial<UnitStatistics>;
   skillIdentifiers: string[];
@@ -37,6 +38,7 @@ export interface AdvancedClassPrerequisite {
 export interface AdvancedClassDefinition {
   identifier: AdvancedClassIdentifier;
   displayName: string;
+  description: string;
   prerequisite: AdvancedClassPrerequisite;
   statisticsAtLevelOne: UnitStatistics;
   statisticGrowthPerLevel: Partial<UnitStatistics>;

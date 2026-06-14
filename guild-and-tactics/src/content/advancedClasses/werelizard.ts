@@ -10,6 +10,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
   geomancer: {
     identifier: 'geomancer',
     displayName: 'Geomancer',
+    description: 'A Werelizard who commands the earth itself as a weapon. Geomancers shatter terrain underfoot and bury enemies in the ground they stand on.',
     prerequisite: {
       primaryBaseClass: 'mage',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -41,6 +42,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
   shaman: {
     identifier: 'shaman',
     displayName: 'Shaman',
+    description: 'A Werelizard healer who draws on Taurk\'s earth and Yiern\'s water to restore vitality. Shamans sustain allies across long, grueling battles where others falter.',
     prerequisite: {
       primaryBaseClass: 'priest',
       primaryBaseClassLevel: PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
@@ -72,6 +74,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
   stonefist: {
     identifier: 'stonefist',
     displayName: 'Stonefist',
+    description: 'A Werelizard brawler who channels earth magic into crushing blows. What Stonefists lack in speed, they repay tenfold in pulverizing, unanswerable force.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -105,6 +108,7 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
   totem_guard: {
     identifier: 'totem_guard',
     displayName: 'Totem Guard',
+    description: 'A Werelizard warrior who invokes totemic rites to protect those nearby. Totem Guards anchor the line, sharing the earth\'s own resilience with their allies.',
     prerequisite: {
       primaryBaseClass: 'warrior',
       primaryBaseClassLevel: HYBRID_PRIMARY_UNLOCK_LEVEL,
