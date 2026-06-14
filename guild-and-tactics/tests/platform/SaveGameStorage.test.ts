@@ -70,7 +70,7 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(migratedGuild?.equipmentInventory).toEqual({});
     expect(migratedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
     expect(migratedGuild?.roster[0]?.classIdentifier).toBe('warrior');
-    expect(migratedGuild?.roster[0]?.masteredClasses).toEqual([]);
+    expect(migratedGuild?.roster[0]?.classLevelsReached).toEqual({});
     expect(migratedGuild?.gold).toBe(150);
   });
 
@@ -104,7 +104,7 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(healedGuild?.equipmentInventory).toEqual({});
     expect(healedGuild?.roster[0]?.equippedItemIdentifiers).toEqual({});
     expect(healedGuild?.roster[0]?.classIdentifier).toBe('thief');
-    expect(healedGuild?.roster[0]?.masteredClasses).toEqual([]);
+    expect(healedGuild?.roster[0]?.classLevelsReached).toEqual({});
     expect(healedGuild?.gold).toBe(270);
   });
 
@@ -116,6 +116,41 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     );
     const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
     expect(storage.loadGuildSave()).toBeUndefined();
+  });
+
+  it('migrates a version-3 save by converting masteredClasses to classLevelsReached', () => {
+    const keyValueStore = createInMemoryKeyValueStore();
+    const versionThreeGuild = {
+      gold: 400,
+      roster: [
+        {
+          identifier: 'member_v3',
+          displayName: 'V3 Member',
+          raceIdentifier: 'human',
+          classIdentifier: 'warrior',
+          masteredClasses: ['warrior', 'thief'],
+          level: 6,
+          experiencePoints: 0,
+          equippedItemIdentifiers: {},
+        },
+      ],
+      consumableInventory: {},
+      equipmentInventory: {},
+      storeStock: {},
+      questIdentifiersOnBoard: [],
+      recruitsOnOffer: [],
+      completedQuestCount: 3,
+    };
+    keyValueStore.setItem(
+      'guild-and-tactics.save',
+      JSON.stringify({ saveFormatVersion: 3, guild: versionThreeGuild }),
+    );
+    const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
+    const migratedGuild = storage.loadGuildSave();
+    expect(migratedGuild).toBeDefined();
+    // masteredClasses is gone; each entry becomes classLevelsReached[id] = 5.
+    expect((migratedGuild?.roster[0] as unknown as Record<string, unknown>)?.['masteredClasses']).toBeUndefined();
+    expect(migratedGuild?.roster[0]?.classLevelsReached).toEqual({ warrior: 5, thief: 5 });
   });
 
   it('clears a save on request', () => {

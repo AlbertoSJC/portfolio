@@ -10,7 +10,8 @@ export interface GuildMember {
   displayName: string;
   raceIdentifier: RaceIdentifier;
   classIdentifier: ClassIdentifier;
-  masteredClasses: BaseClassIdentifier[];
+  /** Highest level reached in each base class — used to gate advanced class unlocks. */
+  classLevelsReached: Partial<Record<BaseClassIdentifier, number>>;
   level: number;
   experiencePoints: number;
   equippedItemIdentifiers: Partial<Record<EquipmentSlot, string>>;

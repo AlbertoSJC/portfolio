@@ -14,8 +14,12 @@ import {
 import { experienceRequiredToLevelUpFrom } from '../../sim/progression/ExperienceAndLevels';
 import { createUnitFromCharacter } from '../../sim/units/UnitFactory';
 import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
-import type { BaseClassIdentifier } from '../../sim/units/Unit';
-import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
+import type { BaseClassIdentifier, ClassIdentifier } from '../../sim/units/Unit';
+import type {
+  AdvancedClassDefinition,
+  BaseClassDefinition,
+  RaceDefinition,
+} from '../../sim/units/UnitDefinitions';
 import { createMemberPortraitCanvas } from './MemberPortrait';
 import { describeStatisticBonuses } from './presenters/StatisticDescriptions';
 
@@ -23,12 +27,13 @@ export interface CharacterSheetCallbacks {
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
   onToggleSlotPicker: (slot: EquipmentSlot) => void;
-  onChangeClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier) => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
 }
 
 export interface CharacterSheetContentTables {
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
+  advancedClasses: Record<string, AdvancedClassDefinition>;
   equipment: Record<string, EquipmentDefinition>;
   skills: Record<string, SkillDefinition>;
 }
@@ -41,10 +46,12 @@ export function buildCharacterSheetContent(
   callbacks: CharacterSheetCallbacks,
 ): HTMLElement {
   const race = content.races[member.raceIdentifier];
-  const baseClass = content.baseClasses[member.classIdentifier];
+  const classDefinition =
+    content.baseClasses[member.classIdentifier] ??
+    content.advancedClasses[member.classIdentifier];
   const sheetElement = document.createElement('div');
   sheetElement.className = 'character-sheet';
-  if (race === undefined || baseClass === undefined) {
+  if (race === undefined || classDefinition === undefined) {
     sheetElement.textContent = 'Broken member data.';
     return sheetElement;
   }
@@ -58,7 +65,7 @@ export function buildCharacterSheetContent(
     displayName: member.displayName,
     team: 'guild',
     race,
-    baseClass,
+    baseClass: classDefinition,
     level: member.level,
     position: { column: 0, row: 0 },
     facing: 'north',
@@ -67,12 +74,12 @@ export function buildCharacterSheetContent(
 
   const header = document.createElement('div');
   header.className = 'character-sheet-header';
-  header.appendChild(createMemberPortraitCanvas(race.displayName, baseClass.displayName));
+  header.appendChild(createMemberPortraitCanvas(race.displayName, classDefinition.displayName));
   const experienceRequired = experienceRequiredToLevelUpFrom(member.level);
   const headerText = document.createElement('div');
   headerText.innerHTML = `
     <h2>${member.displayName}</h2>
-    <p>${race.displayName} ${baseClass.displayName} · Level ${member.level}</p>
+    <p>${race.displayName} ${classDefinition.displayName} · Level ${member.level}</p>
     <p>XP ${member.experiencePoints} / ${experienceRequired}</p>
     <div class="resource-bar"><div class="resource-bar-fill experience" style="width:${Math.min(100, (member.experiencePoints / experienceRequired) * 100)}%"></div></div>
   `;
@@ -114,22 +121,22 @@ export function buildCharacterSheetContent(
   }
   sheetElement.appendChild(equipmentSection);
 
-  sheetElement.appendChild(buildSkillsSection(baseClass, content));
+  sheetElement.appendChild(buildSkillsSection(classDefinition, content));
   sheetElement.appendChild(buildClassesSection(member, race, content, callbacks));
   return sheetElement;
 }
 
 function buildSkillsSection(
-  baseClass: BaseClassDefinition,
+  classDefinition: BaseClassDefinition | AdvancedClassDefinition,
   content: CharacterSheetContentTables,
 ): HTMLElement {
   const skillsSection = document.createElement('div');
   skillsSection.className = 'character-sheet-skills';
   const skillsTitle = document.createElement('p');
   skillsTitle.className = 'menu-section-title';
-  skillsTitle.textContent = `Skills — ${baseClass.displayName}`;
+  skillsTitle.textContent = `Skills — ${classDefinition.displayName}`;
   skillsSection.appendChild(skillsTitle);
-  for (const skillIdentifier of ['basic_attack', ...baseClass.skillIdentifiers]) {
+  for (const skillIdentifier of ['basic_attack', ...classDefinition.skillIdentifiers]) {
     const skill = content.skills[skillIdentifier];
     if (skill === undefined) {
       continue;
@@ -156,44 +163,105 @@ function buildClassesSection(
 ): HTMLElement {
   const classesSection = document.createElement('div');
   classesSection.className = 'character-sheet-classes';
-  const classesTitle = document.createElement('p');
-  classesTitle.className = 'menu-section-title';
-  classesTitle.textContent = `Classes open to ${race.displayName}s`;
-  classesSection.appendChild(classesTitle);
 
+  classesSection.appendChild(buildClassSectionTitle(`Base classes`));
   for (const classIdentifier of race.allowedBaseClasses) {
     const baseClass = content.baseClasses[classIdentifier];
-    if (baseClass === undefined) {
-      continue;
-    }
+    if (baseClass === undefined) continue;
     const isCurrentClass = classIdentifier === member.classIdentifier;
-    const skillNames = baseClass.skillIdentifiers
-      .map((skillIdentifier) => content.skills[skillIdentifier]?.displayName)
-      .filter((displayName) => displayName !== undefined)
-      .join(', ');
-    const classRow = document.createElement('div');
-    classRow.className = `class-row ${isCurrentClass ? 'is-current' : ''}`;
-    classRow.innerHTML = `
-      <strong>${baseClass.displayName}${isCurrentClass ? ' · current' : ''}</strong>
-      <span>${skillNames}</span>
-    `;
-    const switchButton = document.createElement('button');
-    switchButton.textContent = isCurrentClass ? 'Current class' : `Become ${baseClass.displayName}`;
-    switchButton.disabled = isCurrentClass;
-    switchButton.addEventListener('click', () =>
-      callbacks.onChangeClass(member.identifier, classIdentifier as BaseClassIdentifier),
+    classesSection.appendChild(
+      buildClassRow({
+        displayName: baseClass.displayName,
+        isCurrentClass,
+        isUnlocked: true,
+        prerequisiteLabel: undefined,
+        onSwitch: () => callbacks.onChangeClass(member.identifier, classIdentifier as BaseClassIdentifier),
+      }),
     );
-    classRow.appendChild(switchButton);
-    classesSection.appendChild(classRow);
+  }
+
+  classesSection.appendChild(buildClassSectionTitle(`Advanced classes`));
+  for (const classIdentifier of race.allowedAdvancedClasses) {
+    const advancedClass = content.advancedClasses[classIdentifier];
+    if (advancedClass === undefined) continue;
+    const isCurrentClass = classIdentifier === member.classIdentifier;
+    const { prerequisite } = advancedClass;
+    const primaryLevelReached = member.classLevelsReached[prerequisite.primaryBaseClass] ?? 0;
+    const primaryMet = primaryLevelReached >= prerequisite.primaryBaseClassLevel;
+    const secondaryMet =
+      prerequisite.secondaryBaseClass === undefined ||
+      (member.classLevelsReached[prerequisite.secondaryBaseClass] ?? 0) >=
+        (prerequisite.secondaryBaseClassLevel ?? 0);
+    const isUnlocked = primaryMet && secondaryMet;
+    classesSection.appendChild(
+      buildClassRow({
+        displayName: advancedClass.displayName,
+        isCurrentClass,
+        isUnlocked,
+        prerequisiteLabel: buildPrerequisiteLabel(advancedClass),
+        onSwitch: () => callbacks.onChangeClass(member.identifier, classIdentifier),
+      }),
+    );
   }
 
   const classChangeNote = document.createElement('p');
   classChangeNote.className = 'village-hint';
   classChangeNote.textContent =
-    'Switching class keeps level and XP; gear the new class cannot use returns to the guild stores. Advanced classes and per-level skill learning arrive with M3.';
+    'Switching class keeps level and XP. Gear the new class cannot use returns to the guild stores.';
   classesSection.appendChild(classChangeNote);
   return classesSection;
 }
+
+function buildClassSectionTitle(title: string): HTMLElement {
+  const el = document.createElement('p');
+  el.className = 'menu-section-title';
+  el.textContent = title;
+  return el;
+}
+
+function buildPrerequisiteLabel(advancedClass: AdvancedClassDefinition): string {
+  const { prerequisite } = advancedClass;
+  const primaryLabel = `${capitalize(prerequisite.primaryBaseClass)} Lv.${prerequisite.primaryBaseClassLevel}`;
+  if (prerequisite.secondaryBaseClass === undefined) {
+    return primaryLabel;
+  }
+  return `${primaryLabel} + ${capitalize(prerequisite.secondaryBaseClass)} Lv.${prerequisite.secondaryBaseClassLevel ?? 0}`;
+}
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function buildClassRow(options: {
+  displayName: string;
+  isCurrentClass: boolean;
+  isUnlocked: boolean;
+  prerequisiteLabel: string | undefined;
+  onSwitch: () => void;
+}): HTMLElement {
+  const { displayName, isCurrentClass, isUnlocked, prerequisiteLabel, onSwitch } = options;
+  const classRow = document.createElement('div');
+  classRow.className = `class-row ${isCurrentClass ? 'is-current' : ''} ${isUnlocked ? '' : 'is-locked'}`;
+  const prereqHint = prerequisiteLabel !== undefined ? `<em>${prerequisiteLabel}</em>` : '';
+  classRow.innerHTML = `
+    <strong>${displayName}${isCurrentClass ? ' · current' : ''}${!isUnlocked ? ' 🔒' : ''}</strong>
+    ${prereqHint}
+  `;
+  const switchButton = document.createElement('button');
+  if (isCurrentClass) {
+    switchButton.textContent = 'Current class';
+    switchButton.disabled = true;
+  } else if (!isUnlocked) {
+    switchButton.textContent = 'Locked';
+    switchButton.disabled = true;
+  } else {
+    switchButton.textContent = `Become ${displayName}`;
+    switchButton.addEventListener('click', onSwitch);
+  }
+  classRow.appendChild(switchButton);
+  return classRow;
+}
+
 
 function buildEquipmentSlotRow(
   member: GuildMember,

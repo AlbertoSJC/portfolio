@@ -1,4 +1,4 @@
-import type { UnitStatistics } from '../../../sim/units/Unit';
+import { STATISTIC, type UnitStatistics } from '../../../sim/units/Unit';
 
 export const STATISTIC_SHORT_LABELS: Record<keyof UnitStatistics, string> = {
   hitPointsMaximum: 'HP',
@@ -20,7 +20,7 @@ export function describeStatisticBonuses(bonuses: Partial<UnitStatistics>): stri
       continue;
     }
     const displayAmount =
-      statisticName === 'evasion' ? `${Math.round(amount * 100)}%` : `${Math.abs(amount)}`;
+      statisticName === STATISTIC.Evasion ? `${Math.round(amount * 100)}%` : `${Math.abs(amount)}`;
     bonusDescriptions.push(
       `${amount > 0 ? '+' : '−'}${displayAmount} ${STATISTIC_SHORT_LABELS[statisticName]}`,
     );

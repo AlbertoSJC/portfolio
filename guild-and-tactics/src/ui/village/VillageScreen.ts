@@ -4,8 +4,8 @@ import type { ConsumableItemDefinition } from '../../sim/items/ConsumableItemDef
 import type { EquipmentDefinition, EquipmentSlot } from '../../sim/items/EquipmentDefinition';
 import type { BattleMap } from '../../sim/grid/BattleMap';
 import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
-import type { BaseClassIdentifier } from '../../sim/units/Unit';
-import type { BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
+import type { ClassIdentifier } from '../../sim/units/Unit';
+import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import { buildCharacterSheetContent } from './CharacterSheet';
 import { ModalDialog } from './ModalDialog';
@@ -36,7 +36,7 @@ export interface VillageCallbacks {
   onHireRecruit: (recruitMemberIdentifier: string) => void;
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
-  onChangeClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier) => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
 }
 
 export interface VillageContentTables {
@@ -47,6 +47,7 @@ export interface VillageContentTables {
   battleMapsByIdentifier: Record<string, { map: BattleMap }>;
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
+  advancedClasses: Record<string, AdvancedClassDefinition>;
 }
 
 type VillageTab = 'tavern' | 'store' | 'recruitment' | 'roster' | 'inventory';

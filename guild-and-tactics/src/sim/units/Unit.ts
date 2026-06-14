@@ -45,6 +45,14 @@ export type AdvancedClassIdentifier =
 
 export type ClassIdentifier = BaseClassIdentifier | AdvancedClassIdentifier;
 
+const BASE_CLASS_IDENTIFIER_SET: ReadonlySet<string> = new Set([
+  'warrior', 'thief', 'mage', 'priest',
+]);
+
+export function isBaseClassIdentifier(identifier: ClassIdentifier): identifier is BaseClassIdentifier {
+  return BASE_CLASS_IDENTIFIER_SET.has(identifier);
+}
+
 export type StatusEffectKind = 'poison' | 'sleep' | 'blind';
 
 export interface ActiveStatusEffect {
@@ -66,6 +74,20 @@ export interface UnitStatistics {
   /** Probability (0..1) subtracted from an attacker's chance to hit. */
   evasion: number;
 }
+
+/** Named constants for every UnitStatistics key — use instead of bare strings so renames stay in one place. */
+export const STATISTIC = {
+  HitPointsMaximum: 'hitPointsMaximum',
+  ManaPointsMaximum: 'manaPointsMaximum',
+  Attack: 'attack',
+  Defense: 'defense',
+  MagicPower: 'magicPower',
+  MagicResistance: 'magicResistance',
+  Speed: 'speed',
+  MovementRange: 'movementRange',
+  JumpHeight: 'jumpHeight',
+  Evasion: 'evasion',
+} as const satisfies Record<string, keyof UnitStatistics>;
 
 export type ModifiableStatistic = 'attack' | 'defense' | 'magicPower' | 'magicResistance' | 'speed';
 

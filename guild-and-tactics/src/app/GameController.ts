@@ -10,10 +10,10 @@ import {
   spendGold,
   type GuildState,
 } from '../sim/guild/GuildState';
-import { changeMemberBaseClass } from '../sim/guild/ClassChange';
+import { changeMemberClass } from '../sim/guild/ClassChange';
 import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
 import { restockStore, takeOneFromStoreStock } from '../sim/guild/StoreStock';
-import type { BaseClassIdentifier } from '../sim/units/Unit';
+import type { ClassIdentifier } from '../sim/units/Unit';
 import {
   sellPriceForEquipment,
   type EquipmentSlot,
@@ -29,6 +29,7 @@ import {
 import { sellPriceForItem } from '../sim/items/ConsumableItemDefinition';
 import type { SaveGameStorage } from '../platform/SaveGameStorage';
 import { BASE_CLASSES } from '../content/baseClasses';
+import { ADVANCED_CLASSES } from '../content/advancedClasses';
 import { ITEMS } from '../content/items';
 import { BATTLE_MAPS } from '../content/maps/battleMapRegistry';
 import { MONSTERS } from '../content/monsters';
@@ -91,6 +92,7 @@ export class GameController {
         battleMapsByIdentifier: BATTLE_MAPS,
         races: RACES,
         baseClasses: BASE_CLASSES,
+        advancedClasses: ADVANCED_CLASSES,
       },
       {
         onEmbarkQuest: (questIdentifier, memberIdentifiers) =>
@@ -160,8 +162,8 @@ export class GameController {
     this.persistAndRerenderVillage();
   }
 
-  private changeClass(memberIdentifier: string, classIdentifier: BaseClassIdentifier): void {
-    if (!changeMemberBaseClass(this.guild, memberIdentifier, classIdentifier, RACES, EQUIPMENT)) {
+  private changeClass(memberIdentifier: string, classIdentifier: ClassIdentifier): void {
+    if (!changeMemberClass(this.guild, memberIdentifier, classIdentifier, RACES, ADVANCED_CLASSES, EQUIPMENT)) {
       return;
     }
     this.persistAndRerenderVillage();
@@ -229,6 +231,7 @@ export class GameController {
     const units = createUnitsForQuestBattle(quest, deployedMembers, mapEntry.deploymentTiles, {
       races: RACES,
       baseClasses: BASE_CLASSES,
+      advancedClasses: ADVANCED_CLASSES,
       monsters: MONSTERS,
       equipment: EQUIPMENT,
     });

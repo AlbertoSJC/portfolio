@@ -2,7 +2,7 @@ import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator
 import type { GridPosition } from '../grid/GridPosition';
 import { manhattanDistance } from '../grid/GridPosition';
 import type { Unit } from '../units/Unit';
-import { effectiveStatistic, isKnockedOut } from '../units/Unit';
+import { effectiveStatistic, isKnockedOut, STATISTIC } from '../units/Unit';
 import type { BattleEvent } from './BattleEvents';
 import { determineRelativeAttackArc } from './FacingAndFlanking';
 import {
@@ -141,7 +141,7 @@ function applySkillEffectToUnit(
     case 'heal': {
       const healingRestored = Math.max(
         MINIMUM_HEALING_RESTORED,
-        Math.round(effectiveStatistic(user, 'magicPower') * effect.powerMultiplier),
+        Math.round(effectiveStatistic(user, STATISTIC.MagicPower) * effect.powerMultiplier),
       );
       target.currentHitPoints = Math.min(
         target.baseStatistics.hitPointsMaximum,

@@ -13,7 +13,7 @@ function createTestMember(level: number, experiencePoints = 0): GuildMember {
     displayName: 'Test Member',
     raceIdentifier: 'human',
     classIdentifier: 'warrior',
-    masteredClasses: [],
+    classLevelsReached: {},
     level,
     experiencePoints,
     equippedItemIdentifiers: {},

@@ -1,6 +1,6 @@
 import type { DamageSkillEffect } from './SkillDefinition';
 import type { Unit } from '../units/Unit';
-import { effectiveStatistic, elementalAffinityFor } from '../units/Unit';
+import { effectiveStatistic, elementalAffinityFor, STATISTIC } from '../units/Unit';
 import type { RelativeAttackArc } from './FacingAndFlanking';
 import {
   BACK_ATTACK_CRITICAL_HIT_CHANCE_BONUS,
@@ -48,12 +48,12 @@ export function calculateDamageBeforeDice(
 ): number {
   const offensiveStatistic =
     damageEffect.damageSource === 'physical'
-      ? effectiveStatistic(attacker, 'attack')
-      : effectiveStatistic(attacker, 'magicPower');
+      ? effectiveStatistic(attacker, STATISTIC.Attack)
+      : effectiveStatistic(attacker, STATISTIC.MagicPower);
   const defensiveStatistic =
     damageEffect.damageSource === 'physical'
-      ? effectiveStatistic(defender, 'defense') * PHYSICAL_DEFENSE_MITIGATION_FACTOR
-      : effectiveStatistic(defender, 'magicResistance') * MAGICAL_RESISTANCE_MITIGATION_FACTOR;
+      ? effectiveStatistic(defender, STATISTIC.Defense) * PHYSICAL_DEFENSE_MITIGATION_FACTOR
+      : effectiveStatistic(defender, STATISTIC.MagicResistance) * MAGICAL_RESISTANCE_MITIGATION_FACTOR;
 
   const flankingBonus =
     attackArc !== 'front' && damageEffect.flankingPowerBonus !== undefined

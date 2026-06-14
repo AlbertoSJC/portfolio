@@ -1,7 +1,12 @@
 import type { GridPosition } from '../grid/GridPosition';
 import type { EquipmentDefinition } from '../items/EquipmentDefinition';
 import type { Unit } from '../units/Unit';
-import type { BaseClassDefinition, MonsterDefinition, RaceDefinition } from '../units/UnitDefinitions';
+import type {
+  AdvancedClassDefinition,
+  BaseClassDefinition,
+  MonsterDefinition,
+  RaceDefinition,
+} from '../units/UnitDefinitions';
 import { createUnitFromCharacter, createUnitFromMonster } from '../units/UnitFactory';
 import type { GuildMember } from './GuildState';
 import { equippedDefinitionsForMember } from './MemberEquipment';
@@ -10,6 +15,7 @@ import type { QuestDefinition } from './QuestDefinition';
 export interface UnitContentTables {
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
+  advancedClasses: Record<string, AdvancedClassDefinition>;
   monsters: Record<string, MonsterDefinition>;
   equipment: Record<string, EquipmentDefinition>;
 }
@@ -35,9 +41,11 @@ export function createUnitsForQuestBattle(
 
   const guildUnits = deployedMembers.map((member, memberIndex) => {
     const race = contentTables.races[member.raceIdentifier];
-    const baseClass = contentTables.baseClasses[member.classIdentifier];
+    const classDefinition =
+      contentTables.baseClasses[member.classIdentifier] ??
+      contentTables.advancedClasses[member.classIdentifier];
     const deploymentTile = deploymentTiles[memberIndex];
-    if (race === undefined || baseClass === undefined || deploymentTile === undefined) {
+    if (race === undefined || classDefinition === undefined || deploymentTile === undefined) {
       throw new Error(`Broken content for guild member "${member.displayName}"`);
     }
     return createUnitFromCharacter({
@@ -45,7 +53,7 @@ export function createUnitsForQuestBattle(
       displayName: member.displayName,
       team: 'guild',
       race,
-      baseClass,
+      baseClass: classDefinition,
       level: member.level,
       position: deploymentTile,
       facing: 'north',

@@ -1,4 +1,5 @@
 import type { GuildMember } from '../guild/GuildState';
+import { isBaseClassIdentifier } from '../units/Unit';
 
 export const MAXIMUM_CHARACTER_LEVEL = 30;
 
@@ -35,6 +36,12 @@ export function applyExperienceGain(member: GuildMember, experienceGained: numbe
     member.experiencePoints -= experienceRequiredToLevelUpFrom(member.level);
     member.level += 1;
     levelsGained += 1;
+    if (isBaseClassIdentifier(member.classIdentifier)) {
+      const previousBest = member.classLevelsReached[member.classIdentifier] ?? 0;
+      if (member.level > previousBest) {
+        member.classLevelsReached[member.classIdentifier] = member.level;
+      }
+    }
   }
   if (member.level >= MAXIMUM_CHARACTER_LEVEL) {
     member.experiencePoints = 0;

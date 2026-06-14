@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createUnitsForQuestBattle } from '../../../src/sim/guild/QuestBattleAssembly';
+import { ADVANCED_CLASSES } from '../../../src/content/advancedClasses';
 import { BASE_CLASSES } from '../../../src/content/baseClasses';
 import { EQUIPMENT } from '../../../src/content/equipment';
 import { BATTLE_MAPS } from '../../../src/content/maps/battleMapRegistry';
@@ -12,6 +13,7 @@ import type { GuildMember } from '../../../src/sim/guild/GuildState';
 const CONTENT_TABLES = {
   races: RACES,
   baseClasses: BASE_CLASSES,
+  advancedClasses: ADVANCED_CLASSES,
   monsters: MONSTERS,
   equipment: EQUIPMENT,
 };
@@ -21,7 +23,7 @@ const TEST_MEMBER: GuildMember = {
   displayName: 'Test Member',
   raceIdentifier: 'human',
   classIdentifier: 'warrior',
-  masteredClasses: [],
+  classLevelsReached: {},
   level: 2,
   experiencePoints: 0,
   equippedItemIdentifiers: {},

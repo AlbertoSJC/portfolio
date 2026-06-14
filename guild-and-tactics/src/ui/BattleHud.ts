@@ -5,7 +5,7 @@ import {
   describeConsumableEffect,
   type ConsumableItemDefinition,
 } from '../sim/items/ConsumableItemDefinition';
-import { effectiveStatistic, type Unit } from '../sim/units/Unit';
+import { effectiveStatistic, STATISTIC, type Unit } from '../sim/units/Unit';
 import { canUnitAffordSkill } from '../sim/battle/SkillExecution';
 import type { UserInterfaceSounds } from './UserInterfaceSounds';
 
@@ -63,8 +63,8 @@ function buildUnitSummaryHtml(unit: Unit): string {
     <div class="resource-bar"><div class="resource-bar-fill hit-points" style="width:${hitPointFraction * 100}%"></div></div>
     <div>MP ${unit.currentManaPoints} / ${unit.baseStatistics.manaPointsMaximum}</div>
     <div class="resource-bar"><div class="resource-bar-fill mana-points" style="width:${manaPointFraction * 100}%"></div></div>
-    <div>ATK ${effectiveStatistic(unit, 'attack')} · DEF ${effectiveStatistic(unit, 'defense')} · MAG ${effectiveStatistic(unit, 'magicPower')} · RES ${effectiveStatistic(unit, 'magicResistance')}</div>
-    <div>Speed ${effectiveStatistic(unit, 'speed')} · Move ${unit.baseStatistics.movementRange}${unit.canFly ? ' (flies)' : ''} · Evasion ${Math.round(unit.baseStatistics.evasion * 100)}%</div>
+    <div>ATK ${effectiveStatistic(unit, STATISTIC.Attack)} · DEF ${effectiveStatistic(unit, STATISTIC.Defense)} · MAG ${effectiveStatistic(unit, STATISTIC.MagicPower)} · RES ${effectiveStatistic(unit, STATISTIC.MagicResistance)}</div>
+    <div>Speed ${effectiveStatistic(unit, STATISTIC.Speed)} · Move ${unit.baseStatistics.movementRange}${unit.canFly ? ' (flies)' : ''} · Evasion ${Math.round(unit.baseStatistics.evasion * 100)}%</div>
     ${activeModifierSummary === '' ? '' : `<div>Buffs: ${activeModifierSummary}</div>`}
   `;
 }

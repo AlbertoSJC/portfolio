@@ -25,7 +25,7 @@ function createTestGuildWithWarrior(equipmentInventory: Record<string, number>):
     displayName: 'Test Warrior',
     raceIdentifier: 'human',
     classIdentifier: 'warrior',
-    masteredClasses: [],
+    classLevelsReached: {},
     level: 2,
     experiencePoints: 0,
     equippedItemIdentifiers: {},
