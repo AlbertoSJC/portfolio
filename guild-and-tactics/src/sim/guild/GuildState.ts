@@ -12,6 +12,8 @@ export interface GuildMember {
   classIdentifier: ClassIdentifier;
   /** Highest level reached in each base class — used to gate advanced class unlocks. */
   classLevelsReached: Partial<Record<BaseClassIdentifier, number>>;
+  /** Base class whose unlocked skills are carried into battle as the secondary skill set. */
+  secondarySkillClassIdentifier?: BaseClassIdentifier;
   level: number;
   experiencePoints: number;
   equippedItemIdentifiers: Partial<Record<EquipmentSlot, string>>;

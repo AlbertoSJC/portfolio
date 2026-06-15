@@ -409,33 +409,15 @@ days of work, not a rewrite.
 2. ✅ **M2 — Guild loop**: one village (tavern/store/recruitment), quest board,
    gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
    browser-verified**
-3. 🔧 **M3 — Depth** (type scaffolding done; implementation steps below):
-   - **Advanced class definitions** — `src/content/advancedClasses.ts` with
-     `AdvancedClassDefinition` (statistics, growth, skills, prerequisite base
-     class + level). Start with the shared classes (Knight, Berserker, Ranger,
-     Duelist, Sage, Assassin) before race-exclusive ones.
-   - **Populate `allowedAdvancedClasses`** in `src/content/races.ts` per the
-     §4 matrix; each entry is already an `AdvancedClassIdentifier`.
-   - **Class mastery tracking** — replace `masteredClasses: BaseClassIdentifier[]`
-     with `classLevelsReached: Partial<Record<BaseClassIdentifier, number>>`
-     (records highest level while in each base class); update `ClassChange` unlock
-     gate to check prerequisite levels (pure: 5 in base; hybrid: 5 primary + 3
-     secondary) + class-unlock quest completion.
-   - **Per-level skill learning** — `GuildMember` needs `learnedSkillIdentifiers`
-     (skills unlocked through leveling); `applyExperienceGain` triggers unlock;
-     battle unit assembly merges class skills with learned ones.
-   - **Secondary skill set** — `GuildMember.secondarySkillClassIdentifier?:
-     BaseClassIdentifier`; character sheet lets player pick a mastered class;
-     `QuestBattleAssembly` adds that class's skills to the battle unit.
-   - **Status effects** — wire `tickDownStatusEffects` into
-     `Battle.endActiveUnitTurn`; add poison damage, sleep turn-skip, and blind
-     hit-chance penalty to the existing functions; add status-inflicting skills
-     to `src/content/skills.ts`.
-   - **Full element wheel** — populate `elementalAffinities` on more monsters
-     and equipment; add element-boosting passive skills.
-   - **Village map screen (§6.0)** — replace the tab bar with a walkable
-     building-node map (canvas-drawn, same swap-point principle as
-     `SpriteRegistry`).
+3. 🔧 **M3 — Depth** (substantially implemented as of 2026-06-14: all 33 advanced classes defined, mastery wired, skills per level wired, character sheet refactored; remaining steps below):
+   - ✅ **Advanced class definitions** — `src/content/advancedClasses/` with all 33 classes (shared, human, werecat, werelizard, undead, feryan). Each has `AdvancedClassDefinition` with statistics, growth, skills, prerequisite base class + level.
+   - ✅ **Populate `allowedAdvancedClasses`** in `src/content/races.ts` per the §4 matrix; each race knows which 33 classes it can reach.
+   - ✅ **Class mastery tracking** — `classLevelsReached: Partial<Record<BaseClassIdentifier, number>>` tracks highest level in each base class; `ClassChange` unlock gate checks prerequisite levels (pure: 5 in base; hybrid: 5 primary + 3 secondary); secondary skill set UI complete.
+   - ✅ **Skills per level** — base and advanced classes have `ClassSkillEntry[]` with `learnedAtLevel`; character sheet shows unlocks and locked-skill prerequisites.
+   - ⬜ **Per-level skill learning** — `GuildMember.learnedSkillIdentifiers` (skills learned through leveling, not class-locked) not yet wired; `applyExperienceGain` should trigger unlocks and merge with class skills at battle time.
+   - ⬜ **Status effects** — wire `tickDownStatusEffects` into `Battle.endActiveUnitTurn`; add poison damage, sleep turn-skip, and blind hit-chance penalty; add status-inflicting skills to `src/content/skills.ts`.
+   - ⬜ **Full element wheel** — populate `elementalAffinities` on more monsters and equipment; add element-boosting passive skills.
+   - ⬜ **Village map screen (§6.0)** — replace the tab bar with a walkable building-node map (canvas-drawn, same swap-point principle as `SpriteRegistry`).
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
    villages, **overworld map** (§6.0) with travel + random encounters
    (§6.1), reputation tiers, dispatch quests, balancing pass, audio,

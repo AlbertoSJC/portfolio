@@ -48,6 +48,7 @@ export function createUnitsForQuestBattle(
     if (race === undefined || classDefinition === undefined || deploymentTile === undefined) {
       throw new Error(`Broken content for guild member "${member.displayName}"`);
     }
+    const secondarySkillIdentifiers = computeSecondarySkillIdentifiers(member, contentTables);
     return createUnitFromCharacter({
       identifier: member.identifier,
       displayName: member.displayName,
@@ -58,6 +59,7 @@ export function createUnitsForQuestBattle(
       position: deploymentTile,
       facing: 'north',
       equipment: equippedDefinitionsForMember(member.equippedItemIdentifiers, contentTables.equipment),
+      secondarySkillIdentifiers,
     });
   });
 
@@ -77,4 +79,18 @@ export function createUnitsForQuestBattle(
   });
 
   return [...guildUnits, ...enemyUnits];
+}
+
+function computeSecondarySkillIdentifiers(
+  member: GuildMember,
+  contentTables: UnitContentTables,
+): string[] {
+  const secondaryClassId = member.secondarySkillClassIdentifier;
+  if (secondaryClassId === undefined) return [];
+  const secondaryClass = contentTables.baseClasses[secondaryClassId];
+  if (secondaryClass === undefined) return [];
+  const levelReached = member.classLevelsReached[secondaryClassId] ?? 0;
+  return secondaryClass.skills
+    .filter((entry) => entry.learnedAtLevel <= levelReached)
+    .map((entry) => entry.skillIdentifier);
 }

@@ -1,15 +1,15 @@
+import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
+import type { BattleMap } from '../../sim/grid/BattleMap';
 import { BATTLE_PARTY_CAPACITY, GUILD_ROSTER_CAPACITY, type GuildState } from '../../sim/guild/GuildState';
 import type { QuestDefinition } from '../../sim/guild/QuestDefinition';
 import type { ConsumableItemDefinition } from '../../sim/items/ConsumableItemDefinition';
 import type { EquipmentDefinition, EquipmentSlot } from '../../sim/items/EquipmentDefinition';
-import type { BattleMap } from '../../sim/grid/BattleMap';
-import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
-import type { ClassIdentifier } from '../../sim/units/Unit';
+import type { BaseClassIdentifier, ClassIdentifier } from '../../sim/units/Unit';
 import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
-import { buildCharacterSheetContent, buildClassPickerContent } from './CharacterSheet';
+import { buildCharacterSheetContent } from './character/CharacterSheet';
+import { buildClassPickerContent } from './character/ClassPicker';
 import { ModalDialog } from './ModalDialog';
-import { buildQuestCardViewModels, buildQuestDetailViewModel } from './presenters/TavernPresenters';
 import {
   buildInventoryViewModel,
   buildStoreCardViewModels,
@@ -21,11 +21,12 @@ import {
   buildRecruitCardViewModels,
   buildRosterCardViewModels,
 } from './presenters/MemberPresenters';
-import { renderQuestCard, renderQuestDetail } from './views/QuestViews';
+import { buildQuestCardViewModels, buildQuestDetailViewModel } from './presenters/TavernPresenters';
+import { createCardList, createHintParagraph, createSectionTitle } from './views/DomPrimitives';
 import { renderItemCard, renderStoreCard } from './views/ItemCardView';
 import { renderRecruitCard, renderRosterCard } from './views/MemberCardViews';
 import { renderPillBar } from './views/PillBarView';
-import { createCardList, createHintParagraph, createSectionTitle } from './views/DomPrimitives';
+import { renderQuestCard, renderQuestDetail } from './views/QuestViews';
 
 export interface VillageCallbacks {
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
@@ -37,6 +38,7 @@ export interface VillageCallbacks {
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
   onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
   onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
+  onSetSecondarySkillClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier | undefined) => void;
 }
 
 export interface VillageContentTables {
@@ -241,6 +243,10 @@ export class VillageScreen {
             this.modalState.view = 'classPicker';
           }
           this.rerender();
+        },
+        onSetSecondarySkillClass: (memberIdentifier, classIdentifier) => {
+          this.sounds.playMenuConfirm();
+          this.callbacks.onSetSecondarySkillClass(memberIdentifier, classIdentifier);
         },
       },
     );

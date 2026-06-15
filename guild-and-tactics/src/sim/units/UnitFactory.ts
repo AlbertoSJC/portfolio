@@ -21,6 +21,8 @@ export interface CharacterRecipe {
   facing: CardinalDirection;
   /** Worn gear; its statistic bonuses fold into the derived statistics. */
   equipment?: EquipmentDefinition[];
+  /** Skills carried from a previously mastered base class (the secondary skill set). */
+  secondarySkillIdentifiers?: string[];
 }
 
 function deriveStatisticsForLevel(
@@ -80,6 +82,7 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
       ...recipe.baseClass.skills
         .filter((entry) => entry.learnedAtLevel <= recipe.level)
         .map((entry) => entry.skillIdentifier),
+      ...(recipe.secondarySkillIdentifiers ?? []),
     ],
     elementalAffinities: { ...recipe.race.elementalAffinities },
     activeStatModifiers: [],

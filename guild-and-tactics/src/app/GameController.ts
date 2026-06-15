@@ -11,6 +11,7 @@ import {
   type GuildState,
 } from '../sim/guild/GuildState';
 import { changeMemberClass } from '../sim/guild/ClassChange';
+import type { BaseClassIdentifier } from '../sim/units/Unit';
 import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
 import { restockStore, takeOneFromStoreStock } from '../sim/guild/StoreStock';
 import type { ClassIdentifier } from '../sim/units/Unit';
@@ -107,6 +108,8 @@ export class GameController {
         onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
         onChangeClass: (memberIdentifier, classIdentifier) =>
           this.changeClass(memberIdentifier, classIdentifier),
+        onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
+          this.setSecondarySkillClass(memberIdentifier, classIdentifier),
       },
     );
 
@@ -166,6 +169,16 @@ export class GameController {
     if (!changeMemberClass(this.guild, memberIdentifier, classIdentifier, RACES, ADVANCED_CLASSES, EQUIPMENT)) {
       return;
     }
+    this.persistAndRerenderVillage();
+  }
+
+  private setSecondarySkillClass(
+    memberIdentifier: string,
+    classIdentifier: BaseClassIdentifier | undefined,
+  ): void {
+    const member = findRosterMember(this.guild, memberIdentifier);
+    if (member === undefined) return;
+    member.secondarySkillClassIdentifier = classIdentifier;
     this.persistAndRerenderVillage();
   }
 

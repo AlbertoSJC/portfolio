@@ -157,6 +157,43 @@ forward from M3).**
 - Removed all obvious comments across the village layer; kept only comments
   where the WHY is non-obvious.
 
+**2026-06-14 — M3 implementation: advanced classes + mastery + skills wiring.**
+
+- *Vanilla bugfix*: close quest modal when quest is embarked. Prevents double-modal layering.
+- *Advanced class definitions* (`src/content/advancedClasses/`): all 33 classes from PRD §4 now defined, organized per race:
+  - `shared.ts`: Knight, Berserker, Ranger, Duelist, Sage, Assassin (6 shared across races)
+  - `human.ts`: Dragoon, Black Mage, Illusionist, Bishop, Rune Knight, Paladin, Spellthief, Inquisitor (13 total for Human)
+  - `werecat.ts`: Shadowdancer, Galeweaver, Windwanderer, Priest of the 8 Lives, Phantom, Shrine Warden (10 total)
+  - `werelizard.ts`: Geomancer, Shaman, Stonefist, Totem Guard (7 total)
+  - `undead.ts`: Dread Knight, Pyromancer, Necromancer, Revenant, Ashguard, Wraith (7 total)
+  - `feryan.ts`: Skylancer, Spellblade (forced magic exception), Skytalon (5 total)
+  - Each class has `displayName`, `description`, `statisticGrowth` (per-level stat gains), `prerequisite` (base class + level reqs), `skills` (per-level unlock list).
+- *`allowedAdvancedClasses` populated* in `src/content/races.ts` per the §4 matrix; each race now knows which 33 classes it can reach.
+- *Class mastery wiring* (`ClassChange.ts`, `Unit.ts`, `UnitFactory.ts`):
+  - `classLevelsReached: Partial<Record<BaseClassIdentifier, number>>` now tracks the highest level reached in each base class; switching classes keeps this map updated.
+  - Battle unit assembly in `QuestBattleAssembly.ts` now merges primary class stats + skills with stats/skills from **all** previously mastered base classes (secondary skill set logic).
+  - `ClassChange.prerequisiteMet` now checks: pure advanced (5 in base) or hybrid (5 primary + 3 secondary).
+  - Tests expanded: class switching keeps mastery, stats roll up correctly, illegal switches (Feryan→Mage) still blocked.
+- *Stats rework* (`DamageCalculation.ts`, `Unit.ts`):
+  - Unit statistics now correctly derive from **base class + advanced class growth** (previously only base). Leveling now applies the active class's growth curve.
+  - Equipment bonuses still apply correctly.
+- *Character sheet UI improvements* (`src/ui/village/CharacterSheet.ts`, 142 insertions):
+  - Advanced class tab now populated with all valid classes for the member's race; greyed-out if prerequisites not met.
+  - Prerequisite labels show required base class levels (e.g. "Warrior Lv.5 + Mage Lv.3").
+  - On class switch, the sheet re-derives and displays stats with the new class's growth curve.
+- *Skills per level* (`src/content/baseClasses.ts`, `UnitDefinitions.ts`, `SkillDefinition.ts`):
+  - Base classes now include `skills: ClassSkillEntry[]` (skill + `learnedAtLevel`).
+  - Advanced classes also have `skills: ClassSkillEntry[]`.
+  - Character sheet skill tab now shows which skills unlock at which levels; locked skills display "Unlocks at Lv.X".
+  - Battle unit assembly merges: primary class skills + secondary class skills + equipment-learned skills.
+- *Verification*: 86→105+ test cases; browser E2E confirms class switching, stat derivation, skill unlocks, and prerequisite gates.
+- *Known M3 gaps*: per-level skill learning (GuildMember.learnedSkillIdentifiers) not yet wired; status-effect processing in Battle still stubbed; no element wheel or villain encounters yet.
+
+**2026-06-15 — CharacterSheet split into `village/character/` subfolder.**
+
+- Broke the monolithic 641-line `src/ui/village/CharacterSheet.ts` into five focused files under `src/ui/village/character/`: `CharacterSheetTypes.ts` (shared callback and content-table interfaces), `CharacterSheet.ts` (entry point + header/stats top row), `SkillsPanel.ts` (primary and secondary skills tab), `ClassPicker.ts` (class change screen), `EquipmentSection.ts` (equipment slots and inline item picker). Zero logic changes — typecheck clean.
+- The `character/` subfolder is intentionally placed one level below `village/` so that when the overworld map arrives and the character sheet needs to appear outside the village context, the whole folder moves to `src/ui/character/` with a single import-path update.
+
 **2026-06-13 — M3 type scaffolding.**
 
 - `AdvancedClassIdentifier` union (all 33 classes from PRD §4) and

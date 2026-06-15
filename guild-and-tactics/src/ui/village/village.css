@@ -266,11 +266,18 @@ button.village-card:hover {
 
 /* ── Character sheet ─────────────────────────────────────────────────── */
 
-.character-sheet-header {
+.character-sheet-top {
   display: flex;
   gap: 18px;
   align-items: center;
   margin-bottom: 14px;
+}
+
+.character-sheet-header {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .character-sheet-header h2 {
@@ -344,7 +351,8 @@ button.village-card:hover {
   border: 1px solid var(--hud-panel-border);
   border-radius: 8px;
   padding: 12px 14px;
-  margin-bottom: 16px;
+  flex: 1;
+  align-self: stretch;
 }
 
 .character-sheet-statistics div {
@@ -459,6 +467,48 @@ button.village-card:hover {
   border-radius: 6px;
 }
 
+.skills-panel {
+  margin-bottom: 14px;
+}
+
+.skills-panel-scroll {
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.class-picker-scroll {
+  max-height: 420px;
+}
+
+.skills-panel-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--hud-panel-border);
+  margin-bottom: 10px;
+}
+
+.skills-panel-tab-bar button {
+  background: transparent;
+  color: var(--hud-text-color);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 7px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.skills-panel-tab-bar button:hover {
+  color: var(--hud-accent-color);
+}
+
+.skills-panel-tab-bar button.is-active {
+  border-bottom-color: var(--hud-accent-color);
+  color: var(--hud-accent-color);
+  font-weight: 600;
+}
+
 .character-sheet-skills,
 .character-sheet-classes {
   margin-top: 16px;
@@ -466,14 +516,20 @@ button.village-card:hover {
 
 .skill-row {
   display: grid;
-  grid-template-columns: 150px 1fr auto;
-  gap: 12px;
+  grid-template-columns: 32px 130px 1fr auto;
+  gap: 10px;
   align-items: center;
   border: 1px solid var(--hud-panel-border);
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 8px 14px 8px 10px;
   margin-bottom: 6px;
   font-size: 14px;
+}
+
+.skill-icon {
+  flex-shrink: 0;
+  border-radius: 5px;
+  display: block;
 }
 
 .skill-row em {
@@ -483,6 +539,33 @@ button.village-card:hover {
 
 .skill-row.is-locked {
   opacity: 0.45;
+}
+
+.secondary-skill-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.secondary-skill-picker button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.secondary-skill-picker button:hover {
+  border-color: var(--hud-accent-color);
+}
+
+.secondary-skill-picker button.is-active {
+  background: var(--hud-accent-color);
+  color: #1c1c1c;
+  font-weight: 600;
 }
 
 .class-row {
