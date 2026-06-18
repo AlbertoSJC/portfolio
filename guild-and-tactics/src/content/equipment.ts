@@ -23,6 +23,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     priceInGold: 210,
     statisticBonuses: { attack: 6, speed: -1 },
     allowedClasses: ['warrior'],
+    minimumReputationTier: 'silver',
   },
   hunting_dagger: {
     identifier: 'hunting_dagger',
@@ -67,6 +68,7 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'armor',
     priceInGold: 160,
     statisticBonuses: { defense: 4, speed: -1 },
+    minimumReputationTier: 'silver',
   },
   travelers_garb: {
     identifier: 'travelers_garb',

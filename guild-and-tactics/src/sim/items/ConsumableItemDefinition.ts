@@ -1,3 +1,5 @@
+import type { ReputationTier } from '../guild/ReputationTier';
+
 /** What a consumable does when used on a battle unit. */
 export type ConsumableItemEffect =
   | { kind: 'restoreHitPoints'; amount: number }
@@ -9,6 +11,8 @@ export interface ConsumableItemDefinition {
   description: string;
   priceInGold: number;
   effect: ConsumableItemEffect;
+  /** When set, the store only stocks this item at or above this reputation tier. */
+  minimumReputationTier?: ReputationTier;
 }
 
 /** Stores buy back consumables at this fraction of the purchase price. */

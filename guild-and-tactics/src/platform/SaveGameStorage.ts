@@ -25,29 +25,37 @@ interface VersionedSaveFile {
  * missing. Runs on every load, so a save written by an in-between dev
  * build can never crash the game.
  */
+function normalizeMember(member: GuildState['roster'][number]): void {
+  member.equippedItemIdentifiers ??= {};
+  const raw = member as unknown as Record<string, unknown>;
+  // v2 → v3: field renamed from baseClassIdentifier to classIdentifier.
+  if (raw['classIdentifier'] === undefined && raw['baseClassIdentifier'] !== undefined) {
+    raw['classIdentifier'] = raw['baseClassIdentifier'];
+    delete raw['baseClassIdentifier'];
+  }
+  // v3 → v4: masteredClasses (BaseClassIdentifier[]) replaced by classLevelsReached.
+  if (raw['masteredClasses'] !== undefined && raw['classLevelsReached'] === undefined) {
+    const levelsReached: Record<string, number> = {};
+    for (const classId of raw['masteredClasses'] as string[]) {
+      levelsReached[classId] = 5;
+    }
+    raw['classLevelsReached'] = levelsReached;
+    delete raw['masteredClasses'];
+  }
+  member.classLevelsReached ??= {};
+}
+
 function normalizeLoadedGuild(guild: GuildState): GuildState {
   guild.equipmentInventory ??= {};
   guild.consumableInventory ??= {};
   // An empty stock map means "never stocked" — the GameController restocks it.
   guild.storeStock ??= {};
+  guild.recruitsOnOffer ??= [];
   for (const member of guild.roster) {
-    member.equippedItemIdentifiers ??= {};
-    const raw = member as unknown as Record<string, unknown>;
-    // v2 → v3: field renamed from baseClassIdentifier to classIdentifier.
-    if (raw['classIdentifier'] === undefined && raw['baseClassIdentifier'] !== undefined) {
-      raw['classIdentifier'] = raw['baseClassIdentifier'];
-      delete raw['baseClassIdentifier'];
-    }
-    // v3 → v4: masteredClasses (BaseClassIdentifier[]) replaced by classLevelsReached.
-    if (raw['masteredClasses'] !== undefined && raw['classLevelsReached'] === undefined) {
-      const levelsReached: Record<string, number> = {};
-      for (const classId of raw['masteredClasses'] as string[]) {
-        levelsReached[classId] = 5;
-      }
-      raw['classLevelsReached'] = levelsReached;
-      delete raw['masteredClasses'];
-    }
-    member.classLevelsReached ??= {};
+    normalizeMember(member);
+  }
+  for (const offer of guild.recruitsOnOffer) {
+    normalizeMember(offer.member);
   }
   return guild;
 }

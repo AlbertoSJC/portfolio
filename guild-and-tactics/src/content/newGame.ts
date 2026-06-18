@@ -4,6 +4,7 @@ import { STARTING_GOLD } from '../sim/guild/GuildState';
 import { refillQuestBoard } from '../sim/guild/QuestBoard';
 import { averageRosterLevel, generateRecruitOffers } from '../sim/guild/RecruitGeneration';
 import { restockStore } from '../sim/guild/StoreStock';
+import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
 import { EQUIPMENT } from './equipment';
 import { ITEMS } from './items';
 import { QUESTS } from './quests';
@@ -82,13 +83,15 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
     recruitsOnOffer: [],
     completedQuestCount: 0,
   };
-  restockStore(guild, ITEMS, EQUIPMENT);
+  const tier = reputationTierForQuestCount(guild.completedQuestCount);
+  restockStore(guild, ITEMS, EQUIPMENT, tier);
   refillQuestBoard(guild, Object.keys(QUESTS), randomNumberGenerator);
   guild.recruitsOnOffer = generateRecruitOffers(
     randomNumberGenerator,
     RACES,
     RECRUIT_NAMES_BY_RACE,
     averageRosterLevel(guild.roster.map((member) => member.level)),
+    tier,
   );
   return guild;
 }

@@ -1,5 +1,6 @@
 import type { ClassIdentifier, UnitStatistics } from '../units/Unit';
 import { ITEM_SELL_PRICE_FRACTION } from './ConsumableItemDefinition';
+import type { ReputationTier } from '../guild/ReputationTier';
 
 export type EquipmentSlot = 'weapon' | 'armor' | 'accessory';
 
@@ -21,6 +22,8 @@ export interface EquipmentDefinition {
   statisticBonuses: Partial<UnitStatistics>;
   /** When set, only these classes may equip it (weapons mostly; advanced classes added in M3). */
   allowedClasses?: ClassIdentifier[];
+  /** When set, the store only stocks this item at or above this reputation tier. */
+  minimumReputationTier?: ReputationTier;
 }
 
 export function sellPriceForEquipment(equipment: EquipmentDefinition): number {

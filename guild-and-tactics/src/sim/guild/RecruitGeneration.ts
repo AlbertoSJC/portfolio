@@ -2,9 +2,15 @@ import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator
 import type { ClassIdentifier, RaceIdentifier } from '../units/Unit';
 import type { RaceDefinition } from '../units/UnitDefinitions';
 import type { RecruitOffer } from './GuildState';
+import type { ReputationTier } from './ReputationTier';
 
-/** How many candidates the recruitment hall shows at a time. */
-export const RECRUITS_ON_OFFER_COUNT = 3;
+/** How many candidates appear in the recruitment hall, by reputation tier. */
+export const RECRUITS_ON_OFFER_BY_TIER: Record<ReputationTier, number> = {
+  bronze: 3,
+  silver: 3,
+  gold: 4,
+  platinum: 5,
+};
 
 const HIRE_COST_BASE_GOLD = 120;
 const HIRE_COST_PER_LEVEL_GOLD = 60;
@@ -24,10 +30,12 @@ export function generateRecruitOffers(
   raceTable: Record<string, RaceDefinition>,
   namePoolByRace: Record<RaceIdentifier, readonly string[]>,
   guildAverageLevel: number,
+  currentTier: ReputationTier,
 ): RecruitOffer[] {
   const raceIdentifiers = Object.keys(raceTable) as RaceIdentifier[];
   const offers: RecruitOffer[] = [];
-  for (let offerIndex = 0; offerIndex < RECRUITS_ON_OFFER_COUNT; offerIndex += 1) {
+  const offerCount = RECRUITS_ON_OFFER_BY_TIER[currentTier];
+  for (let offerIndex = 0; offerIndex < offerCount; offerIndex += 1) {
     const raceIdentifier =
       raceIdentifiers[randomNumberGenerator.nextIntegerBetween(0, raceIdentifiers.length - 1)];
     if (raceIdentifier === undefined) {

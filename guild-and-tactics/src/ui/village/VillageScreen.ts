@@ -28,6 +28,7 @@ import { renderRecruitCard, renderRosterCard } from './views/MemberCardViews';
 import { renderPillBar } from './views/PillBarView';
 import { renderQuestCard, renderQuestDetail } from './views/QuestViews';
 import { createVillageMapCanvas, type VillageBuilding } from './VillageMapCanvas';
+import { reputationTierForQuestCount, REPUTATION_TIER_LABELS } from '../../sim/guild/ReputationTier';
 
 export interface VillageCallbacks {
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
@@ -92,6 +93,9 @@ export class VillageScreen {
     this.lastRenderedGuild = guild;
     this.rootElement.replaceChildren();
 
+    const tier = reputationTierForQuestCount(guild.completedQuestCount);
+    const tierLabel = REPUTATION_TIER_LABELS[tier];
+
     const header = document.createElement('header');
     header.className = 'village-header';
     header.innerHTML = `
@@ -99,7 +103,8 @@ export class VillageScreen {
       <div class="village-header-stats">
         <span>Gold: <strong>${guild.gold}</strong></span>
         <span>Members: ${guild.roster.length} / ${GUILD_ROSTER_CAPACITY}</span>
-        <span>Quests completed: ${guild.completedQuestCount}</span>
+        <span>Quests: ${guild.completedQuestCount}</span>
+        <span class="reputation-tier-badge reputation-tier-${tier}">${tierLabel} Guild</span>
       </div>
     `;
     this.rootElement.appendChild(header);

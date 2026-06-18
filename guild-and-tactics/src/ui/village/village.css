@@ -26,7 +26,22 @@
   display: flex;
   gap: 22px;
   font-size: 16px;
+  align-items: center;
 }
+
+.reputation-tier-badge {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid currentColor;
+}
+
+.reputation-tier-bronze { color: #c8865a; }
+.reputation-tier-silver { color: #a8b8c8; }
+.reputation-tier-gold   { color: #ffe066; }
+.reputation-tier-platinum { color: #c8f0ff; }
 
 .village-layout {
   display: flex;

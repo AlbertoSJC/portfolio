@@ -1,6 +1,5 @@
 import type { ConsumableItemDefinition } from '../sim/items/ConsumableItemDefinition';
 
-/** Store stock for Wanderer's Rest (M2: consumables only; equipment is M3). */
 export const ITEMS: Record<string, ConsumableItemDefinition> = {
   potion: {
     identifier: 'potion',
@@ -19,8 +18,9 @@ export const ITEMS: Record<string, ConsumableItemDefinition> = {
   strong_potion: {
     identifier: 'strong_potion',
     displayName: 'Strong Potion',
-    description: 'The apothecary’s honest work.',
+    description: "The apothecary's honest work.",
     priceInGold: 70,
     effect: { kind: 'restoreHitPoints', amount: 60 },
+    minimumReputationTier: 'silver',
   },
 };

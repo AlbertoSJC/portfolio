@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
 import {
-  RECRUITS_ON_OFFER_COUNT,
+  RECRUITS_ON_OFFER_BY_TIER,
   averageRosterLevel,
   generateRecruitOffers,
   hireCostForLevel,
@@ -18,8 +18,9 @@ describe('generateRecruitOffers', () => {
         RACES,
         RECRUIT_NAMES_BY_RACE,
         3,
+        'bronze',
       );
-      expect(offers).toHaveLength(RECRUITS_ON_OFFER_COUNT);
+      expect(offers).toHaveLength(RECRUITS_ON_OFFER_BY_TIER.bronze);
       for (const offer of offers) {
         const race = RACES[offer.member.raceIdentifier];
         expect(race?.allowedBaseClasses).toContain(offer.member.classIdentifier);
@@ -27,6 +28,17 @@ describe('generateRecruitOffers', () => {
         expect(offer.hireCostInGold).toBe(hireCostForLevel(offer.member.level));
       }
     }
+  });
+
+  it('offers more recruits at gold reputation', () => {
+    const offers = generateRecruitOffers(
+      new SeededRandomNumberGenerator(1),
+      RACES,
+      RECRUIT_NAMES_BY_RACE,
+      3,
+      'gold',
+    );
+    expect(offers).toHaveLength(RECRUITS_ON_OFFER_BY_TIER.gold);
   });
 });
 

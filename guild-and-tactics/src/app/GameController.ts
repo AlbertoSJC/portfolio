@@ -14,6 +14,7 @@ import { changeMemberClass } from '../sim/guild/ClassChange';
 import type { BaseClassIdentifier } from '../sim/units/Unit';
 import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
 import { restockStore, takeOneFromStoreStock } from '../sim/guild/StoreStock';
+import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
 import type { ClassIdentifier } from '../sim/units/Unit';
 import {
   sellPriceForEquipment,
@@ -78,7 +79,7 @@ export class GameController {
     this.guild = this.saveGameStorage.loadGuildSave() ?? createNewGuild(this.randomNumberGenerator);
     if (Object.keys(this.guild.storeStock).length === 0) {
       // Saves from before store stock existed start with full shelves.
-      restockStore(this.guild, ITEMS, EQUIPMENT);
+      restockStore(this.guild, ITEMS, EQUIPMENT, reputationTierForQuestCount(this.guild.completedQuestCount));
     }
     this.saveGameStorage.persistGuildSave(this.guild);
 
@@ -320,12 +321,14 @@ export class GameController {
         Object.keys(QUESTS),
         this.randomNumberGenerator,
       );
-      restockStore(this.guild, ITEMS, EQUIPMENT);
+      const tier = reputationTierForQuestCount(this.guild.completedQuestCount);
+      restockStore(this.guild, ITEMS, EQUIPMENT, tier);
       this.guild.recruitsOnOffer = generateRecruitOffers(
         this.randomNumberGenerator,
         RACES,
         RECRUIT_NAMES_BY_RACE,
         averageRosterLevel(this.guild.roster.map((member) => member.level)),
+        tier,
       );
     }
 

@@ -24,21 +24,37 @@ function createTestGuild(): GuildState {
 }
 
 describe('restockStore', () => {
-  it('fills every consumable and equipment shelf to its quantity', () => {
+  it('fills bronze-tier items at bronze reputation', () => {
     const guild = createTestGuild();
-    restockStore(guild, ITEMS, EQUIPMENT);
+    restockStore(guild, ITEMS, EQUIPMENT, 'bronze');
     expect(storeStockOf(guild, 'potion')).toBe(CONSUMABLE_RESTOCK_QUANTITY);
     expect(storeStockOf(guild, 'iron_sword')).toBe(EQUIPMENT_RESTOCK_QUANTITY);
   });
 
+  it('excludes silver-gated items at bronze reputation', () => {
+    const guild = createTestGuild();
+    restockStore(guild, ITEMS, EQUIPMENT, 'bronze');
+    expect(storeStockOf(guild, 'strong_potion')).toBe(0);
+    expect(storeStockOf(guild, 'steel_greatblade')).toBe(0);
+    expect(storeStockOf(guild, 'iron_mail')).toBe(0);
+  });
+
+  it('includes silver-gated items at silver reputation', () => {
+    const guild = createTestGuild();
+    restockStore(guild, ITEMS, EQUIPMENT, 'silver');
+    expect(storeStockOf(guild, 'strong_potion')).toBe(CONSUMABLE_RESTOCK_QUANTITY);
+    expect(storeStockOf(guild, 'steel_greatblade')).toBe(EQUIPMENT_RESTOCK_QUANTITY);
+    expect(storeStockOf(guild, 'iron_mail')).toBe(EQUIPMENT_RESTOCK_QUANTITY);
+  });
+
   it('refills shelves the player bought empty', () => {
     const guild = createTestGuild();
-    restockStore(guild, ITEMS, EQUIPMENT);
+    restockStore(guild, ITEMS, EQUIPMENT, 'bronze');
     while (takeOneFromStoreStock(guild, 'potion')) {
       // buy the shelf empty
     }
     expect(storeStockOf(guild, 'potion')).toBe(0);
-    restockStore(guild, ITEMS, EQUIPMENT);
+    restockStore(guild, ITEMS, EQUIPMENT, 'bronze');
     expect(storeStockOf(guild, 'potion')).toBe(CONSUMABLE_RESTOCK_QUANTITY);
   });
 });
