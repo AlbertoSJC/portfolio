@@ -1,4 +1,5 @@
 import type { GridPosition } from '../grid/GridPosition';
+import type { StatusEffectKind } from '../units/Unit';
 
 /**
  * Everything noteworthy a command produced, in order. The UI renders these
@@ -35,6 +36,14 @@ export type BattleEvent =
       amount: number;
       durationTurns: number;
     }
+  | {
+      kind: 'statusEffectApplied';
+      targetIdentifier: string;
+      statusEffect: StatusEffectKind;
+      durationTurns: number;
+    }
+  | { kind: 'poisonDamageDealt'; targetIdentifier: string; amount: number }
+  | { kind: 'turnSkippedBySleep'; unitIdentifier: string }
   | { kind: 'unitKnockedOut'; unitIdentifier: string }
   | { kind: 'turnStarted'; unitIdentifier: string }
   | { kind: 'turnEnded'; unitIdentifier: string }

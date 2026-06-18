@@ -87,6 +87,64 @@ export const SKILLS: Record<string, SkillDefinition> = {
     effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.0, element: 'fire' },
   },
 
+  // ── Thief (status) ────────────────────────────────────────────────────
+  venom_strike: {
+    identifier: 'venom_strike',
+    displayName: 'Venom Strike',
+    description: 'A blade coated in a fast-acting toxin. The wound festers for three turns.',
+    manaPointCost: 4,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'poison', durationTurns: 3 },
+  },
+  smoke_dart: {
+    identifier: 'smoke_dart',
+    displayName: 'Smoke Dart',
+    description: "A blinding dart that clouds the target's vision for three turns.",
+    manaPointCost: 4,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'blind', durationTurns: 3 },
+  },
+
+  // ── Mage (status) ──────────────────────────────────────────────────────
+  sleep_dust: {
+    identifier: 'sleep_dust',
+    displayName: 'Sleep Dust',
+    description: 'A cloud of bewitched powder settles over one target, pulling them into a deep slumber.',
+    manaPointCost: 7,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'sleep', durationTurns: 2 },
+  },
+
+  // ── Warrior (earth) ────────────────────────────────────────────────────
+  earth_spike: {
+    identifier: 'earth_spike',
+    displayName: 'Earth Spike',
+    description: 'A fist driven into the ground calls up a spike of Taurk\'s stone beneath the target.',
+    manaPointCost: 6,
+    targetingRange: 2,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.3, element: 'earth' },
+  },
+
+  // ── Mage (water) ───────────────────────────────────────────────────────
+  frost_bolt: {
+    identifier: 'frost_bolt',
+    displayName: 'Frost Bolt',
+    description: 'A shard of Yiern\'s frozen breath, hurled with cutting precision.',
+    manaPointCost: 5,
+    targetingRange: 4,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.4, element: 'water' },
+  },
+
   // ── Priest ─────────────────────────────────────────────────────────────
   first_aid: {
     identifier: 'first_aid',

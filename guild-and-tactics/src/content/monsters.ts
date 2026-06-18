@@ -20,7 +20,8 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
     },
     canFly: false,
     skillIdentifiers: ['savage_bite'],
-    elementalAffinities: { fire: 1.25 },
+    // Twisted wolves burn easily and shy from sacred light.
+    elementalAffinities: { fire: 1.5, sacred: 1.25, water: 0.75 },
   },
   stoneling: {
     identifier: 'stoneling',
@@ -40,7 +41,8 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
     },
     canFly: false,
     skillIdentifiers: ['rock_slam'],
-    elementalAffinities: { fire: 0.5, water: 1.5 },
+    // Stone absorbs fire and earth; water erodes it.
+    elementalAffinities: { fire: 0.25, earth: 0.5, water: 1.75 },
   },
   twisted_boar: {
     identifier: 'twisted_boar',
@@ -60,7 +62,8 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
     },
     canFly: false,
     skillIdentifiers: ['goring_charge'],
-    elementalAffinities: { fire: 1.25 },
+    // Boars are tough but burn.
+    elementalAffinities: { fire: 1.5, earth: 0.75 },
   },
   hollow_wisp: {
     identifier: 'hollow_wisp',
@@ -101,6 +104,7 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
     },
     canFly: false,
     skillIdentifiers: ['root_lash'],
-    elementalAffinities: { fire: 1.5 },
+    // Roots feed on water; fire scorches them; earth magic passes through.
+    elementalAffinities: { fire: 1.75, water: 0.5, earth: 0.5 },
   },
 };

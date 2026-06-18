@@ -96,7 +96,7 @@ function scoreAttack(
     facing: directionFromTo(attackFromPosition, target.position),
   };
   const attackArc = determineRelativeAttackArc(hypotheticalAttacker, target);
-  const hitChance = calculateHitChance(target, attackArc);
+  const hitChance = calculateHitChance(hypotheticalAttacker, target, attackArc);
   const damageEstimate = calculateDamageBeforeDice(
     hypotheticalAttacker,
     target,

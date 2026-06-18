@@ -6,7 +6,7 @@ races, take quests from village taverns, fight tactical grid battles, level
 up, learn skills, upgrade gear — and repeat. There is no main story; the game
 *is* the guild loop.
 
-> **Status**: M1 (combat) and M2 (guild loop) complete and browser-verified. M3 type scaffolding done (class identifiers, status-effect types, save v3 migration). M3 implementation is next.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 next.
 
 ---
 
@@ -409,15 +409,12 @@ days of work, not a rewrite.
 2. ✅ **M2 — Guild loop**: one village (tavern/store/recruitment), quest board,
    gold/XP/levels, save/load. *The full loop is playable.* — **done 2026-06-12,
    browser-verified**
-3. 🔧 **M3 — Depth** (substantially implemented as of 2026-06-14: all 33 advanced classes defined, mastery wired, skills per level wired, character sheet refactored; remaining steps below):
-   - ✅ **Advanced class definitions** — `src/content/advancedClasses/` with all 33 classes (shared, human, werecat, werelizard, undead, feryan). Each has `AdvancedClassDefinition` with statistics, growth, skills, prerequisite base class + level.
-   - ✅ **Populate `allowedAdvancedClasses`** in `src/content/races.ts` per the §4 matrix; each race knows which 33 classes it can reach.
-   - ✅ **Class mastery tracking** — `classLevelsReached: Partial<Record<BaseClassIdentifier, number>>` tracks highest level in each base class; `ClassChange` unlock gate checks prerequisite levels (pure: 5 in base; hybrid: 5 primary + 3 secondary); secondary skill set UI complete.
-   - ✅ **Skills per level** — base and advanced classes have `ClassSkillEntry[]` with `learnedAtLevel`; character sheet shows unlocks and locked-skill prerequisites.
-   - ⬜ **Per-level skill learning** — `GuildMember.learnedSkillIdentifiers` (skills learned through leveling, not class-locked) not yet wired; `applyExperienceGain` should trigger unlocks and merge with class skills at battle time.
-   - ⬜ **Status effects** — wire `tickDownStatusEffects` into `Battle.endActiveUnitTurn`; add poison damage, sleep turn-skip, and blind hit-chance penalty; add status-inflicting skills to `src/content/skills.ts`.
-   - ⬜ **Full element wheel** — populate `elementalAffinities` on more monsters and equipment; add element-boosting passive skills.
-   - ⬜ **Village map screen (§6.0)** — replace the tab bar with a walkable building-node map (canvas-drawn, same swap-point principle as `SpriteRegistry`).
+3. ✅ **M3 — Depth** — **done 2026-06-18**:
+   - ✅ **Advanced class definitions** — all 33 classes, race/class matrix, mastery tracking, prerequisite gates.
+   - ✅ **Skills per level** — `ClassSkillEntry[]` with `learnedAtLevel` on all classes; unlocks happen at battle assembly time.
+   - ✅ **Status effects** — poison (damage per turn), sleep (auto-skip turn), blind (hit-chance penalty); `venom_strike` / `smoke_dart` / `sleep_dust` added to Thief and Mage skill lines.
+   - ✅ **Element wheel** — `earth_spike` (Warrior lv7, earth) and `frost_bolt` (Mage lv7, water) added; richer monster affinities covering fire/water/earth/sacred/dark.
+   - ✅ **Village map screen (§6.0)** — canvas-drawn 4-node town map (Tavern, Store, Recruitment Hall, Guild Hall) replaces the tab bar; party marker on the active building; keyboard/click navigation.
 4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
    villages, **overworld map** (§6.0) with travel + random encounters
    (§6.1), reputation tiers, dispatch quests, balancing pass, audio,

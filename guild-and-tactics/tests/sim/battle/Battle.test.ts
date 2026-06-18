@@ -183,4 +183,47 @@ describe('Battle', () => {
     guildUnit.currentHitPoints = 0;
     expect(battle.getBattleOutcome()).toBe('defeat');
   });
+
+  it('deals poison damage at start of a poisoned unit turn', () => {
+    const poisonedUnit = createTestUnit({
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'poison', remainingTurns: 3, sourceSkillName: 'Venom Strike' }],
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([poisonedUnit, enemy]);
+    const hpBefore = poisonedUnit.currentHitPoints;
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(poisonedUnit.currentHitPoints).toBeLessThan(hpBefore);
+    expect(events.some((event) => event.kind === 'poisonDamageDealt')).toBe(true);
+  });
+
+  it('auto-ends the turn of a sleeping unit and emits a skip event', () => {
+    const sleepingUnit = createTestUnit({
+      identifier: 'sleeper',
+      baseStatistics: { speed: 9 },
+      activeStatusEffects: [{ kind: 'sleep', remainingTurns: 2, sourceSkillName: 'Sleep Dust' }],
+    });
+    const enemy = createTestUnit({
+      identifier: 'enemy_wake',
+      team: 'enemy',
+      position: { column: 5, row: 0 },
+      baseStatistics: { speed: 8 },
+    });
+    const battle = createTestBattle([sleepingUnit, enemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(events.some((event) => event.kind === 'turnSkippedBySleep')).toBe(true);
+    expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
+    expect(battle.getActiveUnit().identifier).toBe('enemy_wake');
+  });
+
+  it('ticks down status effects at end of turn and removes expired ones', () => {
+    const affectedUnit = createTestUnit({
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'poison', remainingTurns: 1, sourceSkillName: 'Venom Strike' }],
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([affectedUnit, enemy]);
+    battle.endActiveUnitTurn();
+    expect(affectedUnit.activeStatusEffects).toHaveLength(0);
+  });
 });

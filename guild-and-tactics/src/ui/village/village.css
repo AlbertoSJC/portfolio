@@ -28,26 +28,30 @@
   font-size: 16px;
 }
 
-.village-tab-bar {
+.village-layout {
   display: flex;
-  gap: 8px;
-  margin: 16px 0;
+  gap: 28px;
+  align-items: flex-start;
+  margin-top: 20px;
 }
 
-.village-tab-bar button {
-  background: #2c3340;
-  color: var(--hud-text-color);
-  border: 1px solid var(--hud-panel-border);
-  border-radius: 6px 6px 0 0;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
+.village-building-content {
+  flex: 1;
+  min-width: 0;
 }
 
-.village-tab-bar button.is-active {
-  background: var(--hud-accent-color);
-  color: #1c1c1c;
-  font-weight: 600;
+.village-layout-map {
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+}
+
+.village-map-canvas {
+  display: block;
+  max-width: 100%;
+  border-radius: 4px;
+  border: 2px solid #6b4020;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 0 0 3px #c8a97a;
 }
 
 .village-card-list {

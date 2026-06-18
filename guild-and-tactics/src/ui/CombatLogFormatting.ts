@@ -39,6 +39,14 @@ export function formatBattleEventAsLogLine(
       const signedAmount = event.amount >= 0 ? `+${event.amount}` : `${event.amount}`;
       return `${unitName(battle, event.targetIdentifier)} gains ${signedAmount} ${event.statistic} for ${event.durationTurns} turns.`;
     }
+    case 'statusEffectApplied': {
+      const statusLabel = { poison: 'poisoned', sleep: 'put to sleep', blind: 'blinded' }[event.statusEffect];
+      return `${unitName(battle, event.targetIdentifier)} is ${statusLabel} for ${event.durationTurns} turns.`;
+    }
+    case 'poisonDamageDealt':
+      return `${unitName(battle, event.targetIdentifier)} takes ${event.amount} poison damage.`;
+    case 'turnSkippedBySleep':
+      return `${unitName(battle, event.unitIdentifier)} is fast asleep and cannot move.`;
     case 'unitKnockedOut':
       return `${unitName(battle, event.unitIdentifier)} is knocked out!`;
     case 'battleEnded':

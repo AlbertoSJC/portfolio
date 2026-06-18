@@ -33,3 +33,9 @@ export const TURN_ORDER_FORECAST_LENGTH = 8;
 
 /** Consumables reach the user's own tile or an adjacent one. */
 export const ITEM_USE_RANGE = 1;
+
+/** Hit points lost to poison at the start of each poisoned unit's turn. */
+export const POISON_DAMAGE_PER_TURN = 8;
+
+/** Penalty subtracted from a blinded attacker's hit chance. */
+export const BLIND_HIT_CHANCE_PENALTY = 0.35;

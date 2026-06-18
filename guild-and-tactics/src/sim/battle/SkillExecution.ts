@@ -94,7 +94,7 @@ function applySkillEffectToUnit(
   switch (effect.kind) {
     case 'damage': {
       const attackArc = determineRelativeAttackArc(user, target);
-      const hitChance = calculateHitChance(target, attackArc);
+      const hitChance = calculateHitChance(user, target, attackArc);
       if (!randomNumberGenerator.rollChance(hitChance)) {
         events.push({
           kind: 'attackMissed',
@@ -167,6 +167,20 @@ function applySkillEffectToUnit(
         targetIdentifier: target.identifier,
         statistic: effect.statistic,
         amount: effect.amount,
+        durationTurns: effect.durationTurns,
+      });
+      return;
+    }
+    case 'statusEffect': {
+      target.activeStatusEffects.push({
+        kind: effect.statusEffect,
+        remainingTurns: effect.durationTurns,
+        sourceSkillName: skill.displayName,
+      });
+      events.push({
+        kind: 'statusEffectApplied',
+        targetIdentifier: target.identifier,
+        statusEffect: effect.statusEffect,
         durationTurns: effect.durationTurns,
       });
       return;

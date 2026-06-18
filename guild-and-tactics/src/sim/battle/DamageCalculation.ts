@@ -7,19 +7,27 @@ import {
   BACK_ATTACK_HIT_CHANCE_BONUS,
   BASE_CRITICAL_HIT_CHANCE,
   BASE_HIT_CHANCE,
+  BLIND_HIT_CHANCE_PENALTY,
   MAGICAL_RESISTANCE_MITIGATION_FACTOR,
   MINIMUM_DAMAGE_DEALT,
   PHYSICAL_DEFENSE_MITIGATION_FACTOR,
   SIDE_ATTACK_HIT_CHANCE_BONUS,
 } from './combatConstants';
 
-export function calculateHitChance(defender: Unit, attackArc: RelativeAttackArc): number {
+export function calculateHitChance(
+  attacker: Unit,
+  defender: Unit,
+  attackArc: RelativeAttackArc,
+): number {
   let hitChance = BASE_HIT_CHANCE - defender.baseStatistics.evasion;
   if (attackArc === 'side') {
     hitChance += SIDE_ATTACK_HIT_CHANCE_BONUS;
   }
   if (attackArc === 'back') {
     hitChance += BACK_ATTACK_HIT_CHANCE_BONUS;
+  }
+  if (attacker.activeStatusEffects.some((effect) => effect.kind === 'blind')) {
+    hitChance -= BLIND_HIT_CHANCE_PENALTY;
   }
   return Math.min(1, Math.max(0, hitChance));
 }

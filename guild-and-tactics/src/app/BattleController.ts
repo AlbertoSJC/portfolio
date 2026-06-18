@@ -255,6 +255,11 @@ export class BattleController {
       case 'itemUsed':
       case 'skillUsed':
       case 'turnEnded':
+      case 'statusEffectApplied':
+      case 'turnSkippedBySleep':
+        return;
+      case 'poisonDamageDealt':
+        this.sounds.playDamageImpact(false);
         return;
     }
   }
@@ -264,6 +269,21 @@ export class BattleController {
       this.finishBattle();
       return;
     }
+
+    const startOfTurnEvents = this.battle.processStartOfTurnForActiveUnit();
+    this.logEvents(startOfTurnEvents);
+    this.renderEverything();
+
+    if (this.battle.getBattleOutcome() !== 'ongoing') {
+      this.finishBattle();
+      return;
+    }
+
+    if (startOfTurnEvents.some((event) => event.kind === 'turnSkippedBySleep')) {
+      this.startTurnForActiveUnit();
+      return;
+    }
+
     this.spotlightedUnitIdentifier = undefined;
     const activeUnit = this.battle.getActiveUnit();
     if (activeUnit.team === 'enemy') {

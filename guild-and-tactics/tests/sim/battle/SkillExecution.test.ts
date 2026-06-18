@@ -153,6 +153,20 @@ describe('executeSkill', () => {
     expect(events.some((event) => event.kind === 'unitKnockedOut')).toBe(true);
     expect(fragileEnemy.currentHitPoints).toBe(0);
   });
+
+  it('applies a status effect to the target', () => {
+    const caster = createTestUnit({ position: { column: 0, row: 0 } });
+    const target = createTestUnit({ team: 'enemy', position: { column: 1, row: 0 } });
+    const events = executeSkill(
+      caster,
+      skillOrThrow('venom_strike'),
+      target.position,
+      [caster, target],
+      generatorThatRolls([]),
+    );
+    expect(target.activeStatusEffects.some((effect) => effect.kind === 'poison')).toBe(true);
+    expect(events.some((event) => event.kind === 'statusEffectApplied')).toBe(true);
+  });
 });
 
 describe('findUnitsAffectedBySkill', () => {

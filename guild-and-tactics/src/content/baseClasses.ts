@@ -28,6 +28,7 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
     skills: [
       { skillIdentifier: 'power_strike', learnedAtLevel: 1 },
       { skillIdentifier: 'war_cry', learnedAtLevel: 3 },
+      { skillIdentifier: 'earth_spike', learnedAtLevel: 7 },
     ],
   },
   thief: {
@@ -57,6 +58,8 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
     skills: [
       { skillIdentifier: 'flanking_strike', learnedAtLevel: 1 },
       { skillIdentifier: 'thrown_dagger', learnedAtLevel: 3 },
+      { skillIdentifier: 'venom_strike', learnedAtLevel: 5 },
+      { skillIdentifier: 'smoke_dart', learnedAtLevel: 8 },
     ],
   },
   mage: {
@@ -87,6 +90,8 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
     skills: [
       { skillIdentifier: 'fire_bolt', learnedAtLevel: 1 },
       { skillIdentifier: 'flame_burst', learnedAtLevel: 3 },
+      { skillIdentifier: 'sleep_dust', learnedAtLevel: 5 },
+      { skillIdentifier: 'frost_bolt', learnedAtLevel: 7 },
     ],
   },
   priest: {

@@ -27,6 +27,7 @@ import { renderItemCard, renderStoreCard } from './views/ItemCardView';
 import { renderRecruitCard, renderRosterCard } from './views/MemberCardViews';
 import { renderPillBar } from './views/PillBarView';
 import { renderQuestCard, renderQuestDetail } from './views/QuestViews';
+import { createVillageMapCanvas, type VillageBuilding } from './VillageMapCanvas';
 
 export interface VillageCallbacks {
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
@@ -52,8 +53,6 @@ export interface VillageContentTables {
   advancedClasses: Record<string, AdvancedClassDefinition>;
 }
 
-type VillageTab = 'tavern' | 'store' | 'recruitment' | 'roster' | 'inventory';
-
 type VillageModalState =
   | { kind: 'questDetail'; questIdentifier: string }
   | {
@@ -63,22 +62,15 @@ type VillageModalState =
       view: 'sheet' | 'classPicker';
     };
 
-const TAB_ENTRIES: { identifier: VillageTab; label: string }[] = [
-  { identifier: 'tavern', label: 'Tavern' },
-  { identifier: 'store', label: 'Store' },
-  { identifier: 'recruitment', label: 'Recruitment Hall' },
-  { identifier: 'roster', label: 'Roster' },
-  { identifier: 'inventory', label: 'Inventory' },
-];
-
 export class VillageScreen {
   private readonly rootElement: HTMLElement;
   private readonly sounds: UserInterfaceSounds;
   private readonly callbacks: VillageCallbacks;
   private readonly content: VillageContentTables;
   private readonly modal: ModalDialog;
-  private activeTab: VillageTab = 'tavern';
+  private activeBuilding: VillageBuilding = 'tavern';
   private storeFilter: StoreFilter = 'all';
+  private guildHallTab: 'roster' | 'inventory' = 'roster';
   private modalState: VillageModalState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
   private lastRenderedGuild: GuildState | undefined;
@@ -112,39 +104,38 @@ export class VillageScreen {
     `;
     this.rootElement.appendChild(header);
 
-    this.rootElement.appendChild(
-      renderPillBar({
-        entries: TAB_ENTRIES,
-        activeIdentifier: this.activeTab,
-        className: 'village-tab-bar',
-        sounds: this.sounds,
-        onSelect: (tab) => {
-          this.activeTab = tab;
-          this.render(guild);
-        },
-      }),
-    );
+    const layout = document.createElement('div');
+    layout.className = 'village-layout';
 
-    const tabContent = document.createElement('main');
-    tabContent.className = 'village-tab-content';
-    switch (this.activeTab) {
+    const buildingContent = document.createElement('main');
+    buildingContent.className = 'village-building-content';
+    switch (this.activeBuilding) {
       case 'tavern':
-        this.renderTavern(tabContent, guild);
+        this.renderTavern(buildingContent, guild);
         break;
       case 'store':
-        this.renderStore(tabContent, guild);
+        this.renderStore(buildingContent, guild);
         break;
       case 'recruitment':
-        this.renderRecruitment(tabContent, guild);
+        this.renderRecruitment(buildingContent, guild);
         break;
-      case 'roster':
-        this.renderRoster(tabContent, guild);
-        break;
-      case 'inventory':
-        this.renderInventory(tabContent, guild);
+      case 'guild_hall':
+        this.renderGuildHall(buildingContent, guild);
         break;
     }
-    this.rootElement.appendChild(tabContent);
+    layout.appendChild(buildingContent);
+
+    const mapColumn = document.createElement('aside');
+    mapColumn.className = 'village-layout-map';
+    mapColumn.appendChild(
+      createVillageMapCanvas(this.activeBuilding, this.sounds, (building) => {
+        this.activeBuilding = building;
+        this.render(guild);
+      }),
+    );
+    layout.appendChild(mapColumn);
+
+    this.rootElement.appendChild(layout);
     this.synchronizeModalWithState(guild);
   }
 
@@ -351,11 +342,33 @@ export class VillageScreen {
     container.appendChild(recruitList);
   }
 
-  private renderRoster(container: HTMLElement, guild: GuildState): void {
+  private renderGuildHall(container: HTMLElement, guild: GuildState): void {
     container.appendChild(
-      createHintParagraph(
-        'Select a member to open their character sheet and manage equipment.',
-      ),
+      renderPillBar({
+        entries: [
+          { identifier: 'roster', label: 'Roster' },
+          { identifier: 'inventory', label: 'Inventory' },
+        ],
+        activeIdentifier: this.guildHallTab,
+        className: 'store-filter-bar',
+        sounds: this.sounds,
+        onSelect: (tab) => {
+          this.guildHallTab = tab as 'roster' | 'inventory';
+          this.rerender();
+        },
+      }),
+    );
+
+    if (this.guildHallTab === 'roster') {
+      this.renderGuildHallRoster(container, guild);
+    } else {
+      this.renderGuildHallInventory(container, guild);
+    }
+  }
+
+  private renderGuildHallRoster(container: HTMLElement, guild: GuildState): void {
+    container.appendChild(
+      createHintParagraph('Select a member to open their character sheet and manage equipment.'),
     );
     const rosterList = createCardList();
     for (const viewModel of buildRosterCardViewModels(guild, this.content)) {
@@ -374,7 +387,7 @@ export class VillageScreen {
     container.appendChild(rosterList);
   }
 
-  private renderInventory(container: HTMLElement, guild: GuildState): void {
+  private renderGuildHallInventory(container: HTMLElement, guild: GuildState): void {
     const { consumableCards, equipmentCards } = buildInventoryViewModel(guild, this.content);
 
     container.appendChild(createSectionTitle('Consumables'));

@@ -3,7 +3,8 @@ import type { BattleMap } from '../grid/BattleMap';
 import type { CardinalDirection, GridPosition } from '../grid/GridPosition';
 import { arePositionsEqual, directionFromTo, manhattanDistance } from '../grid/GridPosition';
 import type { Unit } from '../units/Unit';
-import { isKnockedOut, tickDownStatModifiers } from '../units/Unit';
+import { isKnockedOut, tickDownStatModifiers, tickDownStatusEffects } from '../units/Unit';
+import { POISON_DAMAGE_PER_TURN } from './combatConstants';
 import type { BattleEvent } from './BattleEvents';
 import { findReachableTiles } from './MovementRange';
 import type { SkillDefinition } from './SkillDefinition';
@@ -271,12 +272,53 @@ export class Battle {
     }
   }
 
+  /**
+   * Processes start-of-turn status effects (poison damage, sleep auto-skip)
+   * for the current active unit. Returns events produced. When sleep causes
+   * an auto-skip, the returned events include turnEnded/turnStarted from the
+   * internal endActiveUnitTurn call — callers should recurse into the next
+   * unit's turn after logging those events.
+   */
+  processStartOfTurnForActiveUnit(): BattleEvent[] {
+    const activeUnit = this.getActiveUnit();
+    const events: BattleEvent[] = [];
+
+    if (activeUnit.activeStatusEffects.some((effect) => effect.kind === 'poison')) {
+      activeUnit.currentHitPoints = Math.max(
+        0,
+        activeUnit.currentHitPoints - POISON_DAMAGE_PER_TURN,
+      );
+      events.push({
+        kind: 'poisonDamageDealt',
+        targetIdentifier: activeUnit.identifier,
+        amount: POISON_DAMAGE_PER_TURN,
+      });
+      if (isKnockedOut(activeUnit)) {
+        events.push({ kind: 'unitKnockedOut', unitIdentifier: activeUnit.identifier });
+        this.recordDefeatedEnemies(events);
+        const outcome = this.getBattleOutcome();
+        if (outcome !== 'ongoing') {
+          events.push({ kind: 'battleEnded', outcome });
+          return events;
+        }
+      }
+    }
+
+    if (activeUnit.activeStatusEffects.some((effect) => effect.kind === 'sleep')) {
+      events.push({ kind: 'turnSkippedBySleep', unitIdentifier: activeUnit.identifier });
+      events.push(...this.endActiveUnitTurn());
+    }
+
+    return events;
+  }
+
   endActiveUnitTurn(finalFacing?: CardinalDirection): BattleEvent[] {
     const endingUnit = this.getActiveUnit();
     if (finalFacing !== undefined) {
       endingUnit.facing = finalFacing;
     }
     tickDownStatModifiers(endingUnit);
+    tickDownStatusEffects(endingUnit);
     const events: BattleEvent[] = [
       { kind: 'turnEnded', unitIdentifier: endingUnit.identifier },
     ];

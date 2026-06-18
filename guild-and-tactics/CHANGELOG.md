@@ -194,6 +194,56 @@ forward from M3).**
 - Broke the monolithic 641-line `src/ui/village/CharacterSheet.ts` into five focused files under `src/ui/village/character/`: `CharacterSheetTypes.ts` (shared callback and content-table interfaces), `CharacterSheet.ts` (entry point + header/stats top row), `SkillsPanel.ts` (primary and secondary skills tab), `ClassPicker.ts` (class change screen), `EquipmentSection.ts` (equipment slots and inline item picker). Zero logic changes — typecheck clean.
 - The `character/` subfolder is intentionally placed one level below `village/` so that when the overworld map arrives and the character sheet needs to appear outside the village context, the whole folder moves to `src/ui/character/` with a single import-path update.
 
+**2026-06-18 — M3 complete: status effects, village map, element wheel.**
+
+- *Status effects* (`src/sim/units/Unit.ts`, `src/sim/battle/`): poison, sleep,
+  and blind are now live in battle.
+  - **Poison** deals `POISON_DAMAGE_PER_TURN` (8 HP) at the start of each
+    poisoned unit's turn. Death by poison triggers knockout/victory events
+    correctly.
+  - **Sleep** auto-ends the sleeping unit's turn (`turnSkippedBySleep` event)
+    and is handled in `BattleController.startTurnForActiveUnit()` via a
+    recursive call — chains of sleeping units are handled safely.
+  - **Blind** subtracts `BLIND_HIT_CHANCE_PENALTY` (0.35) from the blinded
+    attacker's hit chance in `calculateHitChance`; the function now takes the
+    attacker unit as its first parameter.
+  - `tickDownStatusEffects` called in `Battle.endActiveUnitTurn` alongside the
+    existing `tickDownStatModifiers`. `Battle.processStartOfTurnForActiveUnit()`
+    is the new public hook for start-of-turn effects.
+  - **New skills**: `venom_strike` (Thief lv5 — poison 3 turns), `smoke_dart`
+    (Thief lv8 — blind 3 turns), `sleep_dust` (Mage lv5 — sleep 2 turns).
+  - `SkillExecution` now handles the `statusEffect` skill-effect kind.
+  - `BattleEvents` gains `statusEffectApplied`, `poisonDamageDealt`, and
+    `turnSkippedBySleep`. `CombatLogFormatting` formats all three.
+  - `EnemyArtificialIntelligence.scoreAttack` updated to pass the attacker
+    to `calculateHitChance`.
+  - New `tests/sim/units/Unit.test.ts`; Battle, SkillExecution,
+    and DamageCalculation tests updated. 101 tests total.
+
+- *Village map screen* (`src/ui/village/VillageMapCanvas.ts`): the tab bar
+  is replaced with a canvas-drawn 2D village map showing four building nodes —
+  Tavern, Store, Recruitment Hall, and Guild Hall. Clicking a node navigates to
+  that building; the party marker sits on the active node; hover highlights.
+  Roster and Inventory are merged under the Guild Hall building.
+  Follows the same swap-point principle as `SpriteRegistry` and
+  `MemberPortrait`: the canvas rendering is entirely inside `VillageMapCanvas.ts`
+  and the rest of `VillageScreen.ts` never touches it.
+
+- *Element wheel expansion* (`src/content/`):
+  - **New skills**: `earth_spike` (Warrior lv7 — physical/earth, range 2),
+    `frost_bolt` (Mage lv7 — magical/water, range 4).
+  - **Richer monster affinities**: Twisted Wolf (+fire weakness, +sacred
+    weakness, water resistance); Stoneling (stronger fire resistance, added
+    earth resistance, increased water weakness); Twisted Boar (increased fire
+    weakness, earth resistance); Gnarlroot (strong fire weakness, water and
+    earth resistance). Six elements now meaningfully covered by player skills:
+    Fire, Sacred, Dark, Water, Earth, and the status-effect skills (non-elemental).
+
+- *Per-level skill learning*: confirmed working — `UnitFactory` already filters
+  class skills by `learnedAtLevel <= member.level` at battle assembly time.
+  The `GuildMember.learnedSkillIdentifiers` field from the earlier design was
+  not needed; the class system handles it cleanly.
+
 **2026-06-13 — M3 type scaffolding.**
 
 - `AdvancedClassIdentifier` union (all 33 classes from PRD §4) and

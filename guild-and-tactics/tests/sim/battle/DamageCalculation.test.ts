@@ -6,6 +6,7 @@ import {
 import {
   BACK_ATTACK_HIT_CHANCE_BONUS,
   BASE_HIT_CHANCE,
+  BLIND_HIT_CHANCE_PENALTY,
   SIDE_ATTACK_HIT_CHANCE_BONUS,
 } from '../../../src/sim/battle/combatConstants';
 import type { DamageSkillEffect } from '../../../src/sim/battle/SkillDefinition';
@@ -92,17 +93,29 @@ describe('calculateDamageBeforeDice', () => {
 
 describe('calculateHitChance', () => {
   it('uses the base chance minus evasion from the front', () => {
+    const attacker = createTestUnit();
     const defender = createTestUnit({ baseStatistics: { evasion: 0.1 } });
-    expect(calculateHitChance(defender, 'front')).toBeCloseTo(BASE_HIT_CHANCE - 0.1);
+    expect(calculateHitChance(attacker, defender, 'front')).toBeCloseTo(BASE_HIT_CHANCE - 0.1);
   });
 
   it('grants the side and back bonuses', () => {
+    const attacker = createTestUnit();
     const defender = createTestUnit({ baseStatistics: { evasion: 0 } });
-    expect(calculateHitChance(defender, 'side')).toBeCloseTo(
+    expect(calculateHitChance(attacker, defender, 'side')).toBeCloseTo(
       BASE_HIT_CHANCE + SIDE_ATTACK_HIT_CHANCE_BONUS,
     );
-    expect(calculateHitChance(defender, 'back')).toBeCloseTo(
+    expect(calculateHitChance(attacker, defender, 'back')).toBeCloseTo(
       Math.min(1, BASE_HIT_CHANCE + BACK_ATTACK_HIT_CHANCE_BONUS),
+    );
+  });
+
+  it('applies the blind penalty when the attacker is blinded', () => {
+    const blindedAttacker = createTestUnit({
+      activeStatusEffects: [{ kind: 'blind', remainingTurns: 2, sourceSkillName: 'Smoke Dart' }],
+    });
+    const defender = createTestUnit({ baseStatistics: { evasion: 0 } });
+    expect(calculateHitChance(blindedAttacker, defender, 'front')).toBeCloseTo(
+      BASE_HIT_CHANCE - BLIND_HIT_CHANCE_PENALTY,
     );
   });
 });
