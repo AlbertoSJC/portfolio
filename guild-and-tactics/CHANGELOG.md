@@ -269,6 +269,304 @@ forward from M3).**
   `ReputationTier.test.ts` plus tier coverage added to `StoreStock.test.ts`
   and `RecruitGeneration.test.ts`); typecheck clean.
 
+**2026-06-19 — M4: overworld map, travel, and random encounters.**
+
+- *Overworld map screen* (`src/ui/overworld/`, new folder mirroring
+  `src/ui/village/`): `OverworldMapCanvas.ts` draws a hub-and-spoke map —
+  a "Wanderer's Rest" home node at the center with road nodes (currently
+  North Road / Marsh Trail / Quarry Path) arranged evenly around it,
+  built on the same `mapPalette.ts` colors and hover/click mechanics as
+  `VillageMapCanvas.ts`. Reached from the village via a new "World Map"
+  button on the village header (`VillageScreen.ts` gained
+  `onOpenOverworld`); `GameController` gained a third scene
+  (`showOverworld()`) alongside village/battle.
+- *Region detail + muster* (`OverworldScreen.ts`,
+  `presenters/RegionPresenters.ts`, `views/RegionDetailView.ts`): clicking
+  a road shows its description, the monsters it may roll, and the gold
+  reward, then reuses the existing muster-card components
+  (`buildMusterCardViewModels` / `renderMusterCard`) so picking a patrol
+  works exactly like picking a quest party.
+- *Encounter generation* (`src/sim/guild/`, new files):
+  `OverworldRegionDefinition.ts` (region type — battle map, encounter
+  chance, monster pool, enemy count range, a pre-validated spawn-tile
+  pool, flat gold reward), `EncounterGeneration.ts`
+  (`generateEncounterEnemySpawns` — rolls a count in range, then a unique
+  tile + random monster per spawn from the region's pools, fully
+  deterministic given a seed), `EncounterBattleAssembly.ts`
+  (`createUnitsForEncounterBattle`). `QuestBattleAssembly.ts` was
+  refactored (no behavior change — existing tests pass unmodified) to
+  export `createGuildUnitsFromDeployedMembers` and
+  `createEnemyUnitsFromSpawns`, shared by both quest and encounter
+  assembly instead of duplicated.
+- *Content* (`src/content/regions.ts`, new): 3 regions reusing the
+  existing 3 maps and monster pool — North Road (Forest Clearing:
+  twisted wolves, gnarlroots), Marsh Trail (Marsh Road: twisted boars,
+  hollow wisps), Quarry Path (Old Quarry: stonelings, twisted wolves).
+  Spawn tiles reuse positions already proven standable by existing
+  quests on the same maps.
+- *Controller flow* (`GameController.ts`): `patrolRegion` rolls
+  `randomNumberGenerator.rollChance(region.encounterChance)` — a miss
+  re-renders the overworld with a "the road was quiet" message and no
+  battle; a hit assembles and starts a real battle exactly like
+  `embarkOnQuest` does. `concludeEncounterBattle` mirrors
+  `concludeQuestBattle`'s victory/defeat shape (kill XP always, gold only
+  on victory) but pays `region.rewardGoldPerEncounter` instead of a quest
+  reward and skips quest-board/reputation side effects; `onContinue`
+  returns to the overworld map, not the village.
+- *No save-format change*: a patrol is a round trip resolved in one
+  sitting, so nothing new needed persisting in `GuildState` — no v5
+  migration.
+- **Deliberate v1 simplifications** (flagged in the plan, not bugs):
+  - No new settlements or place names. README's other 2 villages aren't
+    named in `LORE.md`, and `CLAUDE.md` says not to invent lore — so the
+    overworld currently has only Wanderer's Rest plus 3 *roads*
+    (README's wording explicitly allows "settlement **and landmark**
+    nodes"), not locked settlement placeholders.
+  - No monster level-scaling by region. README mentions "a level range
+    scaled to region," but monsters are fixed-level data with no growth
+    curve; encounter tables instead pick *which* existing monsters can
+    appear and how many (1–2).
+  - No mid-battle flee button. README says encounters can be fled "at
+    any time," but no battle today has any flee/retreat action — defeat
+    already has retreat semantics (keep kill XP, no reward), and
+    encounters reuse that path. A real flee option would touch
+    `Battle.ts`/`BattleController.ts`/`BattleHud.ts` for a nuance, not
+    the core ask.
+- *Verification*: 126 vitest tests (was 118) — `EncounterGeneration.test.ts`,
+  `EncounterBattleAssembly.test.ts` (mirrors `QuestBattleAssembly.test.ts`,
+  plus a region content-validity sweep reusing `isPositionInsideMap` /
+  `tileAt(...).isImpassable`); typecheck and build clean. Browser E2E
+  (`tmp/verify_overworld.mjs`, untracked): World Map button works, the
+  canvas renders all 4 nodes, selecting a road shows the right detail and
+  muster list, a quiet-road result and a triggered encounter battle (with
+  the right map/monsters and a combat-log line naming the region) were
+  both observed; zero page errors beyond the pre-existing harmless
+  favicon 404.
+
+**2026-06-19 — M4: world map + walkable zones + roaming encounters
+(supersedes the same-day entry above).**
+
+After playtesting the dice-roll overworld above, the actual design
+direction (FFTA/FFTA2 references, user-decided) turned out to be
+different enough to rework rather than extend: **the guild has no home
+location** — "Wanderer's Rest" is its name, not a place — and random
+encounters should be *visible, avoidable roaming groups* on a walkable
+grid, not a hidden chance roll. This entry replaces most of the above.
+
+- *Retired entirely*: `src/ui/village/VillageScreen.ts`,
+  `VillageMapCanvas.ts`, `village.css`; `src/sim/guild/OverworldRegionDefinition.ts`,
+  `src/content/regions.ts`; `#village-root`. No unit tests referenced any
+  of these (UI here is browser-E2E-verified only), so the deletion was
+  clean. Their still-needed generic rules (`.village-card`, `.muster-*`,
+  `.quest-detail`, `.modal-*`, `.character-sheet-*`, `.class-picker-*`,
+  `.primary-action-button`, `.outcome-summary`, etc.) moved verbatim to a
+  new `src/ui/sharedPanels.css` — **class names were kept unchanged**,
+  only the file moved.
+- *World map* (`OverworldMapCanvas.ts`/`OverworldScreen.ts`, rewritten):
+  the home/hub node and party-marker-at-home concept are gone — just zone
+  nodes in a simple chain, connected by roads. Clicking a node enters that
+  zone directly; there's no more region-detail/muster panel on the world
+  map itself (muster now happens at the moment of collision, inside the
+  zone, not before travel).
+- *Zone exploration* (new): the actual FFTA1-style walkable grid.
+  - `src/sim/guild/ZoneDefinition.ts` (replaces `OverworldRegionDefinition.ts`):
+    a zone's exploration-grid layout (`explorationGridWidth/Height`,
+    `obstacleTiles`, `entryTile`, `tavernTile`,
+    `roamingGroups: ZoneRoamingGroupDefinition[]`) plus the reused
+    battle-assembly fields (`battleMapIdentifier`, `encounterSpawnTiles`,
+    `rewardGoldPerEncounter`) — two coordinate spaces (the walkable grid vs.
+    the tactical battle map), never mixed.
+  - `src/sim/grid/ZonePathfinding.ts` (new): `findShortestZonePath` — plain
+    4-directional BFS, deliberately simpler than `MovementRange.ts`
+    (battle-specific height/jump/flight rules don't apply here).
+  - `src/sim/guild/ZoneSession.ts` (new): the pure per-visit state machine
+    (mirrors `Battle.ts`'s role) — player position, every roaming group's
+    patrol index, `movePlayerTo()` advances the player one tile *and*
+    every active group one patrol step in lockstep, reporting a collision
+    or tavern arrival.
+  - `src/app/ZoneController.ts` (new, beside `BattleController.ts`): on a
+    click, paths once via `ZonePathfinding` then steps through it one tile
+    at a time (160ms apart, `window.setTimeout`, cleared on `dispose()`
+    like `BattleController` already does) so the player can watch roaming
+    groups patrol — stopping early on collision (opens a muster prompt,
+    reusing the existing muster-card components) or on reaching the
+    tavern tile (opens the Tavern overlay).
+  - `src/ui/overworld/zone/` (new): `ZoneGridCanvas.ts` — a top-down
+    parchment grid (not isometric, consistent with the world map's
+    aesthetic) with a tavern icon, monster icons, and a player token, full
+    redraw per step (cheap on a 9×7 grid, no hover highlight — the screen
+    rebuilds on every render like every other screen here, so a
+    per-mousemove rebuild would be wasteful). `ZoneScreen.ts` hosts the
+    header, the grid, and one `ModalDialog` swapping between the Tavern
+    overlay (Quests/Store pill tabs, zone-scoped) and the collision muster
+    prompt.
+- *Guild menu* (`src/ui/guild/GuildMenu.ts`, new): roster, shared
+  inventory, and recruitment as a **persistent modal reachable from
+  anywhere** (world map or any zone) — a straight lift of
+  `VillageScreen`'s old Guild Hall + Recruitment logic and the character
+  sheet/class-picker modal-state handling, re-hosted on its own
+  `ModalDialog` attached to `document.body` (already screen-agnostic, per
+  `VillageScreen`'s own original pattern) instead of one specific screen.
+- *Data model, save format v4 → v5*:
+  - `GuildState.questIdentifiersOnBoard`: `string[]` → `Record<zoneIdentifier, string[]>`.
+    `QuestBoard.ts` gained `questIdentifiersForZone(zone, quests)` — a
+    quest belongs to a zone's tavern iff
+    `quest.battleMapIdentifier === zone.battleMapIdentifier` (zero
+    `quests.ts` changes needed); `refillQuestBoard`/`completeQuestOnBoard`
+    both gained a `zoneIdentifier` parameter.
+  - `GuildState.storeStock` stays `Record<string, number>` but keys became
+    `` `${zoneIdentifier}:${itemIdentifier}` `` — `StoreStock.ts`'s
+    `restockStore`/`storeStockOf`/`takeOneFromStoreStock` all gained a
+    `zoneIdentifier` parameter; new `hasZoneBeenStocked` replaces the old
+    single-zone "empty map ⇒ never stocked" check, now looped per zone in
+    `GameController`'s boot sequence and in `newGame.ts`.
+  - `SaveGameStorage.ts`: `CURRENT_SAVE_FORMAT_VERSION` 4 → 5; any pre-v5
+    save resets `storeStock`/`questIdentifiersOnBoard` to `{}` (old
+    keys/shapes are meaningless under per-zone scoping — same "heal
+    forward" approach as every migration before it), and the boot
+    sequence's per-zone restock/refill heals it from there, identically to
+    a brand-new save.
+- *Controller flow* (`GameController.ts`, heavily rewritten): dropped
+  `villageScreen`/`showVillage()` entirely; added `guildMenu`,
+  `zoneRootElement`, `activeZoneController` (persists across a battle
+  interruption — fighting a roaming group does **not** dispose it, so
+  returning from battle resumes the same zone visit, same player position,
+  with that group now marked defeated for the rest of the visit).
+  `showOverworld()` is the new boot/default scene. Quest embarks and
+  store actions now resolve against `this.activeZoneIdentifier` (set by
+  `showZone()`) instead of a global village context.
+- *Content bug found by a new test, not by playtesting*: North Road's
+  first `wolf_pack` patrol route was **mathematically uncatchable** —
+  every step flips both the player's and the patrol's tile parity, so if
+  the entry tile's parity doesn't match the route's, they can never
+  coincide no matter how the player paths there. Caught while trying to
+  force a collision for this verification pass, confirmed by hand (parity
+  argument) and by a brute-force BFS solver script before fixing the
+  route by shifting it one tile. Added a permanent regression test:
+  `isRoamingGroupCatchableFromEntry` in
+  `tests/sim/guild/EncounterBattleAssembly.test.ts` runs a real
+  reachability BFS over (position, patrolIndex) states from each zone's
+  `entryTile` — verified to fail on the broken route and pass after the
+  fix. Any future zone's patrol route must satisfy this test.
+- *Deliberate simplifications, not yet built*: a real mid-battle "flee"
+  action (avoidance today only works by routing around a group *before*
+  contact, same as the previous design's deferral); monster level-scaling
+  by region; no persisted zone position (reloading the page always lands
+  on the world map; re-entering a zone always starts at its `entryTile`
+  unless it's the zone you just came from mid-session, which resumes in
+  place).
+- *Verification*: 146 vitest tests (was 126) — new
+  `tests/sim/grid/ZonePathfinding.test.ts`, `tests/sim/guild/ZoneSession.test.ts`,
+  updated `QuestBoard.test.ts`/`StoreStock.test.ts` (zone-scoped
+  signatures), new `SaveGameStorage.test.ts` v4→v5 migration case, and the
+  zone content-validity sweep described above; typecheck and build clean.
+  Browser E2E (`tmp/verify_zone_exploration.mjs`, untracked): boot lands on
+  the world map with no village, entering a zone renders the grid with a
+  visible tavern icon and roaming-group icon, walking to the tavern opens
+  zone-scoped quests/store, the Guild menu shows the same roster from both
+  the world map and a zone; a second focused pass forced and confirmed the
+  full collision → muster → battle pipeline (correct monsters, correct
+  combat-log zone name) after the route fix. Zero page errors beyond the
+  pre-existing harmless favicon 404.
+- *Follow-up clean-up (same session)*: `embarkOnQuest`/`catchRoamingGroup`
+  and `concludeQuestBattle`/`concludeZoneEncounterBattle` had grown ~70%
+  identical (assemble units → build `Battle` → show it; then on
+  conclusion: persist item pouch, kill XP, reward-on-victory, apply XP,
+  build summary) — a real duplication risk, not just line count.
+  Extracted `GameController.startBattle()` and `buildBattleConclusion()`;
+  the two flows now differ only in their reward amount and post-victory
+  side effect (quest board/store/recruits vs. marking the roaming group
+  defeated). `GameController.ts` 536 → 505 lines; no behavior change
+  (146 tests still pass, browser-reverified the collision → muster →
+  battle pipeline through the shared helpers).
+
+**2026-06-19 — Full-bleed map screens + Town screen (follow-up, same day).**
+
+After playtesting the new World Map/Zone screens, the header-bar-above-a-
+small-canvas layout read as unfinished — most of the viewport stayed
+empty/black. The fix, plus a confirmed scope addition for "the Village
+Screen" (the user clarified: not a revert of "no home location," but a
+request for each zone's Tavern to open its own full-screen building-map
+instead of a popup, like the old `VillageMapCanvas`):
+
+- *Full-bleed canvases*: `OverworldMapCanvas.ts` and `ZoneGridCanvas.ts`
+  no longer have a fixed intrinsic pixel size — both now track their
+  container's actual rendered size via `ResizeObserver` and recompute
+  their layout (node positions / cell size) on every resize, so the
+  map/grid fills the viewport instead of floating in a dark void.
+  `src/ui/mapVignette.ts` (new) adds a small shared radial-darkening
+  helper both canvases call so the edges read as an aged map, not a flat
+  color fill.
+- *Map chrome replaces the header*: `.map-location-plaque`
+  (bottom-left — zone/world name in a new **`IM Fell English`** Google
+  Font for display titles only, description below in italic body text),
+  `.map-status-pill` (top-right — gold + the reputation tier badge, which
+  had quietly stopped being shown anywhere since the village header was
+  removed), `.map-corner-buttons` (bottom-right — Guild / World Map /
+  Leave Town). All added to `src/ui/sharedPanels.css`; the now-dead
+  `.village-header`/`.village-header-stats`/`.world-map-button`/
+  `.reputation-tier-badge`/`.village-layout*` rules were deleted.
+- *`OverworldMapCanvas.ts` generalized*: `MapNodeEntry` gained
+  `kind: 'zone' | 'tavern' | 'store'`; `drawTavernIcon`/`drawStoreIcon`
+  were recreated from the deleted `VillageMapCanvas.ts` (notice-board /
+  coin-stack, same drawing code) alongside the existing house icon, so the
+  same canvas now renders both the World Map (zone nodes) and the new
+  Town screen (building nodes).
+- *New `src/ui/overworld/zone/TownScreen.ts`*: walking onto a zone's
+  tavern tile now opens its own full-bleed building-map (Tavern + Store)
+  instead of a two-tab popup modal — a 2-building re-creation of the
+  retired `VillageScreen`'s pattern (map + inline building content + a
+  `ModalDialog` only for quest-detail muster), reusing
+  `buildQuestCardViewModels`/`renderQuestDetail`/`buildStoreCardViewModels`/
+  etc. verbatim (lifted out of `ZoneScreen.ts`, not rewritten).
+  `ZoneController.ts` gained a `mode: 'exploring' | 'town'` toggle; both
+  screens render into the same `zoneRootElement` — no changes needed to
+  `GameController.ts`, `index.html`, or `main.ts`. `ZoneScreen.ts` lost
+  ~150 lines of Tavern-modal code and now only hosts the collision-muster
+  modal.
+- *Verification*: presentation-only — 0 new vitest tests (consistent with
+  every other UI surface here being browser-verified, not unit-tested);
+  `npm test`/`typecheck`/`build` all clean. Browser pass confirmed: the
+  World Map and Zone screens fill the viewport with the plaque/pill/corner
+  buttons in place at 1600×900; entering North Road and walking to its
+  tavern (crossing the wolf pack's patrol en route, correctly triggering
+  the muster prompt first) reached the new Town screen; clicking Tavern/
+  Store opened the correct zone-scoped quest board and store stock;
+  Leave Town returned to the same grid position; the Guild menu opened
+  correctly from the World Map, the Zone screen, and the Town screen.
+  Zero page errors beyond the pre-existing harmless favicon 404.
+
+**2026-06-19 — Town screen polish (follow-up, after playtesting).**
+
+Three small fixes from actually clicking through the new Town screen:
+
+- *Button/card styling*: `.primary-action-button` (used by both the
+  Tavern's Embark button and the collision-muster Fight button) was a
+  flat blue rectangle that clashed with the parchment/ink map theme —
+  restyled to a warm gold/bronze embossed button (`IM Fell English`
+  display font, gradient, drop shadow, pressed state). `.muster-card`/
+  `.muster-card.is-selected` moved from navy background + neon-yellow
+  border to warm brown/gold, matching.
+- *Town opens straight into the Tavern*: previously, entering a zone's
+  Town showed the bare building-map first, requiring an extra click on
+  the Tavern node. `TownScreen` gained a public `openTavern()`;
+  `ZoneController.enterTown()` calls it right after rendering, so the
+  quest board is already open the moment you arrive.
+- *Guild Hall as a Town building*: added a 3rd node to `TOWN_BUILDINGS`
+  (`drawGuildHallIcon` in `OverworldMapCanvas.ts`, recreated from the
+  deleted `VillageMapCanvas.ts`'s heraldic-shield icon). Clicking it calls
+  the same global `onOpenGuildMenu()` as the corner button everywhere
+  else — the guild still has no fixed home, this just gives it a clearer
+  entry point while already standing in a town. The floating "Guild"
+  corner button was removed from `TownScreen` specifically (World Map and
+  Zone screens still have it, since neither has a "town" to host it in).
+- *Verification*: presentation-only, 0 new tests; `npm test`/`typecheck`/
+  `build` unaffected. Browser-confirmed: Town opens directly into the
+  Tavern's quest board; the Guild Hall node opens the Guild menu with the
+  correct roster; only "Leave Town" remains as a Town corner button; the
+  restyled Fight button renders correctly in both its disabled
+  ("Select at least one member") and enabled ("Fight with N") states.
+
 **2026-06-13 — M3 type scaffolding.**
 
 - `AdvancedClassIdentifier` union (all 33 classes from PRD §4) and

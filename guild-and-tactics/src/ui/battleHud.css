@@ -151,9 +151,17 @@ body {
   background: #4f8fd0;
 }
 
-#action-menu {
+#action-panel-stack {
+  position: absolute;
   right: 14px;
   bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#action-menu {
+  position: static;
   width: 290px;
   display: flex;
   flex-direction: column;
@@ -172,8 +180,7 @@ body {
 }
 
 #skill-info-box {
-  right: 14px;
-  bottom: 360px;
+  position: static;
   width: 290px;
   font-size: 15px;
   line-height: 1.5;

@@ -23,10 +23,11 @@ export interface QuestCardViewModel {
 
 export function buildQuestCardViewModels(
   guild: GuildState,
+  zoneIdentifier: string,
   content: TavernContentTables,
 ): QuestCardViewModel[] {
   const questCards: QuestCardViewModel[] = [];
-  for (const questIdentifier of guild.questIdentifiersOnBoard) {
+  for (const questIdentifier of guild.questIdentifiersOnBoard[zoneIdentifier] ?? []) {
     const quest = content.quests[questIdentifier];
     if (quest === undefined) {
       continue;

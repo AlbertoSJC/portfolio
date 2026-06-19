@@ -12,7 +12,7 @@ function createTestGuildWithMember(member: GuildMember): GuildState {
     consumableInventory: {},
     equipmentInventory: {},
     storeStock: {},
-    questIdentifiersOnBoard: [],
+    questIdentifiersOnBoard: {},
     recruitsOnOffer: [],
     completedQuestCount: 0,
   };

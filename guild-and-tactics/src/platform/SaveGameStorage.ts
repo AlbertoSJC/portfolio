@@ -12,7 +12,7 @@ export interface SaveGameStorage {
 }
 
 const SAVE_STORAGE_KEY = 'guild-and-tactics.save';
-const CURRENT_SAVE_FORMAT_VERSION = 4;
+const CURRENT_SAVE_FORMAT_VERSION = 5;
 
 interface VersionedSaveFile {
   saveFormatVersion: number;
@@ -45,12 +45,21 @@ function normalizeMember(member: GuildState['roster'][number]): void {
   member.classLevelsReached ??= {};
 }
 
-function normalizeLoadedGuild(guild: GuildState): GuildState {
+function normalizeLoadedGuild(guild: GuildState, saveFormatVersion: number): GuildState {
   guild.equipmentInventory ??= {};
   guild.consumableInventory ??= {};
-  // An empty stock map means "never stocked" — the GameController restocks it.
-  guild.storeStock ??= {};
   guild.recruitsOnOffer ??= [];
+  // v4 → v5: store stock and the quest board both became zone-scoped (a
+  // flat array/map can't say which zone an entry belonged to), so pre-v5
+  // saves reset both to empty — GameController's boot-time "empty ⇒
+  // restock/refill" check heals every zone from there, the same way a
+  // brand-new save does.
+  if (saveFormatVersion < 5) {
+    guild.storeStock = {};
+    guild.questIdentifiersOnBoard = {};
+  }
+  guild.storeStock ??= {};
+  guild.questIdentifiersOnBoard ??= {};
   for (const member of guild.roster) {
     normalizeMember(member);
   }
@@ -85,13 +94,14 @@ export class BrowserLocalStorageSaveGameStorage implements SaveGameStorage {
         parsedSave.saveFormatVersion === 1 ||
         parsedSave.saveFormatVersion === 2 ||
         parsedSave.saveFormatVersion === 3 ||
+        parsedSave.saveFormatVersion === 4 ||
         parsedSave.saveFormatVersion === CURRENT_SAVE_FORMAT_VERSION;
       if (!isKnownVersion) {
         // Newer/unknown format than this build understands: start fresh
         // rather than corrupt.
         return undefined;
       }
-      return normalizeLoadedGuild(parsedSave.guild);
+      return normalizeLoadedGuild(parsedSave.guild, parsedSave.saveFormatVersion);
     } catch {
       return undefined; // a corrupt save never crashes the game
     }

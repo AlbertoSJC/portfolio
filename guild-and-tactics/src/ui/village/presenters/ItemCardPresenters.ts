@@ -69,18 +69,19 @@ export function describeClassRestriction(
 
 export function buildStoreCardViewModels(
   guild: GuildState,
+  zoneIdentifier: string,
   content: ItemContentTables,
   storeFilter: StoreFilter,
 ): StoreCardViewModel[] {
   const storeCards: StoreCardViewModel[] = [];
   if (storeFilter === 'all' || storeFilter === 'consumables') {
     for (const item of Object.values(content.items)) {
-      storeCards.push(buildConsumableStoreCard(guild, item));
+      storeCards.push(buildConsumableStoreCard(guild, zoneIdentifier, item));
     }
   }
   for (const equipment of Object.values(content.equipment)) {
     if (storeFilter === 'all' || storeFilter === equipment.slot) {
-      storeCards.push(buildEquipmentStoreCard(guild, equipment, content.baseClasses));
+      storeCards.push(buildEquipmentStoreCard(guild, zoneIdentifier, equipment, content.baseClasses));
     }
   }
   return storeCards;
@@ -88,9 +89,10 @@ export function buildStoreCardViewModels(
 
 function buildConsumableStoreCard(
   guild: GuildState,
+  zoneIdentifier: string,
   item: ConsumableItemDefinition,
 ): StoreCardViewModel {
-  const stockRemaining = storeStockOf(guild, item.identifier);
+  const stockRemaining = storeStockOf(guild, zoneIdentifier, item.identifier);
   return {
     iconKind: iconKindForConsumable(item),
     title: item.displayName,
@@ -110,10 +112,11 @@ function buildConsumableStoreCard(
 
 function buildEquipmentStoreCard(
   guild: GuildState,
+  zoneIdentifier: string,
   equipment: EquipmentDefinition,
   baseClasses: Record<string, BaseClassDefinition>,
 ): StoreCardViewModel {
-  const stockRemaining = storeStockOf(guild, equipment.identifier);
+  const stockRemaining = storeStockOf(guild, zoneIdentifier, equipment.identifier);
   return {
     iconKind: iconKindForEquipment(equipment),
     title: equipment.displayName,

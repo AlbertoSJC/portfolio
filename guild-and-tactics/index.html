@@ -4,19 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guild &amp; Tactics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap"
+    />
     <link rel="stylesheet" href="/src/ui/battleHud.css" />
-    <link rel="stylesheet" href="/src/ui/village/village.css" />
+    <link rel="stylesheet" href="/src/ui/sharedPanels.css" />
+    <link rel="stylesheet" href="/src/ui/overworld/overworld.css" />
+    <link rel="stylesheet" href="/src/ui/overworld/zone/zone.css" />
   </head>
   <body>
     <div id="game-root">
-      <div id="village-root" class="hidden"></div>
+      <div id="overworld-root" class="hidden"></div>
+      <div id="zone-root" class="hidden"></div>
       <div id="battle-root">
         <canvas id="battle-canvas"></canvas>
         <div id="turn-order-strip"></div>
         <div id="active-unit-panel"></div>
         <div id="inspected-unit-panel"></div>
-        <div id="skill-info-box"></div>
-        <div id="action-menu"></div>
+        <div id="action-panel-stack">
+          <div id="skill-info-box"></div>
+          <div id="action-menu"></div>
+        </div>
         <div id="combat-log"></div>
         <div id="battle-outcome-overlay" class="hidden"></div>
       </div>

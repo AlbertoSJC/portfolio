@@ -56,7 +56,7 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
       ],
       consumableInventory: { potion: 1 },
       // version 1 had no equipmentInventory
-      questIdentifiersOnBoard: [],
+      questIdentifiersOnBoard: [], // pre-v5 flat array — migration resets it
       recruitsOnOffer: [],
       completedQuestCount: 2,
     };
@@ -72,6 +72,8 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(migratedGuild?.roster[0]?.classIdentifier).toBe('warrior');
     expect(migratedGuild?.roster[0]?.classLevelsReached).toEqual({});
     expect(migratedGuild?.gold).toBe(150);
+    expect(migratedGuild?.questIdentifiersOnBoard).toEqual({});
+    expect(migratedGuild?.storeStock).toEqual({});
   });
 
   it('heals a v2 save that is missing the equipment fields (mid-dev hot-reload artifact)', () => {
@@ -151,6 +153,31 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     // masteredClasses is gone; each entry becomes classLevelsReached[id] = 5.
     expect((migratedGuild?.roster[0] as unknown as Record<string, unknown>)?.['masteredClasses']).toBeUndefined();
     expect(migratedGuild?.roster[0]?.classLevelsReached).toEqual({ warrior: 5, thief: 5 });
+  });
+
+  it('migrates a version-4 save by resetting the flat quest board and store stock', () => {
+    const keyValueStore = createInMemoryKeyValueStore();
+    const versionFourGuild = {
+      gold: 500,
+      roster: [],
+      consumableInventory: {},
+      equipmentInventory: {},
+      storeStock: { potion: 5, iron_sword: 2 }, // pre-v5: not zone-scoped
+      questIdentifiersOnBoard: ['wolves_on_the_north_road'], // pre-v5: flat array
+      recruitsOnOffer: [],
+      completedQuestCount: 4,
+    };
+    keyValueStore.setItem(
+      'guild-and-tactics.save',
+      JSON.stringify({ saveFormatVersion: 4, guild: versionFourGuild }),
+    );
+    const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
+    const migratedGuild = storage.loadGuildSave();
+    expect(migratedGuild).toBeDefined();
+    expect(migratedGuild?.storeStock).toEqual({});
+    expect(migratedGuild?.questIdentifiersOnBoard).toEqual({});
+    expect(migratedGuild?.gold).toBe(500);
+    expect(migratedGuild?.completedQuestCount).toBe(4);
   });
 
   it('clears a save on request', () => {

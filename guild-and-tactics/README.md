@@ -1,12 +1,13 @@
 # Guild & Tactics
 
 A web-based tactical RPG in the spirit of **Final Fantasy Tactics Advance** and
-**FFTA2: Grimoire of the Rift**. You run a guild: recruit members of five
-races, take quests from village taverns, fight tactical grid battles, level
-up, learn skills, upgrade gear — and repeat. There is no main story; the game
-*is* the guild loop.
+**FFTA2: Grimoire of the Rift**. You run a guild — **Wanderer's Rest is its
+name, not a place it lives**: recruit members of five races, take quests from
+zone taverns scattered across the map, fight tactical grid battles, level up,
+learn skills, upgrade gear — and repeat. There is no main story; the game *is*
+the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers shipped first.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, and a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), shipped so far.
 
 ---
 
@@ -23,14 +24,22 @@ up, learn skills, upgrade gear — and repeat. There is no main story; the game
 ## 2. Core loop
 
 ```
-Village ──► Tavern: pick a quest
-   ▲              │
-   │              ▼
-   │        Battle: tactical grid combat (win/lose)
-   │              │
-   │              ▼
-   └── Rewards: gold + items + XP ──► level up, learn skills,
-        buy/sell gear, recruit new members ──► harder quests
+World Map ──► pick a zone ──► walk its grid
+   ▲                              │
+   │                  ┌───────────┴───────────┐
+   │                  ▼                       ▼
+   │            Zone's Tavern              Roaming group
+   │         (quest board + store)      walks into you (or
+   │                  │                  you into it)
+   │                  └───────────┬───────────┘
+   │                              ▼
+   │                Battle: tactical grid combat (win/lose)
+   │                              │
+   └── Rewards: gold + items + XP ◄──────────┘
+        │
+        ▼
+   level up, learn skills, buy/sell gear, recruit members
+   (Guild menu — reachable from anywhere) ──► harder quests
 ```
 
 ## 3. Races
@@ -200,72 +209,101 @@ Tactical, turn-based, on a square grid (FFTA model):
 
 **Not in scope (v1)**: FFTA's Judge/Law system, monster taming, multiplayer.
 
-## 6. World & villages
+## 6. World & zones
 
 The game is set in **Aentea** (world lore in `LORE.md`, untracked): the
 last safe continent, besieged by the Darkness. The guild both defends the
 held territory and pushes outward to reclaim the world.
 
-A small overworld map with **3 settlements** (v1: start with the capital,
-add 2 villages later). The capital is **Wanderer's Rest** — where
-everything happens, home to all five races. Each settlement has three
-buildings:
+**Wanderer's Rest is the guild's name — not a place (decided, supersedes
+the original "capital settlement" framing).** The guild has no home
+location to return to: roster, shared inventory, and recruitment ("Guild
+Hall") live in a **persistent Guild menu**, reachable from anywhere — the
+world map or any zone — since that's guild data, not tied to a location.
 
-- **Tavern** — the quest board. 4–6 quests available at a time, refreshed as
-  quests complete; mix of combat quests (grid battle) and simple dispatch
-  quests (send N members away for M quest-cycles, FFTA-style, for passive
-  reward). Quest difficulty is rated so the player can self-select.
-- **Store** — buy/sell weapons, armor, accessories, consumables. Inventory
-  grows with guild reputation tier.
-- **Recruitment hall** — hire new members. Offers a rotating set of recruits
-  (random race / base class / minor stat variance) for gold. Guild roster cap:
-  ~20; battle party size: up to 6.
+The world is **zones**, reached from the world map (§6.0). Each zone has
+its own:
 
-**Guild progression**: completing quests raises guild **reputation**; tiers
-(Bronze → Silver → Gold → …) unlock better store stock, better recruits,
-harder quest ranks, and the other villages.
+- **Tavern** — that zone's quest board. 4 quests at a time, refreshed as
+  quests complete; eligible quests are derived automatically from the
+  zone's battle map (`quest.battleMapIdentifier === zone.battleMapIdentifier`)
+  — no separate per-zone authoring needed. Quest difficulty is rated so the
+  player can self-select. *(Dispatch quests — send N members away for M
+  cycles, FFTA-style — are still planned, not built.)*
+- **Store** — buy/sell weapons, armor, accessories, consumables,
+  **independently stocked per zone** (buying out one zone's potions never
+  touches another's shelves). Inventory grows with guild reputation tier
+  (reputation itself is guild-wide, not per-zone).
+- **Roaming monster groups** — visible on the zone's exploration grid; see
+  §6.1.
 
-### 6.0 World map screen (FFT/FFTA-style — planned for M3)
+Recruitment (a rotating set of hireable candidates — random race / base
+class / minor stat variance, for gold) is **global**, via the Guild menu,
+not per-zone. Guild roster cap: ~20; battle party size: up to 6.
 
-Navigation is presented as a **map, not menus**: an overworld/town map
-with location nodes connected by paths, in the style of FFT and FFTA's
-world map.
+**Guild progression**: completing quests raises guild **reputation**
+(guild-wide); tiers (Bronze → Silver → Gold → …) unlock better store stock
+and better recruits. Harder quest ranks and reaching new zones gated by
+reputation are still open (§6.0 next steps).
 
-- **Inside a settlement**: the village is a small map with building nodes
-  — Tavern, Store, Recruitment Hall, Guild Hall (roster) — and the party
-  marker moves between them; clicking/entering a node opens that
-  building's screen (the existing tab panels become the building
-  interiors).
-- **Between settlements (M4)**: the same pattern zoomed out — settlement
-  and landmark nodes connected by roads; moving along a road is what can
-  trigger random encounters (§6.1) and is how the other villages unlock.
-- **Presentation**: 2D drawn map (procedural/canvas first, art later via
-  the same swap-point principle as `SpriteRegistry`); the party marker
-  animates along the path; keyboard and click navigation both work.
-- **Build order**: village map screen lands in **M3** (replacing the tab
-  bar as the primary navigation); the overworld map between settlements
-  lands in **M4** together with travel and random encounters.
+### 6.0 World map, zones, and towns (decided — supersedes the original settlement framing)
 
-### 6.1 Overworld random encounters
+Three levels, all canvas-drawn and **full-bleed** (the map/grid fills the
+screen, FFTA/FFTA2-style — name/description as a bottom-left map plaque,
+gold/reputation as a top-right pill, menu access as small bottom-right
+corner buttons, not a header bar). Procedural and swappable later via the
+same swap-point principle as `SpriteRegistry`:
 
-Traveling between villages on the overworld map can trigger a random
-encounter (FFTA-style ambush on the road):
+- **World map** (zoomed out, FFTA2-style): zone nodes connected by roads.
+  Clicking a node enters that zone. There is no "home" node — by design,
+  the guild has nowhere it belongs.
+- **Zone screen** (zoomed in, **FFTA1-style**): a small walkable grid you
+  actually move on, one click pathfinds to the target tile and then steps
+  through it cell-by-cell (not a single jump) so roaming groups visibly
+  patrol in sync with you — see §6.1. Contains a tavern tile and one or
+  more roaming groups.
+- **Town screen**: stepping onto a zone's tavern tile opens its own
+  full-screen building-map (Tavern + Store + **Guild Hall** as
+  icon-nodes), not a popup — the same "click a node" interaction as the
+  World Map, just zoomed to one zone's buildings. The Tavern's quest
+  board opens automatically on arrival (no extra click needed); the Guild
+  Hall node opens the same global Guild menu reachable everywhere else,
+  giving the guild a clearer entry point while standing in a town without
+  giving it a fixed home. Clicking Store opens it as a focused overlay; a
+  corner button leaves Town back to the same spot on the walkable grid.
+- **v1 scope (decided)**: the first 3 zones (North Road, Marsh Trail,
+  Quarry Path) reuse the 3 existing battle maps and monster pools as their
+  exploration grids. **More zones/settlements are explicitly future
+  iterations**, not part of this pass — see the CHANGELOG.
 
-- **Trigger**: each travel leg rolls against an encounter chance per region
-  (named constant, e.g. `ROAD_ENCOUNTER_CHANCE`), using the seeded RNG so
-  travel outcomes are deterministic and testable.
-- **Enemy parties are generated, not authored**: each overworld region has
-  an **encounter table** in `src/content/` (typed data, like everything
-  else) listing possible enemy compositions and a level range scaled to the
-  region. Region difficulty rises with distance from the starting village.
-- **Battle**: plays on one of the region's battle maps with the standard
-  "defeat all foes" objective. Rewards: XP + small gold + chance of common
-  drops — deliberately below quest rewards, so quests stay the main loop and
-  encounters are seasoning (and a grinding option for players who want it).
-- **Fleeing**: the guild can retreat from a random encounter at any time
-  from the battle menu (units simply exit; no reward, no penalty beyond
-  time). Quest battles cannot be fled this casually — retreating a quest
-  forfeits its reward.
+### 6.1 Roaming encounters (decided — replaces the original dice-roll design)
+
+No hidden chance roll. Each zone has one or more **roaming groups**: an
+enemy party patrolling a fixed loop on the zone's exploration grid,
+generated (not authored) per fight.
+
+- **Movement is turn-synced and deterministic**: every time the player's
+  token takes one step, every active roaming group also advances one step
+  along its patrol route. Nothing is hidden — a group's position is always
+  knowable by watching it.
+- **Trigger**: a battle starts only if the player's tile and a roaming
+  group's tile coincide after a step. This is **avoidable** — routing
+  around a group to reach the tavern without fighting is a legitimate
+  strategy, not a failure state.
+- **Enemy parties are generated, not authored**: each roaming group has a
+  monster pool and an enemy-count range; the actual composition is rolled
+  fresh per encounter (`generateEncounterEnemySpawns`), and the fight plays
+  out on the zone's tactical battle map. Rewards: a flat small gold amount
+  + kill XP — deliberately below quest rewards, so quests stay the main
+  loop and roaming fights are seasoning (and a grinding option for players
+  who want it).
+- **Losing** forfeits the reward but keeps kill XP (same retreat rule as
+  quests, §5). **Winning** removes that roaming group for the rest of the
+  current visit; leaving and re-entering the zone resets it.
+- **Not yet built**: a real mid-battle "flee" action (today, avoidance
+  happens by routing around a group before contact, not by retreating from
+  an already-started fight); monster level-scaling by region (monsters are
+  fixed-level data today, not yet scaled to a range).
 
 ## 7. Character progression
 
@@ -300,7 +338,7 @@ encounter (FFTA-style ambush on the road):
 | Battle maps | 10–15 |
 | Quests | ~40 (template-driven + handcrafted bosses) |
 | Items | ~80 |
-| Villages | 3 |
+| Zones | 3+ (more iteratively, §6.0) |
 | Status effects | ~10 |
 
 ## 9. Technical design
@@ -370,7 +408,7 @@ src/
     guild/
   content/        typed data: races, classes, skills, items, quests, maps
   render/         2D canvas drawing + SpriteRegistry
-  ui/             HTML/CSS screens: battle HUD, village, shops, roster
+  ui/             HTML/CSS screens: battle HUD, world map, zones, Guild menu
   platform/       save/load + platform services (browser now, Steam later)
   app/            composition root, game state machine, scene routing
 tests/            mirrors src/ exactly + tests/mocks/
@@ -416,12 +454,29 @@ days of work, not a rewrite.
    - ✅ **Element wheel** — `earth_spike` (Warrior lv7, earth) and `frost_bolt` (Mage lv7, water) added; richer monster affinities covering fire/water/earth/sacred/dark.
    - ✅ **Village map screen (§6.0)** — canvas-drawn 4-node town map (Tavern, Store, Recruitment Hall, Guild Hall) replaces the tab bar; party marker on the active building; keyboard/click navigation.
 4. 🔶 **M4 — Content & polish** (in progress): all maps/quests/items to
-   target, 2 more villages, **overworld map** (§6.0) with travel + random
-   encounters (§6.1), dispatch quests, balancing pass, audio, visual polish.
+   target, 2 more villages, dispatch quests, balancing pass, audio, visual
+   polish.
    - ✅ **Guild reputation tiers** — done 2026-06-18: Bronze/Silver/Gold/Platinum
-     by completed-quest count, gating store stock and recruitment-hall offer
-     count; remaining tier hooks (harder quest ranks, the other villages)
-     still to come.
+     by completed-quest count, gating store stock and recruitment offer
+     count (now via the global Guild menu); remaining tier hooks (harder
+     quest ranks, new zones) still to come.
+   - ✅ **World map + walkable zones + roaming encounters (§6.0/§6.1)** —
+     done 2026-06-19, **superseding** an earlier same-day design (a single
+     "Wanderer's Rest" hub + a hidden dice roll per road). The guild now
+     has no home location; roster/inventory/recruitment moved to a
+     persistent Guild menu; the world map's 3 zones are real walkable
+     FFTA1-style grids with visible, patrolling, avoidable roaming monster
+     groups. Deliberately deferred: more zones/settlements, monster
+     level-scaling by region, and a real mid-battle flee action — see the
+     CHANGELOG for the full rationale.
+   - ✅ **Full-bleed map screens + Town screen** — done 2026-06-19: World
+     Map, Zone, and Town screens redrawn to fill the viewport (map-style
+     plaque/pill/corner-button chrome instead of a small canvas under a
+     header bar). Follow-up polish after playtesting: the Fight/Embark
+     button and muster cards restyled to match the parchment/ink map
+     theme instead of a flat blue/navy HTML-default look; Town now opens
+     straight into the Tavern's quest board on arrival; the Guild Hall
+     became a 3rd Town building node (§6.0).
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 
@@ -446,6 +501,19 @@ days of work, not a rewrite.
       (33 classes: pure advanced + one hybrid per base-class pair per race;
       Spellblade is Feryan-exclusive; base-access trims kept). Names are
       lore-aligned via `LORE.md`.
+- [x] **Guild home location**: → **none** — "Wanderer's Rest" is the
+      guild's name, not a place; roster/inventory/recruitment live in a
+      persistent Guild menu reachable from anywhere (§6).
+- [x] **World map structure**: → **two-level, FFTA-hybrid** — a zoomed-out
+      world map of zone nodes (FFTA2-style) opens into walkable,
+      FFTA1-style exploration grids with visible, avoidable, patrolling
+      roaming monster groups (§6.0/§6.1). Supersedes an initial same-day
+      dice-roll design.
+- [ ] **Zone exploration grid ("the inside minimap")**: shipped (§6.0/
+      §6.1) but **not confirmed as a keeper** — flagged 2026-06-19, after
+      playtesting, as possibly not actually working well (engagement/
+      legibility/feel, not a bug). Revisit before building more zones on
+      this pattern; see CLAUDE.md's open-question note for the same item.
 
 ## 13. Explicitly out of scope (v1)
 

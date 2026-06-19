@@ -1,7 +1,7 @@
 ﻿import type { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator';
 import type { GuildState } from '../sim/guild/GuildState';
 import { STARTING_GOLD } from '../sim/guild/GuildState';
-import { refillQuestBoard } from '../sim/guild/QuestBoard';
+import { questIdentifiersForZone, refillQuestBoard } from '../sim/guild/QuestBoard';
 import { averageRosterLevel, generateRecruitOffers } from '../sim/guild/RecruitGeneration';
 import { restockStore } from '../sim/guild/StoreStock';
 import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
@@ -10,6 +10,7 @@ import { ITEMS } from './items';
 import { QUESTS } from './quests';
 import { RACES } from './races';
 import { RECRUIT_NAMES_BY_RACE } from './recruitNames';
+import { ZONES } from './zones';
 
 const STARTING_MEMBER_LEVEL = 2;
 const STARTING_POTIONS = 2;
@@ -79,13 +80,15 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
     // A couple of starter pieces so the equipment flow is discoverable.
     equipmentInventory: { iron_sword: 1, leather_vest: 1 },
     storeStock: {},
-    questIdentifiersOnBoard: [],
+    questIdentifiersOnBoard: {},
     recruitsOnOffer: [],
     completedQuestCount: 0,
   };
   const tier = reputationTierForQuestCount(guild.completedQuestCount);
-  restockStore(guild, ITEMS, EQUIPMENT, tier);
-  refillQuestBoard(guild, Object.keys(QUESTS), randomNumberGenerator);
+  for (const zone of Object.values(ZONES)) {
+    restockStore(guild, zone.identifier, ITEMS, EQUIPMENT, tier);
+    refillQuestBoard(guild, zone.identifier, questIdentifiersForZone(zone, QUESTS), randomNumberGenerator);
+  }
   guild.recruitsOnOffer = generateRecruitOffers(
     randomNumberGenerator,
     RACES,

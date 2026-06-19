@@ -10,7 +10,7 @@ import type {
 import { createUnitFromCharacter, createUnitFromMonster } from '../units/UnitFactory';
 import type { GuildMember } from './GuildState';
 import { equippedDefinitionsForMember } from './MemberEquipment';
-import type { QuestDefinition } from './QuestDefinition';
+import type { QuestDefinition, QuestEnemySpawn } from './QuestDefinition';
 
 export interface UnitContentTables {
   races: Record<string, RaceDefinition>;
@@ -21,25 +21,26 @@ export interface UnitContentTables {
 }
 
 /**
- * Builds the battle roster for a quest: deployed guild members on the
- * map's deployment tiles facing the enemy, quest spawns facing back.
+ * Builds the guild side of a battle roster: deployed members on the map's
+ * deployment tiles, facing the enemy. Shared by quest and encounter battle
+ * assembly — `battleLabel` is only used for error messages.
  */
-export function createUnitsForQuestBattle(
-  quest: QuestDefinition,
+export function createGuildUnitsFromDeployedMembers(
   deployedMembers: readonly GuildMember[],
   deploymentTiles: readonly GridPosition[],
   contentTables: UnitContentTables,
+  battleLabel: string,
 ): Unit[] {
   if (deployedMembers.length === 0) {
-    throw new Error(`Cannot start "${quest.displayName}" with nobody deployed`);
+    throw new Error(`Cannot start "${battleLabel}" with nobody deployed`);
   }
   if (deployedMembers.length > deploymentTiles.length) {
     throw new Error(
-      `"${quest.displayName}" has ${deploymentTiles.length} deployment tiles but ${deployedMembers.length} members were deployed`,
+      `"${battleLabel}" has ${deploymentTiles.length} deployment tiles but ${deployedMembers.length} members were deployed`,
     );
   }
 
-  const guildUnits = deployedMembers.map((member, memberIndex) => {
+  return deployedMembers.map((member, memberIndex) => {
     const race = contentTables.races[member.raceIdentifier];
     const classDefinition =
       contentTables.baseClasses[member.classIdentifier] ??
@@ -62,12 +63,23 @@ export function createUnitsForQuestBattle(
       secondarySkillIdentifiers,
     });
   });
+}
 
-  const enemyUnits = quest.enemySpawns.map((enemySpawn, spawnIndex) => {
-    const monster = contentTables.monsters[enemySpawn.monsterIdentifier];
+/**
+ * Builds the enemy side of a battle roster from a list of spawns. Shared by
+ * quest and encounter battle assembly — `battleLabel` is only used for
+ * error messages.
+ */
+export function createEnemyUnitsFromSpawns(
+  enemySpawns: readonly QuestEnemySpawn[],
+  monsters: Record<string, MonsterDefinition>,
+  battleLabel: string,
+): Unit[] {
+  return enemySpawns.map((enemySpawn, spawnIndex) => {
+    const monster = monsters[enemySpawn.monsterIdentifier];
     if (monster === undefined) {
       throw new Error(
-        `Quest "${quest.displayName}" spawns unknown monster "${enemySpawn.monsterIdentifier}"`,
+        `"${battleLabel}" spawns unknown monster "${enemySpawn.monsterIdentifier}"`,
       );
     }
     return createUnitFromMonster(
@@ -77,7 +89,25 @@ export function createUnitsForQuestBattle(
       'south',
     );
   });
+}
 
+/**
+ * Builds the battle roster for a quest: deployed guild members on the
+ * map's deployment tiles facing the enemy, quest spawns facing back.
+ */
+export function createUnitsForQuestBattle(
+  quest: QuestDefinition,
+  deployedMembers: readonly GuildMember[],
+  deploymentTiles: readonly GridPosition[],
+  contentTables: UnitContentTables,
+): Unit[] {
+  const guildUnits = createGuildUnitsFromDeployedMembers(
+    deployedMembers,
+    deploymentTiles,
+    contentTables,
+    quest.displayName,
+  );
+  const enemyUnits = createEnemyUnitsFromSpawns(quest.enemySpawns, contentTables.monsters, quest.displayName);
   return [...guildUnits, ...enemyUnits];
 }
 

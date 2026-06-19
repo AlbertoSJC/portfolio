@@ -1,73 +1,10 @@
-#village-root {
-  position: absolute;
-  inset: 0;
-  overflow-y: auto;
-  padding: 24px clamp(16px, 8vw, 140px);
-  background: linear-gradient(180deg, #1b2029 0%, #181c24 100%);
-}
-
-.village-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-bottom: 1px solid var(--hud-panel-border);
-  padding-bottom: 12px;
-}
-
-.village-header h1 {
-  margin: 0;
-  font-size: 30px;
-  color: var(--hud-accent-color);
-}
-
-.village-header-stats {
-  display: flex;
-  gap: 22px;
-  font-size: 16px;
-  align-items: center;
-}
-
-.reputation-tier-badge {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 3px 10px;
-  border-radius: 12px;
-  border: 1px solid currentColor;
-}
-
-.reputation-tier-bronze { color: #c8865a; }
-.reputation-tier-silver { color: #a8b8c8; }
-.reputation-tier-gold   { color: #ffe066; }
-.reputation-tier-platinum { color: #c8f0ff; }
-
-.village-layout {
-  display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  margin-top: 20px;
-}
-
-.village-building-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.village-layout-map {
-  flex-shrink: 0;
-  position: sticky;
-  top: 24px;
-}
-
-.village-map-canvas {
-  display: block;
-  max-width: 100%;
-  border-radius: 4px;
-  border: 2px solid #6b4020;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 0 0 3px #c8a97a;
-}
+/*
+ * Shared HUD chrome used by every screen that isn't the tactical battle
+ * itself: the world map, zone screens, the Tavern overlay, and the global
+ * Guild menu. None of this is "the village" anymore — it was relocated
+ * verbatim from village.css (now retired) when the guild stopped having a
+ * home location. Class names were kept as-is; only the file moved.
+ */
 
 .village-card-list {
   display: grid;
@@ -181,9 +118,35 @@ button.village-card:hover {
 }
 
 .primary-action-button {
-  font-size: 17px !important;
-  padding: 12px 26px !important;
-  background: #3f7fd4 !important;
+  font-family: 'IM Fell English', Georgia, serif !important;
+  font-size: 19px !important;
+  letter-spacing: 0.03em !important;
+  padding: 12px 30px !important;
+  background: linear-gradient(180deg, #d8b15a 0%, #a8762a 100%) !important;
+  color: #2c1a08 !important;
+  border: 1px solid #5a2e00 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 3px 0 #5a2e00, 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.05s ease-out;
+}
+
+.primary-action-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e8c478 0%, #b8862e 100%) !important;
+  border-color: #5a2e00 !important;
+}
+
+.primary-action-button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #5a2e00, 0 3px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+.primary-action-button:disabled {
+  background: #5c5648 !important;
+  color: #948c7a !important;
+  border-color: #3a3628 !important;
+  box-shadow: none !important;
+  text-shadow: none;
 }
 
 .resource-bar-fill.experience {
@@ -258,8 +221,8 @@ button.village-card:hover {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: #262d3a;
-  border: 2px solid var(--hud-panel-border);
+  background: #2a241e;
+  border: 2px solid #5a4a32;
   border-radius: 8px;
   padding: 8px 10px;
   color: var(--hud-text-color);
@@ -274,13 +237,13 @@ button.village-card:hover {
 }
 
 .muster-card:hover {
-  border-color: var(--hud-accent-color);
+  border-color: #d8b15a;
 }
 
 .muster-card.is-selected {
-  border-color: var(--hud-accent-color);
-  background: #3a3a26;
-  box-shadow: 0 0 0 1px var(--hud-accent-color);
+  border-color: #d8b15a;
+  background: #4a3a1e;
+  box-shadow: 0 0 0 1px #d8b15a;
 }
 
 /* ── Character sheet ─────────────────────────────────────────────────── */
@@ -702,4 +665,140 @@ button.village-card:hover {
 
 .outcome-summary p {
   margin: 0;
+}
+
+/* ── Guild menu (global roster/inventory/recruitment overlay) ─────────── */
+
+.guild-menu-title {
+  margin: 0 0 14px;
+  color: var(--hud-accent-color);
+}
+
+.guild-menu-back-button {
+  background: #2c3340;
+  color: var(--hud-text-color);
+  border: 1px solid var(--hud-panel-border);
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+
+.guild-menu-back-button:hover {
+  border-color: var(--hud-accent-color);
+}
+
+/*
+ * ── Map chrome ──────────────────────────────────────────────────────────
+ * Full-bleed map screens (World Map, Zone, Town) overlay these directly on
+ * the canvas instead of a header bar — the location name/description read
+ * as a map label, menu access reads as small objects pinned to the map's
+ * corner, not web-app chrome. Colors match mapPalette.ts's parchment/ink
+ * tokens (kept as literals here since this is plain CSS, not the canvas
+ * drawing code that imports those constants directly).
+ */
+
+.map-fullbleed-canvas-container {
+  position: absolute;
+  inset: 0;
+}
+
+.map-fullbleed-canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-location-plaque {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  max-width: min(420px, 70vw);
+  background: #e8d8a0;
+  border: 1px solid #8b6030;
+  border-radius: 3px;
+  padding: 14px 18px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.map-location-plaque h1 {
+  margin: 0 0 6px;
+  font-family: 'IM Fell English', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #2c1a08;
+}
+
+.map-location-plaque p {
+  margin: 0;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.5;
+  color: #2c1a08;
+  opacity: 0.85;
+}
+
+.map-status-pill {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #e8d8a0;
+  border: 1px solid #8b6030;
+  border-radius: 20px;
+  padding: 7px 16px;
+  color: #2c1a08;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.map-status-pill strong {
+  color: #5a2e00;
+}
+
+.map-tier-badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+}
+
+.map-tier-bronze { color: #8a4a1e; }
+.map-tier-silver { color: #57606b; }
+.map-tier-gold   { color: #8a6a00; }
+.map-tier-platinum { color: #2c6e7a; }
+
+.map-corner-buttons {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.map-corner-button {
+  background: #e8d8a0;
+  color: #2c1a08;
+  border: 1px solid #8b6030;
+  border-radius: 16px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+.map-corner-button:hover {
+  background: #f0e6cc;
+  border-color: #5a2e00;
 }

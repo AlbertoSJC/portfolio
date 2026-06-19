@@ -32,9 +32,10 @@ export interface GuildState {
   consumableInventory: Record<string, number>;
   /** Unequipped gear in the guild stores, by equipment identifier. */
   equipmentInventory: Record<string, number>;
-  /** What the village store still has on its shelves, by item identifier. */
+  /** Each zone's shelves, keyed by `${zoneIdentifier}:${itemIdentifier}` — see StoreStock.ts. */
   storeStock: Record<string, number>;
-  questIdentifiersOnBoard: string[];
+  /** Each zone's tavern board, keyed by zone identifier. */
+  questIdentifiersOnBoard: Record<string, string[]>;
   recruitsOnOffer: RecruitOffer[];
   completedQuestCount: number;
 }

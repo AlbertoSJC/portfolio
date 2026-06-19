@@ -17,7 +17,8 @@ function startGame(): void {
   new GameController(
     requiredElement('battle-root'),
     battleCanvas,
-    requiredElement('village-root'),
+    requiredElement('overworld-root'),
+    requiredElement('zone-root'),
     new BrowserLocalStorageSaveGameStorage(window.localStorage),
   );
 }
