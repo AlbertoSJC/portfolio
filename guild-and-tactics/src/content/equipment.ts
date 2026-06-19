@@ -2,7 +2,9 @@ import type { EquipmentDefinition } from '../sim/items/EquipmentDefinition';
 
 /**
  * Store equipment for Wanderer's Rest. Weapons are class-bound; armor and
- * accessories are open to everyone. (Tiers and rarities arrive with M4.)
+ * accessories are open to everyone. Some pieces are gated behind a
+ * `minimumReputationTier` (see `src/sim/guild/ReputationTier.ts`); rarities
+ * beyond tier-gating remain M4 content work.
  */
 export const EQUIPMENT: Record<string, EquipmentDefinition> = {
   // ── Weapons ────────────────────────────────────────────────────────────

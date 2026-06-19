@@ -6,7 +6,7 @@ races, take quests from village taverns, fight tactical grid battles, level
 up, learn skills, upgrade gear — and repeat. There is no main story; the game
 *is* the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 next.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers shipped first.
 
 ---
 
@@ -415,10 +415,13 @@ days of work, not a rewrite.
    - ✅ **Status effects** — poison (damage per turn), sleep (auto-skip turn), blind (hit-chance penalty); `venom_strike` / `smoke_dart` / `sleep_dust` added to Thief and Mage skill lines.
    - ✅ **Element wheel** — `earth_spike` (Warrior lv7, earth) and `frost_bolt` (Mage lv7, water) added; richer monster affinities covering fire/water/earth/sacred/dark.
    - ✅ **Village map screen (§6.0)** — canvas-drawn 4-node town map (Tavern, Store, Recruitment Hall, Guild Hall) replaces the tab bar; party marker on the active building; keyboard/click navigation.
-4. ⬜ **M4 — Content & polish**: all maps/quests/items to target, 2 more
-   villages, **overworld map** (§6.0) with travel + random encounters
-   (§6.1), reputation tiers, dispatch quests, balancing pass, audio,
-   visual polish.
+4. 🔶 **M4 — Content & polish** (in progress): all maps/quests/items to
+   target, 2 more villages, **overworld map** (§6.0) with travel + random
+   encounters (§6.1), dispatch quests, balancing pass, audio, visual polish.
+   - ✅ **Guild reputation tiers** — done 2026-06-18: Bronze/Silver/Gold/Platinum
+     by completed-quest count, gating store stock and recruitment-hall offer
+     count; remaining tier hooks (harder quest ranks, the other villages)
+     still to come.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

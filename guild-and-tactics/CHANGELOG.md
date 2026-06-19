@@ -244,6 +244,31 @@ forward from M3).**
   The `GuildMember.learnedSkillIdentifiers` field from the earlier design was
   not needed; the class system handles it cleanly.
 
+**2026-06-18 — M4 started: guild reputation tiers.**
+
+- *Reputation tiers* (`src/sim/guild/ReputationTier.ts`, new): Bronze →
+  Silver (5 completed quests) → Gold (15) → Platinum (30); the current tier
+  is derived on demand from `guild.completedQuestCount` via
+  `reputationTierForQuestCount` — no new persisted field.
+- *Store gating* (`StoreStock.ts`): `EquipmentDefinition` and
+  `ConsumableItemDefinition` gained an optional `minimumReputationTier`;
+  `restockStore` now takes the guild's current tier and skips items above
+  it. First gated items: Steel Greatblade and Iron Mail (silver, equipment),
+  Strong Potion (silver, consumable).
+- *Recruitment hall scales with tier* (`RecruitGeneration.ts`): the fixed
+  `RECRUITS_ON_OFFER_COUNT` (3) is replaced by `RECRUITS_ON_OFFER_BY_TIER`
+  (bronze/silver 3, gold 4, platinum 5).
+- *Village header*: a colored reputation badge (`.reputation-tier-badge`)
+  next to the quest counter; tier colors in `village.css`.
+- *Save migration*: `normalizeLoadedGuild`'s per-member normalization was
+  extracted into `normalizeMember` and is now also applied to
+  `recruitsOnOffer` (old saves could have offers with missing equipment
+  fields, just like roster members); a missing `recruitsOnOffer` array now
+  normalizes to `[]` instead of crashing.
+- *Verification*: 118 vitest tests (was 101 after M3 — new
+  `ReputationTier.test.ts` plus tier coverage added to `StoreStock.test.ts`
+  and `RecruitGeneration.test.ts`); typecheck clean.
+
 **2026-06-13 — M3 type scaffolding.**
 
 - `AdvancedClassIdentifier` union (all 33 classes from PRD §4) and

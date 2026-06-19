@@ -35,7 +35,7 @@ canvas isometric; ALL unit visuals go through `SpriteRegistry.ts`.
   E2E screenshot passes (need the dev server running; tmp/ is untracked,
   recreate from the dev log's description if absent)
 
-## Status (2026-06-18, M3 complete)
+## Status (2026-06-18, M3 complete; M4 underway)
 
 **M1, M2, and M3 complete.**
 
@@ -53,12 +53,28 @@ canvas isometric; ALL unit visuals go through `SpriteRegistry.ts`.
 - ✅ **Village map screen**: canvas-drawn 4-node town map replaces the tab bar; party marker on active building; roster+inventory merged under Guild Hall. `src/ui/village/VillageMapCanvas.ts`
 - ✅ **Character sheet refactored** into `src/ui/village/character/` (5 files)
 
-**101 vitest tests, typecheck clean.**
+**118 vitest tests, typecheck clean.**
+
+### M4 delivered so far:
+- ✅ **Guild reputation tiers** (`src/sim/guild/ReputationTier.ts`): Bronze →
+  Silver (5 completed quests) → Gold (15) → Platinum (30), derived from
+  `guild.completedQuestCount` via `reputationTierForQuestCount`.
+  - Store: `EquipmentDefinition`/`ConsumableItemDefinition` gained an
+    optional `minimumReputationTier`; `restockStore` (now tier-aware) skips
+    gated items until the guild ranks up. First gated items: Steel
+    Greatblade, Iron Mail (silver), Strong Potion (silver).
+  - Recruitment hall: offer count now scales with tier via
+    `RECRUITS_ON_OFFER_BY_TIER` (bronze/silver 3, gold 4, platinum 5),
+    replacing the old fixed `RECRUITS_ON_OFFER_COUNT`.
+  - Village header shows a tier badge (`.reputation-tier-badge`, colored per
+    tier in `village.css`).
+  - Save migration: `normalizeLoadedGuild` now also normalizes
+    `recruitsOnOffer` members (old saves could omit the field entirely).
 
 **M4 next targets:**
 - Overworld map with 3 settlements and travel + random encounters (§6.0, §6.1)
-- Guild reputation tiers unlocking better store stock and recruits
 - Dispatch quests (send members away for passive reward)
 - More maps, quests, and items (toward §8 content targets)
 - Equipment-skill mastery (FFTA-style: use an item's skill in battle to learn it permanently)
 - Additional status effects (slow, haste, protect, shell, regen)
+- Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)
