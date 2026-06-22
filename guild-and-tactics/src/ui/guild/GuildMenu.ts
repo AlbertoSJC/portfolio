@@ -7,7 +7,6 @@ import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } fro
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import { buildCharacterSheetContent } from '../village/character/CharacterSheet';
 import { buildClassPickerContent } from '../village/character/ClassPicker';
-import { ModalDialog } from '../village/ModalDialog';
 import { buildInventoryViewModel } from '../village/presenters/ItemCardPresenters';
 import { buildRecruitCardViewModels, buildRosterCardViewModels } from '../village/presenters/MemberPresenters';
 import { createCardList, createHintParagraph, createSectionTitle } from '../village/views/DomPrimitives';
@@ -33,6 +32,19 @@ export interface GuildMenuContentTables {
   items: Record<string, ConsumableItemDefinition>;
 }
 
+/**
+ * Where a GuildMenu instance's content actually gets displayed — a global
+ * modal (reachable from the World Map or any zone) or a panel docked
+ * directly into a Town screen. `onOpen` forces it visible; `onUpdate` only
+ * matters while it's already showing (the host decides what "showing"
+ * means for itself — e.g. `ModalDialog.isOpen()`, or a Town screen's own
+ * "which building is selected" state).
+ */
+export interface GuildMenuHost {
+  onOpen: (content: HTMLElement) => void;
+  onUpdate: (content: HTMLElement) => void;
+}
+
 type GuildMenuTab = 'roster' | 'inventory' | 'recruitment';
 
 type GuildMenuView =
@@ -45,40 +57,49 @@ type GuildMenuView =
     };
 
 /**
- * The guild's roster/inventory/recruitment, reachable as a modal overlay
+ * The guild's roster/inventory/recruitment. Reachable as a global modal
  * from anywhere (the world map or any zone) — the guild has no home
- * location to host this as a building anymore. This is a relocation of
- * VillageScreen's old Guild Hall + Recruitment logic, not new behavior.
+ * location to host this as a building — and, separately, also embeddable
+ * directly inside a Town screen's own content panel, picking the Guild
+ * Hall building. The `host` decides which of those this instance is; this
+ * class only ever builds content and hands it to `host.onOpen`/`onUpdate`,
+ * never touching a `ModalDialog` (or any other display mechanism) itself.
+ * This is a relocation of VillageScreen's old Guild Hall + Recruitment
+ * logic, not new behavior.
  */
 export class GuildMenu {
   private readonly sounds: UserInterfaceSounds;
   private readonly content: GuildMenuContentTables;
   private readonly callbacks: GuildMenuCallbacks;
-  private readonly modal: ModalDialog;
+  private readonly host: GuildMenuHost;
   private activeTab: GuildMenuTab = 'roster';
   private view: GuildMenuView = { kind: 'tabs' };
   private lastRenderedGuild: GuildState | undefined;
 
-  constructor(sounds: UserInterfaceSounds, content: GuildMenuContentTables, callbacks: GuildMenuCallbacks) {
+  constructor(
+    sounds: UserInterfaceSounds,
+    content: GuildMenuContentTables,
+    callbacks: GuildMenuCallbacks,
+    host: GuildMenuHost,
+  ) {
     this.sounds = sounds;
     this.content = content;
     this.callbacks = callbacks;
-    this.modal = new ModalDialog(document.body, sounds);
+    this.host = host;
   }
 
+  /** Forces the menu visible (resetting to the Roster tab) — call when the player chooses to open it. */
   open(guild: GuildState): void {
     this.activeTab = 'roster';
     this.view = { kind: 'tabs' };
     this.lastRenderedGuild = guild;
-    this.modal.open(this.buildContent(guild), undefined, { closeable: true });
+    this.host.onOpen(this.buildContent(guild));
   }
 
-  /** Re-renders in place if currently open — call after any guild state change. */
+  /** Re-renders in place if currently shown — call after any guild state change. */
   refresh(guild: GuildState): void {
     this.lastRenderedGuild = guild;
-    if (this.modal.isOpen()) {
-      this.modal.refreshContent(this.buildContent(guild));
-    }
+    this.host.onUpdate(this.buildContent(guild));
   }
 
   private rerender(): void {

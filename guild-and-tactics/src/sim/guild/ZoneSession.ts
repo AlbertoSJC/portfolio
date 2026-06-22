@@ -1,36 +1,39 @@
-import { arePositionsEqual, type GridPosition } from '../grid/GridPosition';
-import type { ZoneDefinition, ZoneRoamingGroupDefinition } from './ZoneDefinition';
+import type { ZoneDefinition, ZoneLocationNode, ZoneRoamingGroupDefinition } from './ZoneDefinition';
 
-export interface ZoneRoamingGroupPosition {
+export interface ZoneRoamingGroupLocation {
   groupIdentifier: string;
-  position: GridPosition;
+  locationIdentifier: string;
 }
 
 export interface ZoneStepResult {
-  /** Set when the player's new tile coincides with an active roaming group. */
+  /** Set when the player's new location coincides with an active roaming group. */
   collidedGroupIdentifier: string | undefined;
   enteredTavern: boolean;
 }
 
 /**
- * The authoritative state for "you are walking around this zone" — player
- * position, every roaming group's patrol progress, and which groups have
- * already been fought this visit. Mirrors Battle.ts's role for the
- * exploration grid: pure state, no DOM; the caller (ZoneController) is
- * trusted to only pass adjacent, in-bounds steps (validated up front by
- * ZonePathfinding).
+ * The authoritative state for "you are walking this zone's road network" —
+ * player location, every roaming group's patrol progress, and which groups
+ * have already been fought this visit. Mirrors Battle.ts's role for
+ * exploration; the caller (ZoneController) is trusted to only pass
+ * adjacent, road-connected locations (validated up front by
+ * findShortestZoneRoute).
  */
 export class ZoneSession {
   private readonly zone: ZoneDefinition;
-  private playerPosition: GridPosition;
+  private playerLocationIdentifier: string;
   private readonly patrolIndexByGroupIdentifier = new Map<string, number>();
   private readonly defeatedGroupIdentifiers = new Set<string>();
+  private readonly locationsByIdentifier = new Map<string, ZoneLocationNode>();
 
   constructor(zone: ZoneDefinition) {
     this.zone = zone;
-    this.playerPosition = zone.entryTile;
+    this.playerLocationIdentifier = zone.entryLocationIdentifier;
     for (const group of zone.roamingGroups) {
       this.patrolIndexByGroupIdentifier.set(group.identifier, 0);
+    }
+    for (const location of zone.locations) {
+      this.locationsByIdentifier.set(location.identifier, location);
     }
   }
 
@@ -38,14 +41,14 @@ export class ZoneSession {
     return this.zone;
   }
 
-  getPlayerPosition(): GridPosition {
-    return this.playerPosition;
+  getPlayerLocationIdentifier(): string {
+    return this.playerLocationIdentifier;
   }
 
-  getActiveRoamingGroupPositions(): ZoneRoamingGroupPosition[] {
+  getActiveRoamingGroupLocations(): ZoneRoamingGroupLocation[] {
     return this.zone.roamingGroups
       .filter((group) => !this.defeatedGroupIdentifiers.has(group.identifier))
-      .map((group) => ({ groupIdentifier: group.identifier, position: this.positionForGroup(group) }));
+      .map((group) => ({ groupIdentifier: group.identifier, locationIdentifier: this.locationForGroup(group) }));
   }
 
   /** Removes a roaming group from the rest of this visit — call only on a won fight. */
@@ -54,13 +57,14 @@ export class ZoneSession {
   }
 
   /**
-   * Moves the player to `nextPosition` (assumed to be one legal step from
-   * their current tile) and advances every active roaming group one
-   * patrol step in lockstep, then reports whether that left the player
-   * sharing a tile with a group or standing on the tavern.
+   * Moves the player to `nextLocationIdentifier` (assumed to be one legal
+   * road-hop from their current location) and advances every active
+   * roaming group one patrol step in lockstep, then reports whether that
+   * left the player sharing a location with a group or standing on the
+   * tavern.
    */
-  movePlayerTo(nextPosition: GridPosition): ZoneStepResult {
-    this.playerPosition = nextPosition;
+  movePlayerTo(nextLocationIdentifier: string): ZoneStepResult {
+    this.playerLocationIdentifier = nextLocationIdentifier;
     for (const group of this.zone.roamingGroups) {
       if (this.defeatedGroupIdentifiers.has(group.identifier)) {
         continue;
@@ -69,18 +73,20 @@ export class ZoneSession {
       this.patrolIndexByGroupIdentifier.set(group.identifier, (currentIndex + 1) % group.patrolRoute.length);
     }
 
-    const collidedGroupIdentifier = this.getActiveRoamingGroupPositions().find((entry) =>
-      arePositionsEqual(entry.position, this.playerPosition),
+    const collidedGroupIdentifier = this.getActiveRoamingGroupLocations().find(
+      (entry) => entry.locationIdentifier === this.playerLocationIdentifier,
     )?.groupIdentifier;
+
+    const arrivedLocation = this.locationsByIdentifier.get(this.playerLocationIdentifier);
 
     return {
       collidedGroupIdentifier,
-      enteredTavern: arePositionsEqual(this.playerPosition, this.zone.tavernTile),
+      enteredTavern: arrivedLocation?.kind === 'tavern',
     };
   }
 
-  private positionForGroup(group: ZoneRoamingGroupDefinition): GridPosition {
+  private locationForGroup(group: ZoneRoamingGroupDefinition): string {
     const index = this.patrolIndexByGroupIdentifier.get(group.identifier) ?? 0;
-    return group.patrolRoute[index] ?? group.patrolRoute[0] ?? this.zone.entryTile;
+    return group.patrolRoute[index] ?? group.patrolRoute[0] ?? this.zone.entryLocationIdentifier;
   }
 }

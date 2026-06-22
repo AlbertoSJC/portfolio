@@ -2,8 +2,9 @@ import type { ZoneDefinition } from '../sim/guild/ZoneDefinition';
 
 /**
  * Zones reachable from the world map (M4, PRD §6.0/§6.1). Each is a small
- * walkable exploration grid with its own tavern (quests + store) and a
- * roaming monster group you can see and choose to walk into.
+ * named-location road network with its own tavern (quests + store) and a
+ * roaming monster group you can see, patrolling across several of the
+ * zone's locations, and choose to avoid.
  *
  * v1 reuses the 3 existing battle maps/monster pools as the first 3 zones.
  * More zones/settlements are planned for future iterations — see
@@ -15,20 +16,30 @@ export const ZONES: Record<string, ZoneDefinition> = {
     displayName: 'The North Road',
     description:
       'The forest road the carters use. Twisted wolves and walking roots still test it some days.',
-    explorationGridWidth: 9,
-    explorationGridHeight: 7,
-    obstacleTiles: [],
-    entryTile: { column: 4, row: 6 },
-    tavernTile: { column: 4, row: 1 },
+    entryLocationIdentifier: 'north_road_gate',
+    locations: [
+      { identifier: 'north_road_gate', displayName: 'The Gate', kind: 'landmark', position: { x: 0.08, y: 0.5 } },
+      {
+        identifier: 'north_road_crossing',
+        displayName: 'The Crossing',
+        kind: 'landmark',
+        position: { x: 0.32, y: 0.5 },
+      },
+      { identifier: 'north_road_grove', displayName: 'The Grove', kind: 'landmark', position: { x: 0.55, y: 0.22 } },
+      { identifier: 'north_road_bridge', displayName: 'The Bridge', kind: 'landmark', position: { x: 0.55, y: 0.78 } },
+      { identifier: 'north_road_tavern', displayName: "Wanderer's Rest", kind: 'tavern', position: { x: 0.85, y: 0.5 } },
+    ],
+    roads: [
+      { fromLocationIdentifier: 'north_road_gate', toLocationIdentifier: 'north_road_crossing' },
+      { fromLocationIdentifier: 'north_road_crossing', toLocationIdentifier: 'north_road_grove' },
+      { fromLocationIdentifier: 'north_road_crossing', toLocationIdentifier: 'north_road_bridge' },
+      { fromLocationIdentifier: 'north_road_grove', toLocationIdentifier: 'north_road_tavern' },
+      { fromLocationIdentifier: 'north_road_bridge', toLocationIdentifier: 'north_road_tavern' },
+    ],
     roamingGroups: [
       {
         identifier: 'wolf_pack',
-        patrolRoute: [
-          { column: 3, row: 3 },
-          { column: 4, row: 3 },
-          { column: 4, row: 4 },
-          { column: 3, row: 4 },
-        ],
+        patrolRoute: ['north_road_crossing', 'north_road_grove', 'north_road_bridge'],
         monsterIdentifiers: ['twisted_wolf', 'gnarlroot'],
         minimumEnemyCount: 1,
         maximumEnemyCount: 2,
@@ -49,20 +60,35 @@ export const ZONES: Record<string, ZoneDefinition> = {
     displayName: 'The Marsh Trail',
     description:
       'Causeway boards over the mire. Boars root up the path, and the pale lights are not always harmless.',
-    explorationGridWidth: 9,
-    explorationGridHeight: 7,
-    obstacleTiles: [],
-    entryTile: { column: 4, row: 6 },
-    tavernTile: { column: 1, row: 1 },
+    entryLocationIdentifier: 'marsh_trail_landing',
+    locations: [
+      { identifier: 'marsh_trail_landing', displayName: 'The Landing', kind: 'landmark', position: { x: 0.08, y: 0.5 } },
+      {
+        identifier: 'marsh_trail_causeway',
+        displayName: 'The Causeway',
+        kind: 'landmark',
+        position: { x: 0.32, y: 0.5 },
+      },
+      { identifier: 'marsh_trail_reeds', displayName: 'The Reeds', kind: 'landmark', position: { x: 0.55, y: 0.2 } },
+      {
+        identifier: 'marsh_trail_lights',
+        displayName: 'The Pale Lights',
+        kind: 'landmark',
+        position: { x: 0.55, y: 0.8 },
+      },
+      { identifier: 'marsh_trail_tavern', displayName: "Wanderer's Rest", kind: 'tavern', position: { x: 0.85, y: 0.5 } },
+    ],
+    roads: [
+      { fromLocationIdentifier: 'marsh_trail_landing', toLocationIdentifier: 'marsh_trail_causeway' },
+      { fromLocationIdentifier: 'marsh_trail_causeway', toLocationIdentifier: 'marsh_trail_reeds' },
+      { fromLocationIdentifier: 'marsh_trail_causeway', toLocationIdentifier: 'marsh_trail_lights' },
+      { fromLocationIdentifier: 'marsh_trail_reeds', toLocationIdentifier: 'marsh_trail_tavern' },
+      { fromLocationIdentifier: 'marsh_trail_lights', toLocationIdentifier: 'marsh_trail_tavern' },
+    ],
     roamingGroups: [
       {
         identifier: 'boar_herd',
-        patrolRoute: [
-          { column: 6, row: 2 },
-          { column: 7, row: 2 },
-          { column: 7, row: 3 },
-          { column: 6, row: 3 },
-        ],
+        patrolRoute: ['marsh_trail_causeway', 'marsh_trail_reeds', 'marsh_trail_lights'],
         monsterIdentifiers: ['twisted_boar', 'hollow_wisp'],
         minimumEnemyCount: 1,
         maximumEnemyCount: 2,
@@ -83,20 +109,46 @@ export const ZONES: Record<string, ZoneDefinition> = {
     displayName: 'The Quarry Path',
     description:
       'The old masons’ trail up to the quarry rim. The stones there have a habit of standing up.',
-    explorationGridWidth: 9,
-    explorationGridHeight: 7,
-    obstacleTiles: [],
-    entryTile: { column: 4, row: 6 },
-    tavernTile: { column: 7, row: 1 },
+    entryLocationIdentifier: 'quarry_path_trailhead',
+    locations: [
+      {
+        identifier: 'quarry_path_trailhead',
+        displayName: 'The Trailhead',
+        kind: 'landmark',
+        position: { x: 0.06, y: 0.5 },
+      },
+      {
+        identifier: 'quarry_path_switchback',
+        displayName: 'The Switchback',
+        kind: 'landmark',
+        position: { x: 0.28, y: 0.5 },
+      },
+      { identifier: 'quarry_path_rim', displayName: 'The Quarry Rim', kind: 'landmark', position: { x: 0.48, y: 0.22 } },
+      { identifier: 'quarry_path_pit', displayName: 'The Quarry Pit', kind: 'landmark', position: { x: 0.48, y: 0.78 } },
+      {
+        identifier: 'quarry_path_camp',
+        displayName: "Mason's Camp",
+        kind: 'landmark',
+        position: { x: 0.68, y: 0.5 },
+      },
+      { identifier: 'quarry_path_tavern', displayName: "Wanderer's Rest", kind: 'tavern', position: { x: 0.9, y: 0.5 } },
+    ],
+    roads: [
+      { fromLocationIdentifier: 'quarry_path_trailhead', toLocationIdentifier: 'quarry_path_switchback' },
+      { fromLocationIdentifier: 'quarry_path_switchback', toLocationIdentifier: 'quarry_path_rim' },
+      { fromLocationIdentifier: 'quarry_path_switchback', toLocationIdentifier: 'quarry_path_pit' },
+      // Rim overlooks the pit directly — also keeps stoneling_watch's 4-stop
+      // loop catchable (an even-length patrol on an otherwise bipartite road
+      // graph can be mathematically uncatchable; see EncounterBattleAssembly.test.ts).
+      { fromLocationIdentifier: 'quarry_path_rim', toLocationIdentifier: 'quarry_path_pit' },
+      { fromLocationIdentifier: 'quarry_path_rim', toLocationIdentifier: 'quarry_path_camp' },
+      { fromLocationIdentifier: 'quarry_path_pit', toLocationIdentifier: 'quarry_path_camp' },
+      { fromLocationIdentifier: 'quarry_path_camp', toLocationIdentifier: 'quarry_path_tavern' },
+    ],
     roamingGroups: [
       {
         identifier: 'stoneling_watch',
-        patrolRoute: [
-          { column: 2, row: 2 },
-          { column: 2, row: 3 },
-          { column: 3, row: 3 },
-          { column: 3, row: 2 },
-        ],
+        patrolRoute: ['quarry_path_switchback', 'quarry_path_rim', 'quarry_path_camp', 'quarry_path_pit'],
         monsterIdentifiers: ['stoneling', 'twisted_wolf'],
         minimumEnemyCount: 1,
         maximumEnemyCount: 2,

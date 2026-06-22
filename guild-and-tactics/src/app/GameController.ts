@@ -47,6 +47,7 @@ import { SKILLS } from '../content/skills';
 import { createNewGuild } from '../content/newGame';
 import { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
 import { GuildMenu } from '../ui/guild/GuildMenu';
+import { ModalDialog } from '../ui/village/ModalDialog';
 import { OverworldScreen } from '../ui/overworld/OverworldScreen';
 import type { ZoneContentTables } from '../ui/overworld/zone/TownScreen';
 import { BattleController, type BattleConclusion } from './BattleController';
@@ -73,6 +74,7 @@ export class GameController {
   private readonly saveGameStorage: SaveGameStorage;
   private readonly randomNumberGenerator: SeededRandomNumberGenerator;
   private readonly sounds = new UserInterfaceSounds();
+  private readonly guildMenuModal: ModalDialog;
   private readonly guildMenu: GuildMenu;
   private readonly overworldScreen: OverworldScreen;
   private readonly zoneContentTables: ZoneContentTables;
@@ -115,6 +117,7 @@ export class GameController {
     }
     this.saveGameStorage.persistGuildSave(this.guild);
 
+    this.guildMenuModal = new ModalDialog(document.body, this.sounds);
     this.guildMenu = new GuildMenu(
       this.sounds,
       {
@@ -133,6 +136,10 @@ export class GameController {
         onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
           this.setSecondarySkillClass(memberIdentifier, classIdentifier),
       },
+      {
+        onOpen: (content) => this.guildMenuModal.open(content, undefined, { closeable: true }),
+        onUpdate: (content) => this.guildMenuModal.refreshContent(content),
+      },
     );
 
     this.overworldScreen = new OverworldScreen(overworldRootElement, this.sounds, ZONES, {
@@ -147,6 +154,8 @@ export class GameController {
       battleMapsByIdentifier: BATTLE_MAPS,
       races: RACES,
       baseClasses: BASE_CLASSES,
+      advancedClasses: ADVANCED_CLASSES,
+      skills: SKILLS,
     };
     this.unitContentTables = {
       races: RACES,
@@ -214,6 +223,12 @@ export class GameController {
         onSellEquipment: (equipmentIdentifier) => this.sellEquipment(equipmentIdentifier),
         onRoamingGroupCaught: (roamingGroupIdentifier, deployedMemberIdentifiers) =>
           this.catchRoamingGroup(roamingGroupIdentifier, deployedMemberIdentifiers),
+        onHireRecruit: (recruitMemberIdentifier) => this.hireRecruit(recruitMemberIdentifier),
+        onEquipItem: (memberIdentifier, equipmentIdentifier) => this.equipItem(memberIdentifier, equipmentIdentifier),
+        onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
+        onChangeClass: (memberIdentifier, classIdentifier) => this.changeClass(memberIdentifier, classIdentifier),
+        onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
+          this.setSecondarySkillClass(memberIdentifier, classIdentifier),
       },
     );
   }

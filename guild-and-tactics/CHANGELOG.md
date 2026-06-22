@@ -587,3 +587,120 @@ Three small fixes from actually clicking through the new Town screen:
   Processing hook in `Battle` left for M3 once status-inflicting skills exist.
 - Development log moved from README to CHANGELOG.md; README retains project
   overview only. 86 tests pass, typecheck clean.
+
+**2026-06-22 — Zone exploration: tile grid → named-location road network.**
+
+Resolves the open design doubt raised 2026-06-19 right after playtesting:
+each zone's walkable "minimap" was a 9x7 tile grid with one roaming group
+patrolling a literal 4-tile box in one corner — it read as artificial,
+since the patrol had nowhere to roam *to*, and the shape didn't resemble
+either FFTA1 or FFTA2. Replaced it with a small named-location road
+network per zone (one tavern location, the rest plain landmarks,
+connected by roads), reusing the existing BFS-pathfind →
+step-with-collision-check flow with location identifiers in place of grid
+tiles — a mechanical reshape, not new mechanics.
+
+- *Sim layer* (`src/sim/`): `ZoneDefinition.ts` dropped
+  `explorationGridWidth/Height`/`obstacleTiles`/`entryTile`/`tavernTile`
+  for `entryLocationIdentifier`/`locations: ZoneLocationNode[]`/
+  `roads: ZoneRoad[]`; `ZoneRoamingGroupDefinition.patrolRoute` changed
+  from `GridPosition[]` to `string[]` (location identifiers). `src/sim/
+  grid/ZonePathfinding.ts` (tile BFS) replaced by new `src/sim/graph/
+  ZoneRoadGraph.ts` (`findShortestZoneRoute`, BFS over road adjacency;
+  `buildZoneRoadAdjacency` exported for reuse). `ZoneSession.ts` reworked
+  identically in shape — `movePlayerTo` takes a location identifier,
+  lockstep patrol-advance unchanged, collision/`enteredTavern` checks
+  became identifier equality / `location.kind === 'tavern'` lookups.
+- *Content* (`src/content/zones.ts`): North Road and Marsh Trail each
+  redesigned as 5 locations in a fork/diamond shape (entry → crossing →
+  two branch landmarks → tavern); Quarry Path as 6 (one extra
+  mason's-camp landmark). `wolf_pack`/`boar_herd` patrol 3 locations each,
+  `stoneling_watch` patrols 4 — deliberately varied so the three zones
+  don't all pace identically.
+- *Rendering* (`src/ui/overworld/`): `OverworldMapCanvas.ts` (the World
+  Map's/Town screen's shared node-graph renderer) generalized, not
+  replaced — `MapNodeEntry.position` and `createOverworldMapCanvas`'s new
+  `edges`/`afterRender` params are all optional and default to the exact
+  prior auto-distributed-row, consecutive-pair-edge behavior, so
+  `OverworldScreen.ts`/`TownScreen.ts` needed zero edits. New `'landmark'`
+  `MapNodeKind` + icon. `ZoneGridCanvas.ts` replaced by
+  `ZoneRoadMapCanvas.ts`, a thin wrapper feeding a zone's
+  `locations`/`roads` into that same renderer and drawing roaming-group/
+  player tokens via `afterRender`. `ZoneScreen.ts`/`ZoneController.ts`
+  updated in lockstep (type-only changes, same control flow,
+  `STEP_DELAY_MILLISECONDS` left at 160ms for this pass).
+- *Content bug found and fixed by the existing reachability test, not by
+  playtesting* — the same test class (`EncounterBattleAssembly.test.ts`'s
+  `isRoamingGroupCatchableFromEntry`) that caught the original tile-parity
+  bug in M4's first pass caught a road-graph equivalent: Quarry Path's
+  4-stop `stoneling_watch` route formed an even-length cycle on an
+  otherwise bipartite road graph, making it mathematically uncatchable
+  from the entry location regardless of how the player paths there. Fixed
+  by adding a direct `quarry_path_rim`–`quarry_path_pit` road (also reads
+  fine thematically — the rim overlooks the pit), which breaks the
+  bipartite parity trap. The test was ported to BFS over
+  `(locationIdentifier, patrolRouteIndex)` states via road adjacency, plus
+  new assertions that every road/patrol-stop/entry reference points at a
+  real location and every patrol route has at least two distinct stops.
+- *Deliberate simplifications, not yet built*: no unique mechanic on
+  landmark locations yet (no location-scoped quests, no flavor-text
+  popup) — this pass was structural/navigational only, per the explicit
+  request to fix the patrol's repetitive feel before building anything
+  else on top.
+- *Verification*: sim layer fully vitest-covered (145 tests, typecheck and
+  build clean). Presentation layer (`ZoneRoadMapCanvas`/`ZoneScreen`/
+  `ZoneController`) has 0 new vitest tests, per this project's established
+  pattern for canvas/controller work — verified instead by rewriting
+  `tmp/verify_zone_exploration.mjs` for the road-network model and running
+  two browser passes: North Road, deliberately walking into the wolf
+  pack's patrol (collision → muster prompt → fight selection → battle
+  launched, confirmed via screenshot); Marsh Trail, routing straight to
+  the tavern without colliding (quest board, store stock, Leave Town, and
+  World Map return all confirmed working). Zero page errors beyond the
+  pre-existing harmless favicon 404.
+
+**2026-06-22 — Town screen presentation: from modal popups to a docked content panel.**
+
+Several rounds of feedback on the road-network rewrite above, same
+session: Tavern/Store/Guild Hall content no longer pops up at all.
+`TownScreen`'s building nodes are pushed toward the bottom of the screen
+(reusing `OverworldMapCanvas`'s explicit-position support, added for the
+road-network rewrite above) and the selected building's content fills the
+freed space above them in a plain panel appended directly to the screen's
+own root — no `ModalDialog`, no backdrop, nothing intercepting clicks. The
+nodes stay visible and clickable underneath at all times, so switching
+buildings never closes anything.
+
+- `GuildMenu.ts` no longer owns a `ModalDialog` directly — its constructor
+  takes a `GuildMenuHost` (`{ onOpen, onUpdate }`) and only ever builds
+  content, never touching a display mechanism itself. `GameController.ts`
+  now owns the `ModalDialog` explicitly and wires it as the host for the
+  global "Guild" corner button (World Map/Zone screens — unchanged
+  behavior). `TownScreen.ts` constructs its own separate `GuildMenu`
+  instance, hosted by `.town-content-panel` instead — same
+  roster/inventory/recruitment/character-sheet/class-picker code reused
+  with zero duplication, two independent instances so neither's tab/
+  drill-down state leaks into the other.
+- `ZoneContentTables` gained `advancedClasses`/`skills` (the two
+  `GuildMenuContentTables` fields it was missing). `TownScreenCallbacks`
+  now `extends GuildMenuCallbacks`; dropped the now-unused
+  `onOpenGuildMenu` (`ZoneScreen`'s own "Guild" corner button still uses
+  it, unaffected). `ZoneControllerCallbacks` carries the same additions
+  through from `GameController.ts`.
+- Two earlier iterations this same session, rejected in turn: a permanent
+  left-map/right-content split (shrinking the map permanently felt
+  wrong), then a near-full-frame `ModalDialog` overlay with a non-dimmed
+  backdrop (still structurally a popup — centered, rounded corners,
+  shadow, floating in empty space on all four sides — "shouldn't even be
+  a popup"). The non-dimmed `.modal-backdrop` change survived from that
+  second iteration and still benefits the Guild modal and the
+  roaming-encounter muster prompt, both unrelated to the docked-panel work
+  above them.
+- *Verification*: typecheck/tests/build all clean throughout (145 tests
+  unaffected — presentation-only, zero new sim-layer surface). Two new
+  browser scripts confirmed the global Guild modal and the Town-docked
+  Guild panel are genuinely independent (opening one never opens the
+  other), that clicking a different building node while the Guild panel
+  is open switches content in place without closing anything, and that
+  character-sheet drill-down/class-change/tab-switching all render
+  correctly inside the docked panel.

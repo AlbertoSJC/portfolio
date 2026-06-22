@@ -8,57 +8,42 @@ import { MONSTERS } from '../../../src/content/monsters';
 import { RACES } from '../../../src/content/races';
 import { ZONES } from '../../../src/content/zones';
 import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
-import { isWithinBounds } from '../../../src/sim/grid/ZonePathfinding';
-import { positionKey, type GridPosition } from '../../../src/sim/grid/GridPosition';
+import { buildZoneRoadAdjacency } from '../../../src/sim/graph/ZoneRoadGraph';
 import type { GuildMember } from '../../../src/sim/guild/GuildState';
 import type { QuestEnemySpawn } from '../../../src/sim/guild/QuestDefinition';
 import type { ZoneDefinition, ZoneRoamingGroupDefinition } from '../../../src/sim/guild/ZoneDefinition';
 
-const SINGLE_STEP_OFFSETS: readonly GridPosition[] = [
-  { column: 0, row: -1 },
-  { column: 0, row: 1 },
-  { column: -1, row: 0 },
-  { column: 1, row: 0 },
-];
-
 /**
- * BFS over (playerPosition, patrolRouteIndex) states, one grid step per
+ * BFS over (locationIdentifier, patrolRouteIndex) states, one road hop per
  * transition (matching how ZoneSession actually advances), to prove a
- * roaming group can ever end up on the same tile as a player walking from
- * the entry tile. Patrol parity can make a group mathematically
- * uncatchable (player and group position parity flip every step — if the
- * entry tile's parity never matches the route's, they can never coincide)
- * regardless of how cleverly the player paths there.
+ * roaming group can ever end up on the same location as a player walking
+ * from the entry location. A patrol route whose length shares no useful
+ * relationship with the road network's cycle structure can make a group
+ * mathematically uncatchable (the road-graph equivalent of the tile-parity
+ * bug this exact check caught once before) regardless of how cleverly the
+ * player paths there.
  */
 function isRoamingGroupCatchableFromEntry(zone: ZoneDefinition, group: ZoneRoamingGroupDefinition): boolean {
-  const obstacleKeys = new Set(zone.obstacleTiles.map(positionKey));
-  const visited = new Set<string>([`${positionKey(zone.entryTile)}|0`]);
-  const queue: { position: GridPosition; routeIndex: number }[] = [{ position: zone.entryTile, routeIndex: 0 }];
+  const adjacency = buildZoneRoadAdjacency(zone.roads);
+  const visited = new Set<string>([`${zone.entryLocationIdentifier}|0`]);
+  const queue: { locationIdentifier: string; routeIndex: number }[] = [
+    { locationIdentifier: zone.entryLocationIdentifier, routeIndex: 0 },
+  ];
 
   for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
     const current = queue[queueIndex];
     if (current === undefined) continue;
-    const { position, routeIndex } = current;
-    for (const offset of SINGLE_STEP_OFFSETS) {
-      const next = { column: position.column + offset.column, row: position.row + offset.row };
-      if (
-        next.column < 0 ||
-        next.column >= zone.explorationGridWidth ||
-        next.row < 0 ||
-        next.row >= zone.explorationGridHeight ||
-        obstacleKeys.has(positionKey(next))
-      ) {
-        continue;
-      }
+    const { locationIdentifier, routeIndex } = current;
+    for (const neighbor of adjacency.get(locationIdentifier) ?? []) {
       const nextRouteIndex = (routeIndex + 1) % group.patrolRoute.length;
-      const groupPosition = group.patrolRoute[nextRouteIndex];
-      if (groupPosition !== undefined && positionKey(next) === positionKey(groupPosition)) {
+      const groupLocationIdentifier = group.patrolRoute[nextRouteIndex];
+      if (groupLocationIdentifier !== undefined && neighbor === groupLocationIdentifier) {
         return true;
       }
-      const stateKey = `${positionKey(next)}|${nextRouteIndex}`;
+      const stateKey = `${neighbor}|${nextRouteIndex}`;
       if (!visited.has(stateKey)) {
         visited.add(stateKey);
-        queue.push({ position: next, routeIndex: nextRouteIndex });
+        queue.push({ locationIdentifier: neighbor, routeIndex: nextRouteIndex });
       }
     }
   }
@@ -144,50 +129,37 @@ describe('zone content validity', () => {
     }
   });
 
-  it('every exploration-grid tile (entry, tavern, obstacles, patrol routes) is in bounds', () => {
+  it('every location reference (entry, roads, patrol stops) points at a real location', () => {
     for (const zone of Object.values(ZONES)) {
-      const { explorationGridWidth: width, explorationGridHeight: height } = zone;
-      expect(isWithinBounds(zone.entryTile, width, height), `${zone.identifier} entry tile`).toBe(true);
-      expect(isWithinBounds(zone.tavernTile, width, height), `${zone.identifier} tavern tile`).toBe(true);
-      for (const obstacle of zone.obstacleTiles) {
-        expect(isWithinBounds(obstacle, width, height), `${zone.identifier} obstacle`).toBe(true);
+      const locationIdentifiers = new Set(zone.locations.map((location) => location.identifier));
+      expect(locationIdentifiers.has(zone.entryLocationIdentifier), `${zone.identifier} entry location`).toBe(true);
+      for (const road of zone.roads) {
+        expect(locationIdentifiers.has(road.fromLocationIdentifier), `${zone.identifier} road from`).toBe(true);
+        expect(locationIdentifiers.has(road.toLocationIdentifier), `${zone.identifier} road to`).toBe(true);
       }
       for (const group of zone.roamingGroups) {
-        for (const step of group.patrolRoute) {
-          expect(isWithinBounds(step, width, height), `${zone.identifier}/${group.identifier} patrol step`).toBe(
-            true,
-          );
+        for (const stop of group.patrolRoute) {
+          expect(locationIdentifiers.has(stop), `${zone.identifier}/${group.identifier} patrol stop`).toBe(true);
         }
       }
     }
   });
 
-  it('entry, tavern, and patrol tiles never sit on an obstacle', () => {
+  it('every roaming group patrol route has at least two distinct stops, so it can actually roam', () => {
     for (const zone of Object.values(ZONES)) {
-      const obstacleKeys = new Set(zone.obstacleTiles.map((tile) => `${tile.column},${tile.row}`));
-      expect(obstacleKeys.has(`${zone.entryTile.column},${zone.entryTile.row}`), `${zone.identifier} entry`).toBe(
-        false,
-      );
-      expect(obstacleKeys.has(`${zone.tavernTile.column},${zone.tavernTile.row}`), `${zone.identifier} tavern`).toBe(
-        false,
-      );
       for (const group of zone.roamingGroups) {
-        for (const step of group.patrolRoute) {
-          expect(
-            obstacleKeys.has(`${step.column},${step.row}`),
-            `${zone.identifier}/${group.identifier} patrol step`,
-          ).toBe(false);
-        }
+        const distinctStops = new Set(group.patrolRoute);
+        expect(distinctStops.size, `${zone.identifier}/${group.identifier}`).toBeGreaterThanOrEqual(2);
       }
     }
   });
 
-  it('every roaming group can actually be caught by walking from the entry tile', () => {
+  it('every roaming group can actually be caught by walking from the entry location', () => {
     for (const zone of Object.values(ZONES)) {
       for (const group of zone.roamingGroups) {
         expect(
           isRoamingGroupCatchableFromEntry(zone, group),
-          `${zone.identifier}/${group.identifier} is unreachable from the entry tile (likely a parity mismatch)`,
+          `${zone.identifier}/${group.identifier} is unreachable from the entry location (likely a road/route-length mismatch)`,
         ).toBe(true);
       }
     }

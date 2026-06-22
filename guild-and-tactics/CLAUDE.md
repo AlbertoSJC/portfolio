@@ -25,21 +25,39 @@ deterministically, zone exploration too). `src/content/` — typed data
 only. `src/render/` — canvas isometric battle grid; ALL unit visuals go
 through `SpriteRegistry.ts`. `src/ui/` — HTML/CSS overlay HUD + procedural
 WebAudio sounds; `src/ui/overworld/` is the world map + zone + town
-screens, `src/ui/guild/` is the global Guild menu (see Status below — **the
-guild has no home location**, "the village" was fully retired in M4).
+screens, `src/ui/guild/GuildMenu.ts` builds the Guild's roster/inventory/
+recruitment/character-sheet content (see Status below — **the guild has
+no home location**, "the village" was fully retired in M4) but is
+display-agnostic: it hands content to a `GuildMenuHost` (`{onOpen,
+onUpdate}`) rather than owning a `ModalDialog` itself, so the *same*
+content can be shown two ways from two independent instances — as the
+global modal reachable from the World Map/Zone screens, or docked
+directly into a Town screen's own content panel when picking Guild Hall.
 `src/app/` — controllers / composition root (`GameController`,
 `BattleController`, `ZoneController`).
 
+**Town's building content is a docked panel, not a modal** — deliberately
+different from every other popup in the game (Guild's global modal, the
+roaming-encounter muster prompt). `TownScreen.ts` pushes its building
+nodes toward the bottom of the screen (`position: {x, y: 0.86}` on
+`TOWN_BUILDINGS`) and renders the selected building's content into
+`.town-content-panel`, a plain div appended to the screen's own root —
+no backdrop, nothing intercepting clicks, so the nodes stay clickable
+underneath at all times and switching buildings never requires closing
+anything first.
+
 **Map screens are full-bleed, not header+canvas.** World Map, Zone, and
-Town all fill the viewport (`OverworldMapCanvas.ts`/`ZoneGridCanvas.ts`
-track their container's size via `ResizeObserver`) with HTML chrome
-overlaid directly on the canvas: `.map-location-plaque` (bottom-left,
-name + description, `IM Fell English` display font), `.map-status-pill`
-(top-right, gold + reputation tier), `.map-corner-buttons` (bottom-right,
-Guild/World Map/Leave Town). These rules live in `src/ui/sharedPanels.css`
-next to the other cross-screen chrome. `OverworldMapCanvas.ts`'s
-node-graph renderer is shared by the World Map (zone nodes) *and* the
-Town screen (Tavern/Store nodes) — same canvas, different `MapNodeKind`.
+Town all fill the viewport (`OverworldMapCanvas.ts` tracks its container's
+size via `ResizeObserver`) with HTML chrome overlaid directly on the
+canvas: `.map-location-plaque` (bottom-left, name + description, `IM Fell
+English` display font), `.map-status-pill` (top-right, gold + reputation
+tier), `.map-corner-buttons` (bottom-right, Guild/World Map/Leave Town).
+These rules live in `src/ui/sharedPanels.css` next to the other
+cross-screen chrome. `OverworldMapCanvas.ts`'s node-graph renderer is
+shared by the World Map (zone nodes), the Town screen (Tavern/Store
+nodes), *and* a zone's own road map (`ZoneRoadMapCanvas.ts`'s thin wrapper
+over it, adding roaming-group/player tokens) — same canvas, different
+`MapNodeKind`/node positions/edges.
 
 ## Commands
 
@@ -224,17 +242,114 @@ Town screen (Tavern/Store nodes) — same canvas, different `MapNodeKind`.
     specifically (World Map and Zone screens keep it, since they have no
     "town" to host it in).
 
-**146 vitest tests, typecheck clean.**
+**145 vitest tests, typecheck clean.**
 
-**⚠ Open question — revisit the zone exploration grid:** the user is not
-convinced the per-zone walkable "minimap" (the small FFTA1-style grid
-you click-to-move around, §6.0/§6.1 in the README) is actually working —
-not a bug report, a design doubt (engagement/legibility/feel, raised
-2026-06-19 right after playtesting it). Don't treat its current shape as
-settled before building more zones on top of it; revisit this — possibly
-a bigger grid, a different patrol/encounter feel, or a different
-interaction entirely — before investing further here. See README §12 for
-the tracked open-decision entry.
+- ✅ **Zone exploration rewritten: tile grid → named-location road network**
+  (2026-06-22) — resolves the open question raised 2026-06-19 (the boxed
+  4-tile patrol loop read as artificial after playtesting; see README §12,
+  now checked off). Each zone is now a small road network (`ZoneDefinition.
+  locations`/`roads`) instead of a tile grid: one location is the tavern,
+  the rest are plain landmarks, and roaming groups patrol a list of
+  *location identifiers* instead of grid tiles — `wolf_pack`/`boar_herd`
+  now range across 3 locations each, `stoneling_watch` across 4, instead
+  of pacing one corner.
+  - `src/sim/grid/ZonePathfinding.ts` (tile BFS) → `src/sim/graph/
+    ZoneRoadGraph.ts` (`findShortestZoneRoute`, graph BFS over road
+    adjacency; `buildZoneRoadAdjacency` exported and reused by the
+    reachability test below). `ZoneSession.ts` reworked the same way —
+    `movePlayerTo` takes a location identifier, lockstep patrol-advance
+    and collision/`enteredTavern` checks are identifier/`kind === 'tavern'`
+    comparisons instead of `GridPosition` equality.
+  - `OverworldMapCanvas.ts` (the World Map/Town screen's shared node-graph
+    renderer) **generalized, not replaced**: `MapNodeEntry.position` and
+    `createOverworldMapCanvas`'s `edges`/`afterRender` params are all
+    optional and default to the exact prior auto-distributed-row,
+    consecutive-pair-edges behavior — `OverworldScreen.ts`/`TownScreen.ts`
+    needed zero edits. `ZoneGridCanvas.ts` → `ZoneRoadMapCanvas.ts`: a
+    thin wrapper feeding a zone's `locations`/`roads` into that same
+    renderer, adding roaming-group/player tokens via `afterRender`. New
+    `'landmark'` `MapNodeKind` + icon for a zone's plain stops.
+  - **Content bug found and fixed by the existing reachability test, not
+    by playtesting** (same test class that caught the original tile-parity
+    bug in M4's first pass): Quarry Path's 4-stop `stoneling_watch` route
+    formed an even-length cycle on an otherwise bipartite road graph —
+    mathematically uncatchable from the entry location, the road-graph
+    equivalent of the earlier tile-parity bug. Fixed by adding a direct
+    `quarry_path_rim`–`quarry_path_pit` road (also reads fine thematically
+    — the rim overlooks the pit), which breaks the bipartite parity trap.
+  - **Deliberate simplifications, not yet built**: no unique mechanic on
+    landmark locations yet (no location-scoped quests, no flavor-text
+    popup) — this pass was structural/navigational only, per the user's
+    request to fix the patrol's "always in the same fashion" feel before
+    adding anything else on top.
+  - **Verification**: sim layer (`ZoneDefinition`/`ZoneRoadGraph`/
+    `ZoneSession`/zone-content-validity tests) is fully vitest-covered —
+    145 tests, typecheck and build clean. Presentation layer (`ZoneRoadMapCanvas`/
+    `ZoneScreen`/`ZoneController`) has zero new vitest tests, per this
+    project's established pattern for canvas/controller work — verified
+    instead by two browser passes via `tmp/verify_zone_exploration.mjs`
+    (rewritten for the road-network model): North Road, deliberately
+    walking into the wolf pack's patrol (collision → muster prompt → fight
+    selection → battle launched, confirmed via screenshot); Marsh Trail,
+    routing straight to the tavern without colliding (confirmed quest
+    board, store stock, Leave Town, and World Map return all still work).
+    Zero page errors beyond the pre-existing harmless favicon 404.
+- ✅ **Town screen presentation iterated to a docked content panel**
+  (2026-06-22, same session, several rounds of user feedback after
+  playtesting the road-network rewrite above): Tavern/Store/Guild Hall
+  content no longer pops up as a modal at all — `TownScreen`'s building
+  nodes (`TOWN_BUILDINGS`) are pushed toward the bottom of the screen
+  (`position: {x, y: 0.86}`, reusing `OverworldMapCanvas`'s existing
+  explicit-position support from the road-network rewrite) and the
+  selected building's content fills the freed space above them in a
+  plain `.town-content-panel` div appended directly to the screen's own
+  root — not a `ModalDialog`, no backdrop, nothing trapping clicks. The
+  nodes stay visible and clickable underneath at all times, so switching
+  buildings never requires closing anything first.
+  - **`GuildMenu.ts` decoupled from `ModalDialog`**: it used to own one
+    directly; now its constructor takes a `GuildMenuHost`
+    (`{ onOpen, onUpdate }`) and never touches a display mechanism
+    itself — it only ever builds content and hands it to the host.
+    `GameController.ts` now owns a `guildMenuModal: ModalDialog` field
+    explicitly and wires it as the host for the global "Guild" corner
+    button (World Map/Zone screens, behavior unchanged). `TownScreen.ts`
+    constructs its **own separate** `GuildMenu` instance per Town visit,
+    with a host that paints into `.town-content-panel` instead — same
+    roster/inventory/recruitment/character-sheet/class-picker code, zero
+    duplication, two independent instances (so Town's tab/drill-down
+    state doesn't leak into the global modal's, or vice versa).
+  - **Plumbing**: `ZoneContentTables` gained `advancedClasses`/`skills`
+    (the two `GuildMenuContentTables` fields it was missing — already
+    available in `GameController.ts`, just not threaded through before).
+    `TownScreenCallbacks` now `extends GuildMenuCallbacks` (adds
+    `onHireRecruit`/`onEquipItem`/`onUnequipSlot`/`onChangeClass`/
+    `onSetSecondarySkillClass`) and dropped the now-unused
+    `onOpenGuildMenu` (Town's Guild Hall no longer calls back out to
+    `GameController` — `ZoneScreen`'s own "Guild" corner button still
+    does, unaffected). `ZoneControllerCallbacks` carries the same 5
+    additions through from `GameController.ts`.
+  - **Two earlier iterations rejected during this same session** before
+    landing on the above, kept here so the reasoning isn't lost: (1) a
+    permanent left-map/right-content split — rejected, shrinking the map
+    permanently felt wrong; (2) a near-full-frame `ModalDialog` overlay
+    (with a new `town-overlay-content` size variant, later also a
+    `dimBackdrop`-less `.modal-backdrop` for every modal in the game,
+    since all of them sit on top of a map screen) — rejected once dimming
+    was removed too, because it was still structurally a popup (centered,
+    rounded corners, shadow, all four edges floating in empty space) and
+    "shouldn't even be a popup." The non-dimmed `.modal-backdrop` change
+    from that iteration was kept (still benefits the Guild modal and the
+    roaming-encounter muster prompt, both unaffected by the later
+    docked-panel work below them).
+  - **Verification**: typecheck/tests/build all clean throughout (145
+    tests unaffected — this was a presentation-only change with zero new
+    sim-layer surface). Browser-verified via two new scripts: confirmed
+    the global Guild modal (World Map) and the Town-docked Guild panel
+    are genuinely independent (opening one never opens the other), that
+    clicking a different building node while the Guild panel is showing
+    switches content in place without closing anything, and that
+    character-sheet drill-down/class-change/tab-switching all render
+    correctly inside the docked panel.
 
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them

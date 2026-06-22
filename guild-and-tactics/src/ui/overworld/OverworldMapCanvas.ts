@@ -21,17 +21,26 @@ import {
 
 /**
  * `'zone'` — a road/landmark on the World Map. `'tavern'`/`'store'`/
- * `'guild'` — a building on a zone's Town screen. One canvas serves both:
- * the World Map and Town are the same "click a node on a map" interaction
- * at two scales.
+ * `'guild'` — a building on a zone's Town screen. `'landmark'` — a plain
+ * waypoint on a zone's interior road map. One canvas serves all three:
+ * the World Map, Town, and a zone's road map are the same "click a node on
+ * a map" interaction at different scales.
  */
-export type MapNodeKind = 'zone' | 'tavern' | 'store' | 'guild';
+export type MapNodeKind = 'zone' | 'tavern' | 'store' | 'guild' | 'landmark';
 
 export interface MapNodeEntry {
   identifier: string;
   label: string;
   sublabel: string;
   kind: MapNodeKind;
+  /** Normalized (0..1, 0..1) layout position. Omit to auto-distribute in a horizontal row (World Map/Town behavior). */
+  position?: { x: number; y: number };
+}
+
+/** An explicit connection drawn between two nodes. Omit entirely to fall back to connecting consecutive array entries. */
+export interface MapEdge {
+  fromNodeIdentifier: string;
+  toNodeIdentifier: string;
 }
 
 const NODE_WIDTH = 116;
@@ -39,6 +48,8 @@ const NODE_HEIGHT = 72;
 const NODE_CORNER_RADIUS = 7;
 const NODE_HORIZONTAL_MARGIN_FRACTION = 0.12;
 const NODE_HORIZONTAL_MARGIN_MAX = 160;
+const NODE_VERTICAL_MARGIN_FRACTION = 0.18;
+const NODE_VERTICAL_MARGIN_MAX = 120;
 
 const ICON_CENTER_OFFSET_Y = -16;
 const LABEL_OFFSET_Y = 8;
@@ -53,13 +64,35 @@ const COLOR_NODE_BORDER_HOVER = MAP_BORDER_HOVER;
 const COLOR_LABEL = MAP_INK;
 const COLOR_SUBLABEL = MAP_INK_LIGHT;
 
-/** Distributes nodes evenly across the canvas's current width, vertically centered. */
+/**
+ * If every node carries an explicit `position`, maps those normalized
+ * (0..1, 0..1) coordinates onto the canvas. Otherwise distributes nodes
+ * evenly across the canvas's current width, vertically centered — the
+ * exact behavior the World Map and Town screen rely on.
+ */
 function nodeCenters(
   nodes: readonly MapNodeEntry[],
   canvasWidth: number,
   canvasHeight: number,
 ): Map<string, { x: number; y: number }> {
   const centers = new Map<string, { x: number; y: number }>();
+
+  if (nodes.length > 0 && nodes.every((node) => node.position !== undefined)) {
+    const marginX = Math.min(NODE_HORIZONTAL_MARGIN_MAX, canvasWidth * NODE_HORIZONTAL_MARGIN_FRACTION);
+    const marginY = Math.min(NODE_VERTICAL_MARGIN_MAX, canvasHeight * NODE_VERTICAL_MARGIN_FRACTION);
+    const usableWidth = Math.max(canvasWidth - marginX * 2, 0);
+    const usableHeight = Math.max(canvasHeight - marginY * 2, 0);
+    for (const node of nodes) {
+      const position = node.position;
+      if (position === undefined) continue;
+      centers.set(node.identifier, {
+        x: marginX + position.x * usableWidth,
+        y: marginY + position.y * usableHeight,
+      });
+    }
+    return centers;
+  }
+
   const margin = Math.min(NODE_HORIZONTAL_MARGIN_MAX, canvasWidth * NODE_HORIZONTAL_MARGIN_FRACTION);
   const usableWidth = Math.max(canvasWidth - margin * 2, NODE_WIDTH);
   const step = nodes.length > 1 ? usableWidth / (nodes.length - 1) : 0;
@@ -197,6 +230,26 @@ function drawGuildHallIcon(context: CanvasRenderingContext2D, cx: number, cy: nu
   context.stroke();
 }
 
+/** Landmark: a way-marker post with a small sign board, for a plain stop on a zone's road map. */
+function drawLandmarkIcon(context: CanvasRenderingContext2D, cx: number, cy: number): void {
+  const postWidth = 4;
+  const postHeight = 20;
+  const postTop = cy - postHeight / 2 + 4;
+  const signWidth = 16;
+  const signHeight = 8;
+
+  context.fillStyle = MAP_WOOD_DARK;
+  context.fillRect(cx - postWidth / 2, postTop, postWidth, postHeight);
+
+  context.fillStyle = MAP_PARCHMENT_CREAM;
+  context.strokeStyle = MAP_WOOD_DARK;
+  context.lineWidth = 1;
+  context.beginPath();
+  context.rect(cx - signWidth / 2, postTop - signHeight + 2, signWidth, signHeight);
+  context.fill();
+  context.stroke();
+}
+
 function drawNodeIcon(context: CanvasRenderingContext2D, kind: MapNodeKind, cx: number, cy: number): void {
   switch (kind) {
     case 'zone':
@@ -210,6 +263,9 @@ function drawNodeIcon(context: CanvasRenderingContext2D, kind: MapNodeKind, cx: 
       return;
     case 'guild':
       drawGuildHallIcon(context, cx, cy);
+      return;
+    case 'landmark':
+      drawLandmarkIcon(context, cx, cy);
       return;
   }
 }
@@ -245,6 +301,8 @@ function renderNodeMap(
   canvas: HTMLCanvasElement,
   nodes: readonly MapNodeEntry[],
   hoveredNodeIdentifier: string | undefined,
+  edges: readonly MapEdge[] | undefined,
+  afterRender: ((context: CanvasRenderingContext2D, centers: Map<string, { x: number; y: number }>) => void) | undefined,
 ): void {
   const context = canvas.getContext('2d');
   if (context === null) return;
@@ -257,14 +315,26 @@ function renderNodeMap(
   context.strokeStyle = COLOR_PATH;
   context.lineWidth = 2.5;
   context.setLineDash([8, 5]);
-  for (let nodeIndex = 0; nodeIndex < nodes.length - 1; nodeIndex += 1) {
-    const from = centers.get(nodes[nodeIndex]?.identifier ?? '');
-    const to = centers.get(nodes[nodeIndex + 1]?.identifier ?? '');
-    if (from === undefined || to === undefined) continue;
-    context.beginPath();
-    context.moveTo(from.x, from.y);
-    context.lineTo(to.x, to.y);
-    context.stroke();
+  if (edges !== undefined) {
+    for (const edge of edges) {
+      const from = centers.get(edge.fromNodeIdentifier);
+      const to = centers.get(edge.toNodeIdentifier);
+      if (from === undefined || to === undefined) continue;
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+    }
+  } else {
+    for (let nodeIndex = 0; nodeIndex < nodes.length - 1; nodeIndex += 1) {
+      const from = centers.get(nodes[nodeIndex]?.identifier ?? '');
+      const to = centers.get(nodes[nodeIndex + 1]?.identifier ?? '');
+      if (from === undefined || to === undefined) continue;
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+    }
   }
   context.setLineDash([]);
 
@@ -293,6 +363,7 @@ function renderNodeMap(
   }
 
   drawMapVignette(context, canvas.width, canvas.height);
+  afterRender?.(context, centers);
 }
 
 // ── Hit testing ───────────────────────────────────────────────────────────────
@@ -318,13 +389,19 @@ function nodeFromCanvasPoint(
 /**
  * A full-bleed node-graph map: the canvas tracks its container's rendered
  * size (via ResizeObserver) instead of an intrinsic pixel size, so it fills
- * the screen on any viewport — the World Map and a zone's Town screen both
- * use this, just with a different node list/kind.
+ * the screen on any viewport — the World Map, a zone's Town screen, and a
+ * zone's interior road map all use this, just with a different node
+ * list/kind. `edges` draws explicit connections (defaults to connecting
+ * consecutive array entries, the World Map/Town behavior) and `afterRender`
+ * lets a caller layer extra markers on top (e.g. roaming-group/player
+ * tokens) without this generic renderer knowing anything about them.
  */
 export function createOverworldMapCanvas(
   nodes: readonly MapNodeEntry[],
   sounds: UserInterfaceSounds,
   onNodeSelected: (identifier: string) => void,
+  edges?: readonly MapEdge[],
+  afterRender?: (context: CanvasRenderingContext2D, centers: Map<string, { x: number; y: number }>) => void,
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.className = 'overworld-map-canvas';
@@ -340,7 +417,7 @@ export function createOverworldMapCanvas(
       canvas.width = width;
       canvas.height = height;
     }
-    renderNodeMap(canvas, nodes, hoveredNodeIdentifier);
+    renderNodeMap(canvas, nodes, hoveredNodeIdentifier, edges, afterRender);
   }
 
   const resizeObserver = new ResizeObserver(resizeAndRender);
@@ -360,13 +437,13 @@ export function createOverworldMapCanvas(
         sounds.playMenuHover();
       }
       hoveredNodeIdentifier = hit;
-      renderNodeMap(canvas, nodes, hoveredNodeIdentifier);
+      renderNodeMap(canvas, nodes, hoveredNodeIdentifier, edges, afterRender);
     }
   });
 
   canvas.addEventListener('mouseleave', () => {
     hoveredNodeIdentifier = undefined;
-    renderNodeMap(canvas, nodes, hoveredNodeIdentifier);
+    renderNodeMap(canvas, nodes, hoveredNodeIdentifier, edges, afterRender);
   });
 
   canvas.addEventListener('click', (event) => {

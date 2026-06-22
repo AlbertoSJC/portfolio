@@ -5,7 +5,7 @@ import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumber
 
 const TEST_GROUP: ZoneRoamingGroupDefinition = {
   identifier: 'test_group',
-  patrolRoute: [{ column: 0, row: 0 }],
+  patrolRoute: ['test_location'],
   monsterIdentifiers: ['twisted_wolf', 'gnarlroot'],
   minimumEnemyCount: 1,
   maximumEnemyCount: 2,

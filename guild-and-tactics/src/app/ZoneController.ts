@@ -1,8 +1,9 @@
-import type { GridPosition } from '../sim/grid/GridPosition';
-import { findShortestZonePath } from '../sim/grid/ZonePathfinding';
+import { findShortestZoneRoute } from '../sim/graph/ZoneRoadGraph';
 import type { GuildState } from '../sim/guild/GuildState';
 import type { ZoneDefinition } from '../sim/guild/ZoneDefinition';
 import { ZoneSession } from '../sim/guild/ZoneSession';
+import type { EquipmentSlot } from '../sim/items/EquipmentDefinition';
+import type { BaseClassIdentifier, ClassIdentifier } from '../sim/units/Unit';
 import type { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
 import type { MemberContentTables } from '../ui/village/presenters/MemberPresenters';
 import { ZoneScreen } from '../ui/overworld/zone/ZoneScreen';
@@ -19,6 +20,11 @@ export interface ZoneControllerCallbacks {
   onBuyEquipment: (equipmentIdentifier: string) => void;
   onSellEquipment: (equipmentIdentifier: string) => void;
   onRoamingGroupCaught: (roamingGroupIdentifier: string, deployedMemberIdentifiers: string[]) => void;
+  onHireRecruit: (recruitMemberIdentifier: string) => void;
+  onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;
+  onUnequipSlot: (memberIdentifier: string, slot: EquipmentSlot) => void;
+  onChangeClass: (memberIdentifier: string, classIdentifier: ClassIdentifier) => void;
+  onSetSecondarySkillClass: (memberIdentifier: string, classIdentifier: BaseClassIdentifier | undefined) => void;
 }
 
 type ZoneVisitMode = 'exploring' | 'town';
@@ -26,11 +32,11 @@ type ZoneVisitMode = 'exploring' | 'town';
 /**
  * Drives one zone visit: owns the pure ZoneSession (player + patrol state)
  * and two DOM screens sharing the same root — the walkable ZoneScreen and
- * the TownScreen reached by stepping onto the tavern tile. On a click
- * while exploring, computes the path once via ZonePathfinding, then steps
- * through it one cell at a time so the player can watch roaming groups
- * patrol — mirrors BattleController's role for the tactical grid, just
- * for exploration instead of combat.
+ * the TownScreen reached by stepping onto a tavern location. On a click
+ * while exploring, computes the route once via findShortestZoneRoute, then
+ * steps through it one location at a time so the player can watch roaming
+ * groups patrol — mirrors BattleController's role for the tactical grid,
+ * just for exploration instead of combat.
  */
 export class ZoneController {
   private readonly zone: ZoneDefinition;
@@ -57,18 +63,22 @@ export class ZoneController {
     this.callbacks = callbacks;
     this.session = new ZoneSession(zone);
     this.screen = new ZoneScreen(rootElement, sounds, memberContent, {
-      onCellClicked: (position) => this.handleCellClicked(position),
+      onLocationClicked: (locationIdentifier) => this.handleLocationClicked(locationIdentifier),
       onOpenGuildMenu: callbacks.onOpenGuildMenu,
       onReturnToWorldMap: callbacks.onReturnToWorldMap,
     });
     this.townScreen = new TownScreen(rootElement, sounds, content, {
-      onOpenGuildMenu: callbacks.onOpenGuildMenu,
       onLeaveTown: () => this.leaveTown(),
       onEmbarkQuest: callbacks.onEmbarkQuest,
       onBuyItem: callbacks.onBuyItem,
       onSellItem: callbacks.onSellItem,
       onBuyEquipment: callbacks.onBuyEquipment,
       onSellEquipment: callbacks.onSellEquipment,
+      onHireRecruit: callbacks.onHireRecruit,
+      onEquipItem: callbacks.onEquipItem,
+      onUnequipSlot: callbacks.onUnequipSlot,
+      onChangeClass: callbacks.onChangeClass,
+      onSetSecondarySkillClass: callbacks.onSetSecondarySkillClass,
     });
     this.renderScreen();
   }
@@ -99,8 +109,8 @@ export class ZoneController {
     this.screen.render(
       this.zone,
       this.guild,
-      this.session.getPlayerPosition(),
-      this.session.getActiveRoamingGroupPositions(),
+      this.session.getPlayerLocationIdentifier(),
+      this.session.getActiveRoamingGroupLocations(),
     );
   }
 
@@ -115,32 +125,37 @@ export class ZoneController {
     this.renderScreen();
   }
 
-  private handleCellClicked(target: GridPosition): void {
+  private handleLocationClicked(targetLocationIdentifier: string): void {
     if (this.isMoving) {
       return;
     }
-    const path = findShortestZonePath(
-      this.session.getPlayerPosition(),
-      target,
-      this.zone.explorationGridWidth,
-      this.zone.explorationGridHeight,
-      this.zone.obstacleTiles,
-    );
-    if (path === undefined || path.length === 0) {
+    const currentLocationIdentifier = this.session.getPlayerLocationIdentifier();
+    if (targetLocationIdentifier === currentLocationIdentifier) {
+      // Clicking the location you're already standing on (e.g. re-entering
+      // a tavern after leaving it) finds an empty route, since there's
+      // nowhere to walk — re-arrive at it directly instead, which still
+      // ticks roaming groups once and re-checks collision/tavern, exactly
+      // like a normal step would.
+      this.isMoving = true;
+      this.stepAlongRoute([targetLocationIdentifier], 0);
+      return;
+    }
+    const route = findShortestZoneRoute(currentLocationIdentifier, targetLocationIdentifier, this.zone.roads);
+    if (route === undefined || route.length === 0) {
       return;
     }
     this.isMoving = true;
-    this.stepAlongPath(path, 0);
+    this.stepAlongRoute(route, 0);
   }
 
-  private stepAlongPath(path: readonly GridPosition[], stepIndex: number): void {
-    const nextPosition = path[stepIndex];
-    if (nextPosition === undefined) {
+  private stepAlongRoute(route: readonly string[], stepIndex: number): void {
+    const nextLocationIdentifier = route[stepIndex];
+    if (nextLocationIdentifier === undefined) {
       this.isMoving = false;
       return;
     }
-    const result = this.session.movePlayerTo(nextPosition);
-    this.screen.rerenderGrid(this.session.getPlayerPosition(), this.session.getActiveRoamingGroupPositions());
+    const result = this.session.movePlayerTo(nextLocationIdentifier);
+    this.screen.rerenderGrid(this.session.getPlayerLocationIdentifier(), this.session.getActiveRoamingGroupLocations());
 
     if (result.collidedGroupIdentifier !== undefined) {
       this.isMoving = false;
@@ -152,12 +167,12 @@ export class ZoneController {
       this.enterTown();
       return;
     }
-    if (stepIndex + 1 >= path.length) {
+    if (stepIndex + 1 >= route.length) {
       this.isMoving = false;
       return;
     }
     this.pendingTimeoutIdentifiers.push(
-      window.setTimeout(() => this.stepAlongPath(path, stepIndex + 1), STEP_DELAY_MILLISECONDS),
+      window.setTimeout(() => this.stepAlongRoute(route, stepIndex + 1), STEP_DELAY_MILLISECONDS),
     );
   }
 

@@ -1,12 +1,13 @@
+import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
 import type { BattleMap } from '../../../sim/grid/BattleMap';
 import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
 import type { QuestDefinition } from '../../../sim/guild/QuestDefinition';
 import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
 import type { ConsumableItemDefinition } from '../../../sim/items/ConsumableItemDefinition';
 import type { EquipmentDefinition } from '../../../sim/items/EquipmentDefinition';
-import type { BaseClassDefinition, RaceDefinition } from '../../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../../sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
-import { ModalDialog } from '../../village/ModalDialog';
+import { GuildMenu, type GuildMenuCallbacks } from '../../guild/GuildMenu';
 import {
   buildStoreCardViewModels,
   STORE_FILTER_ENTRIES,
@@ -28,10 +29,11 @@ export interface ZoneContentTables {
   battleMapsByIdentifier: Record<string, { map: BattleMap }>;
   races: Record<string, RaceDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
+  advancedClasses: Record<string, AdvancedClassDefinition>;
+  skills: Record<string, SkillDefinition>;
 }
 
-export interface TownScreenCallbacks {
-  onOpenGuildMenu: () => void;
+export interface TownScreenCallbacks extends GuildMenuCallbacks {
   onLeaveTown: () => void;
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
   onBuyItem: (itemIdentifier: string) => void;
@@ -40,33 +42,46 @@ export interface TownScreenCallbacks {
   onSellEquipment: (equipmentIdentifier: string) => void;
 }
 
-type TownModalState =
+type TownContentState =
   | { kind: 'tavern'; questDetailIdentifier: string | undefined }
-  | { kind: 'store'; storeFilter: StoreFilter };
+  | { kind: 'store'; storeFilter: StoreFilter }
+  | { kind: 'guild' };
 
+type TownPanelContentState = Exclude<TownContentState, { kind: 'guild' }>;
+
+// Pushed down (high y) so the upper half of the screen is free for the
+// content panel — the building nodes stay visible and clickable below it,
+// no matter what (or whether) the panel is currently showing.
 const TOWN_BUILDINGS: MapNodeEntry[] = [
-  { identifier: 'tavern', label: 'Tavern', sublabel: 'Quests', kind: 'tavern' },
-  { identifier: 'store', label: 'Store', sublabel: 'Buy & Sell', kind: 'store' },
-  { identifier: 'guild', label: 'Guild Hall', sublabel: 'Roster', kind: 'guild' },
+  { identifier: 'tavern', label: 'Tavern', sublabel: 'Quests', kind: 'tavern', position: { x: 0.12, y: 0.86 } },
+  { identifier: 'store', label: 'Store', sublabel: 'Buy & Sell', kind: 'store', position: { x: 0.5, y: 0.86 } },
+  { identifier: 'guild', label: 'Guild Hall', sublabel: 'Roster', kind: 'guild', position: { x: 0.88, y: 0.86 } },
 ];
 
 /**
  * A zone's town: a full-bleed building-map (Tavern + Store + Guild Hall),
- * the way walking onto the tavern tile used to just pop a two-tab modal.
- * Mirrors the old (retired) `VillageScreen`'s pattern. The Guild Hall node
- * opens the same global Guild menu reachable everywhere else — it's shown
- * here as a building (clearer in a town context) rather than only as a
- * corner button; the guild itself still has no fixed home.
+ * its nodes pushed toward the bottom of the screen. Picking a building
+ * shows its content — quest board, store, or the Guild's roster/inventory/
+ * recruitment — directly in the freed-up space above the nodes, as a
+ * panel that's part of this same screen, not a separate modal/overlay
+ * layer — the nodes stay visible and clickable the whole time, so
+ * switching between buildings never requires closing anything first.
+ * Guild Hall reuses `GuildMenu`'s content-building (the same class also
+ * used for the global "Guild" corner button reachable from the World Map/
+ * Zone screens, where there's no docked panel to embed it in — that path
+ * still opens it as a modal), just hosted in this panel instead of a
+ * modal, via `GuildMenuHost`'s onOpen/onUpdate hooks.
  */
 export class TownScreen {
   private readonly rootElement: HTMLElement;
   private readonly sounds: UserInterfaceSounds;
   private readonly content: ZoneContentTables;
   private readonly callbacks: TownScreenCallbacks;
-  private readonly modal: ModalDialog;
+  private readonly guildMenu: GuildMenu;
+  private contentPanelElement: HTMLElement | undefined;
   private currentZone: ZoneDefinition | undefined;
   private lastGuild: GuildState | undefined;
-  private modalState: TownModalState | undefined;
+  private contentState: TownContentState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
 
   constructor(
@@ -79,7 +94,17 @@ export class TownScreen {
     this.sounds = sounds;
     this.content = content;
     this.callbacks = callbacks;
-    this.modal = new ModalDialog(document.body, sounds);
+    this.guildMenu = new GuildMenu(sounds, content, callbacks, {
+      onOpen: (guildContent) => {
+        this.contentState = { kind: 'guild' };
+        this.showContentPanel(guildContent);
+      },
+      onUpdate: (guildContent) => {
+        if (this.contentState?.kind === 'guild') {
+          this.showContentPanel(guildContent);
+        }
+      },
+    });
   }
 
   render(zone: ZoneDefinition, guild: GuildState): void {
@@ -120,10 +145,20 @@ export class TownScreen {
     );
     this.rootElement.appendChild(cornerButtons);
 
-    this.synchronizeModal();
+    this.contentPanelElement = document.createElement('div');
+    this.contentPanelElement.className = 'town-content-panel hidden';
+    this.rootElement.appendChild(this.contentPanelElement);
+
+    if (this.contentState?.kind === 'guild') {
+      // contentPanelElement was just rebuilt from scratch above — repaint
+      // the Guild content into it via the same host hook a tab switch uses.
+      this.guildMenu.refresh(guild);
+    } else {
+      this.renderContentPanel();
+    }
   }
 
-  /** Re-renders with fresh guild data (e.g. after a purchase) without touching the open modal's identity. */
+  /** Re-renders with fresh guild data (e.g. after a purchase) without losing the open panel's identity. */
   refreshGuild(guild: GuildState): void {
     if (this.currentZone === undefined) return;
     this.render(this.currentZone, guild);
@@ -135,43 +170,56 @@ export class TownScreen {
   }
 
   private openBuilding(buildingIdentifier: string): void {
-    if (buildingIdentifier === 'guild') {
-      this.callbacks.onOpenGuildMenu();
-      return;
-    }
     this.selectedMemberIdentifiers.clear();
     if (buildingIdentifier === 'tavern') {
-      this.modalState = { kind: 'tavern', questDetailIdentifier: undefined };
+      this.contentState = { kind: 'tavern', questDetailIdentifier: undefined };
+      this.renderContentPanel();
     } else if (buildingIdentifier === 'store') {
-      this.modalState = { kind: 'store', storeFilter: 'all' };
-    } else {
+      this.contentState = { kind: 'store', storeFilter: 'all' };
+      this.renderContentPanel();
+    } else if (buildingIdentifier === 'guild' && this.lastGuild !== undefined) {
+      this.guildMenu.open(this.lastGuild);
+    }
+  }
+
+  private closeContentPanel(): void {
+    this.contentState = undefined;
+    this.renderContentPanel();
+  }
+
+  private rerenderContent(): void {
+    this.renderContentPanel();
+  }
+
+  /** Shows the panel with a close button in front of the given content — shared by Tavern/Store and the embedded GuildMenu's host hooks. */
+  private showContentPanel(content: HTMLElement): void {
+    if (this.contentPanelElement === undefined) return;
+    this.contentPanelElement.classList.remove('hidden');
+    const closeButton = document.createElement('button');
+    closeButton.className = 'town-content-panel-close';
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => {
+      this.sounds.playMenuCancel();
+      this.closeContentPanel();
+    });
+    this.contentPanelElement.replaceChildren(closeButton, content);
+  }
+
+  /** Rebuilds the Tavern/Store content panel in place, or hides it entirely when nothing is selected. Guild content is handled by GuildMenu's own host hooks instead. */
+  private renderContentPanel(): void {
+    if (this.contentPanelElement === undefined) return;
+    const state = this.contentState;
+    if (state === undefined) {
+      this.contentPanelElement.classList.add('hidden');
+      this.contentPanelElement.replaceChildren();
       return;
     }
-    this.synchronizeModal();
+    if (state.kind === 'guild') return;
+    if (this.lastGuild === undefined || this.currentZone === undefined) return;
+    this.showContentPanel(this.buildContentElement(this.lastGuild, this.currentZone, state));
   }
 
-  private rerenderModal(): void {
-    this.synchronizeModal();
-  }
-
-  private synchronizeModal(): void {
-    if (this.modalState === undefined || this.lastGuild === undefined || this.currentZone === undefined) {
-      if (this.modal.isOpen()) {
-        this.modal.close();
-      }
-      return;
-    }
-    const content = this.buildModalContent(this.lastGuild, this.currentZone, this.modalState);
-    if (this.modal.isOpen()) {
-      this.modal.refreshContent(content);
-    } else {
-      this.modal.open(content, () => {
-        this.modalState = undefined;
-      });
-    }
-  }
-
-  private buildModalContent(guild: GuildState, zone: ZoneDefinition, state: TownModalState): HTMLElement {
+  private buildContentElement(guild: GuildState, zone: ZoneDefinition, state: TownPanelContentState): HTMLElement {
     if (state.kind === 'store') {
       return this.buildStoreContent(guild, zone.identifier, state.storeFilter);
     }
@@ -197,11 +245,11 @@ export class TownScreen {
     for (const viewModel of buildQuestCardViewModels(guild, zoneIdentifier, this.content)) {
       questList.appendChild(
         renderQuestCard(viewModel, this.sounds, () => {
-          if (this.modalState?.kind === 'tavern') {
-            this.modalState.questDetailIdentifier = viewModel.questIdentifier;
+          if (this.contentState?.kind === 'tavern') {
+            this.contentState.questDetailIdentifier = viewModel.questIdentifier;
           }
           this.selectedMemberIdentifiers.clear();
-          this.rerenderModal();
+          this.rerenderContent();
         }),
       );
     }
@@ -215,8 +263,7 @@ export class TownScreen {
     return renderQuestDetail(viewModel, musterCards, this.sounds, {
       onToggleMember: (memberIdentifier) => this.toggleMusterMember(memberIdentifier),
       onEmbark: () => {
-        this.modalState = undefined;
-        this.modal.forceClose();
+        this.contentState = undefined;
         this.callbacks.onEmbarkQuest(quest.identifier, [...this.selectedMemberIdentifiers]);
       },
     });
@@ -235,10 +282,10 @@ export class TownScreen {
         className: 'store-filter-bar',
         sounds: this.sounds,
         onSelect: (filter) => {
-          if (this.modalState?.kind === 'store') {
-            this.modalState.storeFilter = filter;
+          if (this.contentState?.kind === 'store') {
+            this.contentState.storeFilter = filter;
           }
-          this.rerenderModal();
+          this.rerenderContent();
         },
       }),
     );
@@ -274,6 +321,6 @@ export class TownScreen {
       this.selectedMemberIdentifiers.add(memberIdentifier);
       this.sounds.playMenuConfirm();
     }
-    this.rerenderModal();
+    this.rerenderContent();
   }
 }

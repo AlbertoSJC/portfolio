@@ -234,8 +234,7 @@ its own:
   **independently stocked per zone** (buying out one zone's potions never
   touches another's shelves). Inventory grows with guild reputation tier
   (reputation itself is guild-wide, not per-zone).
-- **Roaming monster groups** — visible on the zone's exploration grid; see
-  §6.1.
+- **Roaming monster groups** — visible on the zone's road map; see §6.1.
 
 Recruitment (a rotating set of hireable candidates — random race / base
 class / minor stat variance, for gold) is **global**, via the Guild menu,
@@ -257,37 +256,50 @@ same swap-point principle as `SpriteRegistry`:
 - **World map** (zoomed out, FFTA2-style): zone nodes connected by roads.
   Clicking a node enters that zone. There is no "home" node — by design,
   the guild has nowhere it belongs.
-- **Zone screen** (zoomed in, **FFTA1-style**): a small walkable grid you
-  actually move on, one click pathfinds to the target tile and then steps
-  through it cell-by-cell (not a single jump) so roaming groups visibly
-  patrol in sync with you — see §6.1. Contains a tavern tile and one or
-  more roaming groups.
-- **Town screen**: stepping onto a zone's tavern tile opens its own
+- **Zone screen** (zoomed in, **FFTA1-style — revised 2026-06-22**): a
+  small named-location **road network**, not a walkable tile grid — a
+  handful of locations (one a tavern, the rest plain landmarks) connected
+  by roads. One click finds the shortest route via the road graph and
+  steps through it one location at a time (not a single jump) so roaming
+  groups visibly patrol in sync with you — see §6.1. The earlier tile-grid
+  version (a 9x7 grid with a 4-tile boxed patrol loop) is retired: it read
+  as artificial on playtesting, since the patrol had nowhere to roam *to*.
+  The road-network model gives patrols real range across several
+  locations instead of pacing one corner.
+- **Town screen**: stepping onto a zone's tavern location opens its own
   full-screen building-map (Tavern + Store + **Guild Hall** as
-  icon-nodes), not a popup — the same "click a node" interaction as the
-  World Map, just zoomed to one zone's buildings. The Tavern's quest
-  board opens automatically on arrival (no extra click needed); the Guild
-  Hall node opens the same global Guild menu reachable everywhere else,
-  giving the guild a clearer entry point while standing in a town without
-  giving it a fixed home. Clicking Store opens it as a focused overlay; a
-  corner button leaves Town back to the same spot on the walkable grid.
+  icon-nodes, pushed toward the bottom of the screen), the same "click a
+  node" interaction as the World Map, just zoomed to one zone's buildings.
+  Picking a building shows its content — quest board, store, or the
+  Guild's roster/inventory/recruitment — directly in the freed-up space
+  above the nodes, as a plain panel in the same screen, **not a modal**:
+  the nodes stay visible and clickable underneath the whole time, so
+  switching buildings never requires closing anything first. The Tavern's
+  quest board opens automatically on arrival (no extra click needed). The
+  Guild Hall node shows the same roster/inventory/recruitment content the
+  global Guild menu (reachable from the World Map/Zone screens) shows,
+  just docked in this panel instead of a modal — giving the guild a
+  clearer entry point while standing in a town without giving it a fixed
+  home. A corner button leaves Town back to the same spot on the road
+  network.
 - **v1 scope (decided)**: the first 3 zones (North Road, Marsh Trail,
-  Quarry Path) reuse the 3 existing battle maps and monster pools as their
-  exploration grids. **More zones/settlements are explicitly future
-  iterations**, not part of this pass — see the CHANGELOG.
+  Quarry Path) reuse the 3 existing battle maps and monster pools, now as
+  5-6 location road networks each instead of tile grids. **More
+  zones/settlements are explicitly future iterations**, not part of this
+  pass — see the CHANGELOG.
 
 ### 6.1 Roaming encounters (decided — replaces the original dice-roll design)
 
 No hidden chance roll. Each zone has one or more **roaming groups**: an
-enemy party patrolling a fixed loop on the zone's exploration grid,
-generated (not authored) per fight.
+enemy party patrolling a fixed loop of named locations on the zone's road
+network, generated (not authored) per fight.
 
-- **Movement is turn-synced and deterministic**: every time the player's
-  token takes one step, every active roaming group also advances one step
-  along its patrol route. Nothing is hidden — a group's position is always
-  knowable by watching it.
-- **Trigger**: a battle starts only if the player's tile and a roaming
-  group's tile coincide after a step. This is **avoidable** — routing
+- **Movement is turn-synced and deterministic**: every time the player
+  moves to a new location, every active roaming group also advances one
+  stop along its patrol route. Nothing is hidden — a group's location is
+  always knowable by watching it.
+- **Trigger**: a battle starts only if the player's location and a roaming
+  group's location coincide after a move. This is **avoidable** — routing
   around a group to reach the tavern without fighting is a legitimate
   strategy, not a failure state.
 - **Enemy parties are generated, not authored**: each roaming group has a
@@ -300,6 +312,11 @@ generated (not authored) per fight.
 - **Losing** forfeits the reward but keeps kill XP (same retreat rule as
   quests, §5). **Winning** removes that roaming group for the rest of the
   current visit; leaving and re-entering the zone resets it.
+- **Patrol routes must stay reachable**: a route whose length doesn't mix
+  well with the road network's cycle structure can be mathematically
+  uncatchable (the road-graph equivalent of the tile-grid's old parity
+  bug) — `EncounterBattleAssembly.test.ts` checks every zone's roaming
+  group against this before it ships.
 - **Not yet built**: a real mid-battle "flee" action (today, avoidance
   happens by routing around a group before contact, not by retreating from
   an already-started fight); monster level-scaling by region (monsters are
@@ -477,6 +494,25 @@ days of work, not a rewrite.
      theme instead of a flat blue/navy HTML-default look; Town now opens
      straight into the Tavern's quest board on arrival; the Guild Hall
      became a 3rd Town building node (§6.0).
+   - ✅ **Zone exploration: tile grid → named-location road network** —
+     done 2026-06-22, resolving the §12 open question flagged 2026-06-19
+     (a boxed 4-tile patrol loop read as artificial). Each zone is now a
+     small road network of named locations (one tavern, the rest
+     landmarks) instead of a 9x7 tile grid; roaming groups patrol several
+     locations instead of pacing one corner. A reachability test caught a
+     real content bug in the new model the same way it caught one in the
+     old (§6.1) — see the CHANGELOG.
+   - ✅ **Town screen: from modal popups to a docked content panel** —
+     done 2026-06-22, same session, after further playtesting feedback.
+     Tavern/Store/Guild Hall content no longer pops up — Town's building
+     nodes are pushed to the bottom of the screen and the selected
+     building's content fills the freed space above them as a plain panel
+     in the same screen, not a `ModalDialog`; the nodes stay clickable
+     underneath throughout. `GuildMenu` was decoupled from `ModalDialog`
+     so the same roster/inventory/recruitment/character-sheet content can
+     be hosted either way (the global modal, or Town's docked panel) from
+     two independent instances — see the CHANGELOG for the two rejected
+     intermediate iterations.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 
@@ -505,15 +541,17 @@ days of work, not a rewrite.
       guild's name, not a place; roster/inventory/recruitment live in a
       persistent Guild menu reachable from anywhere (§6).
 - [x] **World map structure**: → **two-level, FFTA-hybrid** — a zoomed-out
-      world map of zone nodes (FFTA2-style) opens into walkable,
-      FFTA1-style exploration grids with visible, avoidable, patrolling
-      roaming monster groups (§6.0/§6.1). Supersedes an initial same-day
+      world map of zone nodes (FFTA2-style) opens into walkable, named-
+      location road networks with visible, avoidable, patrolling roaming
+      monster groups (§6.0/§6.1). Supersedes an initial same-day
       dice-roll design.
-- [ ] **Zone exploration grid ("the inside minimap")**: shipped (§6.0/
-      §6.1) but **not confirmed as a keeper** — flagged 2026-06-19, after
-      playtesting, as possibly not actually working well (engagement/
-      legibility/feel, not a bug). Revisit before building more zones on
-      this pattern; see CLAUDE.md's open-question note for the same item.
+- [x] **Zone exploration grid ("the inside minimap")**: flagged 2026-06-19,
+      after playtesting, as not feeling like a keeper (a boxed 4-tile
+      patrol loop read as artificial, and the layout didn't resemble
+      either FFTA1 or FFTA2). **Resolved 2026-06-22** → replaced the tile
+      grid with a small named-location **road network** per zone (one
+      tavern location, the rest plain landmarks, roaming groups patrolling
+      across several locations instead of one corner) — see §6.0/§6.1.
 
 ## 13. Explicitly out of scope (v1)
 

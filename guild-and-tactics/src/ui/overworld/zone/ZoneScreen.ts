@@ -1,17 +1,16 @@
-import type { GridPosition } from '../../../sim/grid/GridPosition';
 import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
 import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
-import type { ZoneRoamingGroupPosition } from '../../../sim/guild/ZoneSession';
+import type { ZoneRoamingGroupLocation } from '../../../sim/guild/ZoneSession';
 import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
 import { ModalDialog } from '../../village/ModalDialog';
 import { buildMusterCardViewModels, type MemberContentTables } from '../../village/presenters/MemberPresenters';
 import { createHintParagraph } from '../../village/views/DomPrimitives';
 import { renderMusterCard } from '../../village/views/MemberCardViews';
 import { createSoundedButton } from '../../village/views/SoundedButton';
-import { createZoneGridCanvas } from './ZoneGridCanvas';
+import { createZoneRoadMapCanvas } from './ZoneRoadMapCanvas';
 
 export interface ZoneScreenCallbacks {
-  onCellClicked: (position: GridPosition) => void;
+  onLocationClicked: (locationIdentifier: string) => void;
   onOpenGuildMenu: () => void;
   onReturnToWorldMap: () => void;
 }
@@ -22,7 +21,7 @@ interface CollisionMusterState {
 }
 
 /**
- * The walkable exploration grid for one zone: a full-bleed map with a
+ * The walkable road-network map for one zone: a full-bleed map with a
  * location plaque, status pill, and corner buttons (Guild, World Map)
  * instead of a header bar. Its only modal is the "muster your patrol"
  * prompt that appears the instant a roaming group is caught — the Tavern
@@ -55,8 +54,8 @@ export class ZoneScreen {
   render(
     zone: ZoneDefinition,
     guild: GuildState,
-    playerPosition: GridPosition,
-    activeGroupPositions: readonly ZoneRoamingGroupPosition[],
+    playerLocationIdentifier: string,
+    activeGroupLocations: readonly ZoneRoamingGroupLocation[],
   ): void {
     this.currentZone = zone;
     this.lastGuild = guild;
@@ -65,8 +64,8 @@ export class ZoneScreen {
     const mapContainer = document.createElement('div');
     mapContainer.className = 'map-fullbleed-canvas-container';
     mapContainer.appendChild(
-      createZoneGridCanvas(zone, playerPosition, activeGroupPositions, this.sounds, (position) =>
-        this.callbacks.onCellClicked(position),
+      createZoneRoadMapCanvas(zone, playerLocationIdentifier, activeGroupLocations, this.sounds, (locationIdentifier) =>
+        this.callbacks.onLocationClicked(locationIdentifier),
       ),
     );
     this.rootElement.appendChild(mapContainer);
@@ -106,9 +105,9 @@ export class ZoneScreen {
   }
 
   /** Re-renders in place — call after every exploration step. */
-  rerenderGrid(playerPosition: GridPosition, activeGroupPositions: readonly ZoneRoamingGroupPosition[]): void {
+  rerenderGrid(playerLocationIdentifier: string, activeGroupLocations: readonly ZoneRoamingGroupLocation[]): void {
     if (this.currentZone === undefined || this.lastGuild === undefined) return;
-    this.render(this.currentZone, this.lastGuild, playerPosition, activeGroupPositions);
+    this.render(this.currentZone, this.lastGuild, playerLocationIdentifier, activeGroupLocations);
   }
 
   openCollisionMuster(encounterLabel: string, onConfirm: (deployedMemberIdentifiers: string[]) => void): void {

@@ -6,20 +6,25 @@ const TEST_ZONE: ZoneDefinition = {
   identifier: 'test_zone',
   displayName: 'Test Zone',
   description: 'A zone used only in tests.',
-  explorationGridWidth: 5,
-  explorationGridHeight: 5,
-  obstacleTiles: [],
-  entryTile: { column: 0, row: 0 },
-  tavernTile: { column: 4, row: 4 },
+  entryLocationIdentifier: 'gate',
+  locations: [
+    { identifier: 'gate', displayName: 'Gate', kind: 'landmark', position: { x: 0, y: 0.5 } },
+    { identifier: 'crossing', displayName: 'Crossing', kind: 'landmark', position: { x: 0.3, y: 0.5 } },
+    { identifier: 'grove', displayName: 'Grove', kind: 'landmark', position: { x: 0.6, y: 0.2 } },
+    { identifier: 'bridge', displayName: 'Bridge', kind: 'landmark', position: { x: 0.6, y: 0.8 } },
+    { identifier: 'tavern', displayName: 'Tavern', kind: 'tavern', position: { x: 1, y: 0.5 } },
+  ],
+  roads: [
+    { fromLocationIdentifier: 'gate', toLocationIdentifier: 'crossing' },
+    { fromLocationIdentifier: 'crossing', toLocationIdentifier: 'grove' },
+    { fromLocationIdentifier: 'crossing', toLocationIdentifier: 'bridge' },
+    { fromLocationIdentifier: 'grove', toLocationIdentifier: 'tavern' },
+    { fromLocationIdentifier: 'bridge', toLocationIdentifier: 'tavern' },
+  ],
   roamingGroups: [
     {
       identifier: 'wolf_pack',
-      patrolRoute: [
-        { column: 2, row: 0 },
-        { column: 2, row: 1 },
-        { column: 2, row: 2 },
-        { column: 2, row: 1 },
-      ],
+      patrolRoute: ['crossing', 'grove', 'bridge'],
       monsterIdentifiers: ['twisted_wolf'],
       minimumEnemyCount: 1,
       maximumEnemyCount: 2,
@@ -31,63 +36,71 @@ const TEST_ZONE: ZoneDefinition = {
 };
 
 describe('ZoneSession', () => {
-  it('starts the player on the entry tile and groups at their first patrol position', () => {
+  it('starts the player on the entry location and groups at their first patrol stop', () => {
     const session = new ZoneSession(TEST_ZONE);
-    expect(session.getPlayerPosition()).toEqual(TEST_ZONE.entryTile);
-    expect(session.getActiveRoamingGroupPositions()).toEqual([
-      { groupIdentifier: 'wolf_pack', position: { column: 2, row: 0 } },
+    expect(session.getPlayerLocationIdentifier()).toBe('gate');
+    expect(session.getActiveRoamingGroupLocations()).toEqual([
+      { groupIdentifier: 'wolf_pack', locationIdentifier: 'crossing' },
     ]);
   });
 
-  it('advances every active group one patrol step per player step', () => {
+  it('advances every active group one patrol stop per player move', () => {
     const session = new ZoneSession(TEST_ZONE);
-    session.movePlayerTo({ column: 1, row: 0 });
-    expect(session.getActiveRoamingGroupPositions()).toEqual([
-      { groupIdentifier: 'wolf_pack', position: { column: 2, row: 1 } },
+    session.movePlayerTo('crossing');
+    expect(session.getActiveRoamingGroupLocations()).toEqual([
+      { groupIdentifier: 'wolf_pack', locationIdentifier: 'grove' },
     ]);
-    session.movePlayerTo({ column: 1, row: 1 });
-    expect(session.getActiveRoamingGroupPositions()).toEqual([
-      { groupIdentifier: 'wolf_pack', position: { column: 2, row: 2 } },
+    session.movePlayerTo('grove');
+    expect(session.getActiveRoamingGroupLocations()).toEqual([
+      { groupIdentifier: 'wolf_pack', locationIdentifier: 'bridge' },
     ]);
   });
 
   it('loops the patrol route back to the start', () => {
     const session = new ZoneSession(TEST_ZONE);
-    for (let step = 0; step < 4; step += 1) {
-      session.movePlayerTo({ column: step, row: 0 });
-    }
-    expect(session.getActiveRoamingGroupPositions()).toEqual([
-      { groupIdentifier: 'wolf_pack', position: { column: 2, row: 0 } },
+    session.movePlayerTo('crossing');
+    session.movePlayerTo('grove');
+    session.movePlayerTo('tavern');
+    expect(session.getActiveRoamingGroupLocations()).toEqual([
+      { groupIdentifier: 'wolf_pack', locationIdentifier: 'crossing' },
     ]);
   });
 
-  it('reports a collision when the player and a group end up on the same tile', () => {
-    // The pack starts at (2,0) and steps to (2,1) on this same move — landing
-    // on (2,1) is where the collision happens, not the pack's old tile.
+  it('reports a collision when the player and a group end up on the same location', () => {
+    // The pack starts at 'crossing' and steps to 'grove' on this same move —
+    // landing on 'grove' is where the collision happens, not the pack's old stop.
     const session = new ZoneSession(TEST_ZONE);
-    const result = session.movePlayerTo({ column: 2, row: 1 });
+    const result = session.movePlayerTo('grove');
     expect(result.collidedGroupIdentifier).toBe('wolf_pack');
     expect(result.enteredTavern).toBe(false);
   });
 
-  it('does not collide when the player walks onto a tile the group just left', () => {
+  it('does not collide when the player walks onto a location the group just left', () => {
     const session = new ZoneSession(TEST_ZONE);
-    const result = session.movePlayerTo({ column: 2, row: 0 });
+    const result = session.movePlayerTo('crossing');
     expect(result.collidedGroupIdentifier).toBeUndefined();
   });
 
-  it('reports entering the tavern tile', () => {
+  it('reports entering the tavern', () => {
+    // Patrol stops are crossing(0) -> grove(1) -> bridge(2), advancing once
+    // per move; routing gate -> crossing -> grove -> tavern keeps the
+    // player one stop behind the pack the whole way (group is at grove
+    // when the player arrives at crossing, at bridge when the player
+    // arrives at grove, at crossing when the player arrives at the tavern).
     const session = new ZoneSession(TEST_ZONE);
-    const result = session.movePlayerTo({ column: 4, row: 4 });
-    expect(result.enteredTavern).toBe(true);
-    expect(result.collidedGroupIdentifier).toBeUndefined();
+    session.movePlayerTo('crossing');
+    const midResult = session.movePlayerTo('grove');
+    expect(midResult.collidedGroupIdentifier).toBeUndefined();
+    const tavernResult = session.movePlayerTo('tavern');
+    expect(tavernResult.collidedGroupIdentifier).toBeUndefined();
+    expect(tavernResult.enteredTavern).toBe(true);
   });
 
-  it('removes a defeated group from collisions and from the active positions list', () => {
+  it('removes a defeated group from collisions and from the active locations list', () => {
     const session = new ZoneSession(TEST_ZONE);
     session.markGroupDefeated('wolf_pack');
-    const result = session.movePlayerTo({ column: 2, row: 0 });
+    const result = session.movePlayerTo('crossing');
     expect(result.collidedGroupIdentifier).toBeUndefined();
-    expect(session.getActiveRoamingGroupPositions()).toEqual([]);
+    expect(session.getActiveRoamingGroupLocations()).toEqual([]);
   });
 });
