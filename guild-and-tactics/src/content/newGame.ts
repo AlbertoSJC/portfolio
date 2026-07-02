@@ -93,7 +93,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
   const tier = reputationTierForQuestCount(guild.completedQuestCount);
   for (const zone of Object.values(ZONES)) {
     restockStore(guild, zone.identifier, ITEMS, EQUIPMENT, tier);
-    refillQuestBoard(guild, zone.identifier, questIdentifiersForZone(zone, QUESTS), randomNumberGenerator);
+    refillQuestBoard(guild, zone.identifier, questIdentifiersForZone(zone, QUESTS, tier), randomNumberGenerator);
   }
   guild.recruitsOnOffer = generateRecruitOffers(
     randomNumberGenerator,

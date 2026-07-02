@@ -9,6 +9,7 @@ import { QUESTS } from '../../../src/content/quests';
 import { RACES } from '../../../src/content/races';
 import { ZONES } from '../../../src/content/zones';
 import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
+import { questIdentifiersForZone } from '../../../src/sim/guild/QuestBoard';
 import type { GuildMember } from '../../../src/sim/guild/GuildState';
 
 const CONTENT_TABLES = {
@@ -97,6 +98,17 @@ describe('quest content validity', () => {
   it('every quest belongs to an existing zone', () => {
     for (const quest of Object.values(QUESTS)) {
       expect(ZONES[quest.zoneIdentifier], `zone for ${quest.identifier}`).toBeDefined();
+    }
+  });
+
+  it('every zone offers at least one quest to a fresh bronze guild', () => {
+    // Rank gating hides harder quests from low-reputation guilds — a zone
+    // whose pool is all rank 2+ would present an empty tavern board.
+    for (const zone of Object.values(ZONES)) {
+      expect(
+        questIdentifiersForZone(zone, QUESTS, 'bronze').length,
+        `bronze-offerable quests in ${zone.identifier}`,
+      ).toBeGreaterThan(0);
     }
   });
 

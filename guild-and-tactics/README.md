@@ -551,6 +551,21 @@ days of work, not a rewrite.
      battle summary with gold + XP. 4 dispatches across the 3 zones;
      always-succeed in v1 (a stat-based success roll is a future
      iteration).
+   - ✅ **Harder quest ranks gated by reputation tier** — done 2026-07-02:
+     tavern boards post ★ quests from bronze, ★★ from silver, ★★★ from
+     gold, mirroring the store's silent tier gating; boards self-heal
+     (pre-gating saves get locked ranks pruned at boot) and refresh across
+     all zones on every tier-up. Three new quests shipped so every zone
+     has bronze work and a rank-3 capstone (11 total). Closes the
+     "remaining tier hooks" note from the 2026-06-18 reputation bullet —
+     new-zone gating remains for when more zones exist.
+   - ✅ **Gold-tier gear layer** — done 2026-07-02: ten masterwork pieces
+     gated behind gold reputation (weapons one per base class, two armors,
+     two accessories, two consumables), so the tier that unlocks ★★★
+     quests has something to spend the rewards on. Fixed a pre-existing
+     store leak found during verification: tier-gated merchandise used to
+     render as permanent "Out of stock" cards below its tier; the store
+     now hides locked tiers entirely.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

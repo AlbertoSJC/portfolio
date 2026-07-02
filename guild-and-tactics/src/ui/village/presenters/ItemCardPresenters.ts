@@ -5,6 +5,11 @@ import {
 } from '../../../sim/guild/GuildState';
 import { storeStockOf } from '../../../sim/guild/StoreStock';
 import {
+  meetsReputationRequirement,
+  reputationTierForQuestCount,
+  type ReputationTier,
+} from '../../../sim/guild/ReputationTier';
+import {
   describeConsumableEffect,
   sellPriceForItem,
   type ConsumableItemDefinition,
@@ -83,21 +88,39 @@ export function describeClassRestriction(
     .join(', ');
 }
 
+/** Tier-gated merchandise is not shown at all below its tier (the shelves
+ *  are never stocked with it either — see StoreStock.restockStore); "Out of
+ *  stock" is reserved for genuinely sold-out shelves. */
+function isMerchandiseVisible(
+  currentTier: ReputationTier,
+  merchandise: { minimumReputationTier?: ReputationTier },
+): boolean {
+  return (
+    merchandise.minimumReputationTier === undefined ||
+    meetsReputationRequirement(currentTier, merchandise.minimumReputationTier)
+  );
+}
+
 export function buildStoreCardViewModels(
   guild: GuildState,
   zoneIdentifier: string,
   content: ItemContentTables,
   storeFilter: StoreFilter,
 ): StoreCardViewModel[] {
+  const currentTier = reputationTierForQuestCount(guild.completedQuestCount);
   const storeCards: StoreCardViewModel[] = [];
   if (storeFilter === 'all' || storeFilter === 'consumables') {
     for (const item of Object.values(content.items)) {
-      storeCards.push(buildConsumableStoreCard(guild, zoneIdentifier, item));
+      if (isMerchandiseVisible(currentTier, item)) {
+        storeCards.push(buildConsumableStoreCard(guild, zoneIdentifier, item));
+      }
     }
   }
   for (const equipment of Object.values(content.equipment)) {
     if (storeFilter === 'all' || storeFilter === equipment.slot) {
-      storeCards.push(buildEquipmentStoreCard(guild, zoneIdentifier, equipment, content));
+      if (isMerchandiseVisible(currentTier, equipment)) {
+        storeCards.push(buildEquipmentStoreCard(guild, zoneIdentifier, equipment, content));
+      }
     }
   }
   return storeCards;

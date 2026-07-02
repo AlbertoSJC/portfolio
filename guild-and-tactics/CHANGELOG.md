@@ -1004,3 +1004,64 @@ slightly (all level-ups now before all masteries), nothing else.
   store panel, character sheet), plus a one-off buy check confirming the
   re-wired store commands persist correctly (gold 300→270, potion count
   up).
+
+**2026-07-02 — Harder quest ranks gated by reputation tier (M4).**
+
+- *The last un-hooked tier reward*: reputation previously gated only store
+  stock and recruit-offer count. Tavern boards now post quests by
+  `difficultyRank` — ★ from bronze, ★★ from silver, ★★★ from gold
+  (`REQUIRED_REPUTATION_TIER_BY_QUEST_RANK` in `src/sim/guild/QuestBoard.ts`),
+  mirroring the store's `minimumReputationTier` pattern: locked ranks are
+  simply not posted, no locked-card UI (consistent with the store's silent
+  gating — a deliberate simplification, revisit if players miss the carrot).
+- **`questIdentifiersForZone(zone, quests, currentTier)`** now takes the
+  guild's tier and filters the offerable pool; `refillQuestBoard` became
+  self-healing (board entries no longer in the offerable pool are dropped
+  before refilling), which retro-prunes rank-gated quests from pre-gating
+  saves at boot — no save-format bump needed (still v5).
+- **Boards refresh on tier-up everywhere**: `GameController` now refills
+  every zone's board unconditionally at boot *and* after every quest
+  completion (previously: only when a zone's board was `undefined` at boot,
+  plus the completed zone) — otherwise a tier-up would never surface newly
+  unlocked quests in zones the player wasn't questing in, since a board
+  only refilled on a completion in that same zone.
+- *Three new quests* so every zone has bronze work and a rank-3 capstone
+  (Quarry Path's pool was all rank 2 — a bronze guild would have seen an
+  empty board): ★ *Fangs at the Ford* (Marsh Trail), ★ *The Masons'
+  Complaint* (Quarry Path), ★★★ *The Pit Floor Wakes* (Quarry Path,
+  6 foes, 260 gold). Spawn positions reuse tiles already validated on
+  those maps. 11 quests total (§8 target ~40).
+- *Verification*: 193 vitest tests (4 new: rank filtering per tier against
+  real content, board self-pruning, and a content-validity rule — **every
+  zone must offer at least one bronze-eligible quest**, same spirit as the
+  patrol-catchability test), typecheck/build clean. Browser pass via
+  `tmp/verify_quest_gating.mjs`: a bronze guild whose pre-gating save
+  already held the rank-3 *Heart of the Dark Grove* on the marsh board
+  boots with it pruned and only ★ contracts posted; a gold guild sees the
+  full pool including ★★/★★★ (screenshots
+  `tmp/verify_gating_1_bronze_board.png` / `_2_gold_board.png`).
+
+**2026-07-02 — Gold-tier gear layer + store visibility fix (M4 content).**
+
+- *Ten gold-tier pieces* (`minimumReputationTier: 'gold'`), giving the
+  gold tier something to buy now that it unlocks ★★★ quests: masterwork
+  weapons one per base class (Borderwarden Blade, Galecut Dagger,
+  Stormglass Staff, Shrinekeeper's Crosier), two armors (Warded Plate,
+  Windwoven Mantle), two accessories (Charm of the Eighth Life,
+  Emberglass Pendant), two consumables (Apothecary's Finest 120 HP,
+  Superior Ether 25 MP). Naming follows LORE.md (Breir wind-craft for the
+  werecat pieces, Kosh pyre-glass for the undead-flavored pendant,
+  godless-lightning stormglass for the mage staff). 25 equipment + 5
+  consumables total (§8 target ~80).
+- **Pre-existing store leak found and fixed while verifying**: the store
+  panel rendered the entire catalog, so tier-gated merchandise showed as
+  permanent "Out of stock" cards below its tier (silver pieces were
+  visible to bronze guilds ever since tier gating shipped 2026-06-18).
+  `buildStoreCardViewModels` now filters by the guild's current tier —
+  "Out of stock" is reserved for genuinely sold-out shelves, and locked
+  tiers are invisible, matching the tavern's silent rank gating.
+- *Verification*: 193 vitest tests / typecheck / build clean (data-only
+  content + a presenter change, no new sim surface). Browser pass via
+  `tmp/verify_gold_store.mjs`: bronze store shows base stock only (no
+  silver or gold pieces — the leak check), gold store stocks all ten new
+  pieces (screenshot `tmp/verify_gold_store.png`).

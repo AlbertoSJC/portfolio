@@ -445,11 +445,14 @@ over it, adding roaming-group/player tokens) — same canvas, different
 2. If it's a new battle map: add it to `battleMapRegistry.ts` **with
    `deploymentTiles` and `encounterSpawnTiles`** (both map-space).
 3. Quests for its tavern: add to `quests.ts` with `zoneIdentifier` set
-   to the new zone (any battle map).
+   to the new zone (any battle map). **At least one must be rank 1** —
+   ranks are reputation-gated (★ bronze / ★★ silver / ★★★ gold), so a
+   zone without rank-1 work shows fresh guilds an empty board.
 4. Run `npm test` — content validity is enforced automatically per zone:
    patrol-route **catchability** (parity traps are real, see
    `EncounterBattleAssembly.test.ts`), road/location references, level
-   range sanity, spawn-tile standability, quest→zone references. Store
+   range sanity, spawn-tile standability, quest→zone references, ≥1
+   bronze-eligible quest per zone. Store
    stock + quest board for the new zone self-heal on next boot
    (`hasZoneBeenStocked` / board-undefined checks in `GameController`).
 
@@ -475,10 +478,46 @@ over it, adding roaming-group/player tokens) — same canvas, different
   Architecture section above — this boundary is now documented and should
   be kept.
 
-**189 vitest tests, typecheck clean.**
+- ✅ **Harder quest ranks gated by reputation tier** (2026-07-02): tavern
+  boards post quests by `difficultyRank` — ★ bronze, ★★ silver, ★★★ gold
+  (`REQUIRED_REPUTATION_TIER_BY_QUEST_RANK`, `src/sim/guild/QuestBoard.ts`),
+  the store's silent-gating pattern (no locked-card UI — deliberate).
+  - `questIdentifiersForZone(zone, quests, currentTier)` filters the pool;
+    `refillQuestBoard` is now **self-healing** (drops board entries not in
+    the offerable pool before filling), so pre-gating saves get locked
+    ranks pruned at boot — save format still v5.
+  - `GameController` refills **every** zone's board unconditionally at boot
+    and after every quest completion (a tier-up must surface newly unlocked
+    quests in zones the player isn't questing in; previously boards only
+    refilled when `undefined` at boot or on a completion in that zone).
+  - 3 new quests — every zone needs bronze work (Quarry Path was all rank
+    2 ⇒ empty bronze board): ★ Fangs at the Ford (marsh), ★ The Masons'
+    Complaint (quarry), ★★★ The Pit Floor Wakes (quarry). New
+    content-validity test: **every zone must offer ≥1 bronze-eligible
+    quest** (`QuestBattleAssembly.test.ts`) — any new zone needs a rank-1
+    quest or its tavern is empty for fresh guilds.
+  - Browser pass: `tmp/verify_quest_gating.mjs` (bronze prune + gold
+    unlock, screenshots).
+
+- ✅ **Gold-tier gear layer** (2026-07-02, same session): 10 masterwork
+  pieces at `minimumReputationTier: 'gold'` — weapons one per base class
+  (Borderwarden Blade, Galecut Dagger, Stormglass Staff, Shrinekeeper's
+  Crosier), armors (Warded Plate, Windwoven Mantle), accessories (Charm
+  of the Eighth Life, Emberglass Pendant), consumables (Apothecary's
+  Finest 120 HP, Superior Ether 25 MP). 25 equipment + 5 consumables
+  total (§8 target ~80).
+  - **Pre-existing store leak fixed**: `buildStoreCardViewModels`
+    (`ItemCardPresenters.ts`) rendered the whole catalog, so tier-gated
+    merchandise showed as permanent "Out of stock" cards below its tier
+    (silver pieces were visible to bronze guilds since 2026-06-18). It now
+    filters by the guild's current tier — locked tiers are invisible,
+    matching the tavern's silent rank gating.
+  - Browser pass: `tmp/verify_gold_store.mjs` (bronze store shows neither
+    silver nor gold pieces; gold store stocks all ten).
+
+**193 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them
   yet (see binding rule above: do not invent lore)
 - More maps, quests, and items (toward §8 content targets)
-- Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)

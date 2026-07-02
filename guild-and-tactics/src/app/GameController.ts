@@ -93,9 +93,15 @@ export class GameController {
       if (!hasZoneBeenStocked(this.guild, zone.identifier)) {
         restockStore(this.guild, zone.identifier, ITEMS, EQUIPMENT, bootTier);
       }
-      if (this.guild.questIdentifiersOnBoard[zone.identifier] === undefined) {
-        refillQuestBoard(this.guild, zone.identifier, questIdentifiersForZone(zone, QUESTS), this.randomNumberGenerator);
-      }
+      // Boards refill unconditionally: refillQuestBoard is self-healing, so
+      // this also prunes rank-gated quests from pre-gating saves and offers
+      // newly added or newly unlocked quests without a completion in the zone.
+      refillQuestBoard(
+        this.guild,
+        zone.identifier,
+        questIdentifiersForZone(zone, QUESTS, bootTier),
+        this.randomNumberGenerator,
+      );
     }
     this.saveGameStorage.persistGuildSave(this.guild);
 
@@ -330,10 +336,20 @@ export class GameController {
         this.guild,
         zone.identifier,
         quest.identifier,
-        questIdentifiersForZone(zone, QUESTS),
+        questIdentifiersForZone(zone, QUESTS, reputationTierForQuestCount(this.guild.completedQuestCount)),
         this.randomNumberGenerator,
       );
       const tier = reputationTierForQuestCount(this.guild.completedQuestCount);
+      // A tier-up unlocks harder quest ranks on EVERY zone's board, not just
+      // the one the completed quest came from.
+      for (const eachZone of Object.values(ZONES)) {
+        refillQuestBoard(
+          this.guild,
+          eachZone.identifier,
+          questIdentifiersForZone(eachZone, QUESTS, tier),
+          this.randomNumberGenerator,
+        );
+      }
       restockStore(this.guild, zone.identifier, ITEMS, EQUIPMENT, tier);
       this.guild.recruitsOnOffer = generateRecruitOffers(
         this.randomNumberGenerator,

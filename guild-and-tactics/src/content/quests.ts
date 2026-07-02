@@ -53,6 +53,22 @@ export const QUESTS: Record<string, QuestDefinition> = {
     rewardGold: 90,
     rewardExperience: 60,
   },
+  fangs_at_the_ford: {
+    identifier: 'fangs_at_the_ford',
+    displayName: 'Fangs at the Ford',
+    description:
+      'Twisted wolves have come down from the woods to hunt the causeway crossings. Clear the ford before the fish-carts stop running.',
+    difficultyRank: 1,
+    zoneIdentifier: 'marsh_trail',
+    battleMapIdentifier: 'marsh_road',
+    enemySpawns: [
+      { monsterIdentifier: 'twisted_wolf', position: { column: 4, row: 1 } },
+      { monsterIdentifier: 'twisted_wolf', position: { column: 8, row: 1 } },
+      { monsterIdentifier: 'twisted_boar', position: { column: 6, row: 2 } },
+    ],
+    rewardGold: 75,
+    rewardExperience: 50,
+  },
   lights_in_the_mire: {
     identifier: 'lights_in_the_mire',
     displayName: 'Lights in the Mire',
@@ -69,6 +85,22 @@ export const QUESTS: Record<string, QuestDefinition> = {
     ],
     rewardGold: 130,
     rewardExperience: 90,
+  },
+  the_masons_complaint: {
+    identifier: 'the_masons_complaint',
+    displayName: 'The Masons’ Complaint',
+    description:
+      'One walking stone and the wolves that follow it have the cutting crews hiding in their sheds. Small work, honest pay.',
+    difficultyRank: 1,
+    zoneIdentifier: 'quarry_path',
+    battleMapIdentifier: 'old_quarry',
+    enemySpawns: [
+      { monsterIdentifier: 'stoneling', position: { column: 6, row: 2 } },
+      { monsterIdentifier: 'twisted_wolf', position: { column: 3, row: 1 } },
+      { monsterIdentifier: 'twisted_wolf', position: { column: 10, row: 2 } },
+    ],
+    rewardGold: 80,
+    rewardExperience: 55,
   },
   the_quarry_stirs: {
     identifier: 'the_quarry_stirs',
@@ -103,6 +135,25 @@ export const QUESTS: Record<string, QuestDefinition> = {
     ],
     rewardGold: 150,
     rewardExperience: 100,
+  },
+  the_pit_floor_wakes: {
+    identifier: 'the_pit_floor_wakes',
+    displayName: 'The Pit Floor Wakes',
+    description:
+      'The deep cut is moving all at once now — stone, root, and a pale light that has no business underground. The masons have stopped asking for their pit back; they want it sealed.',
+    difficultyRank: 3,
+    zoneIdentifier: 'quarry_path',
+    battleMapIdentifier: 'old_quarry',
+    enemySpawns: [
+      { monsterIdentifier: 'stoneling', position: { column: 4, row: 2 } },
+      { monsterIdentifier: 'stoneling', position: { column: 6, row: 2 } },
+      { monsterIdentifier: 'stoneling', position: { column: 8, row: 2 } },
+      { monsterIdentifier: 'gnarlroot', position: { column: 2, row: 2 } },
+      { monsterIdentifier: 'gnarlroot', position: { column: 9, row: 3 } },
+      { monsterIdentifier: 'hollow_wisp', position: { column: 7, row: 1 } },
+    ],
+    rewardGold: 260,
+    rewardExperience: 175,
   },
   the_pack_alpha: {
     identifier: 'the_pack_alpha',

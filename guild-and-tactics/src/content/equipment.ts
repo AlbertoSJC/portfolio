@@ -101,6 +101,48 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     grantedSkillIdentifier: 'dawns_mercy',
   },
 
+  // ── Gold-tier weapons (masterwork — PRD §7 item tiers) ─────────────────
+  borderwarden_blade: {
+    identifier: 'borderwarden_blade',
+    displayName: 'Borderwarden Blade',
+    description: 'Forged for the wall-watch that holds the safe lands. It has never been on the losing side of a border.',
+    slot: 'weapon',
+    priceInGold: 400,
+    statisticBonuses: { attack: 8, defense: 1 },
+    allowedClasses: ['warrior'],
+    minimumReputationTier: 'gold',
+  },
+  galecut_dagger: {
+    identifier: 'galecut_dagger',
+    displayName: 'Galecut Dagger',
+    description: 'Werecat masterwork, sharpened on Breir’s own wind. It arrives before the hand that holds it.',
+    slot: 'weapon',
+    priceInGold: 380,
+    statisticBonuses: { attack: 5, speed: 2 },
+    allowedClasses: ['thief'],
+    minimumReputationTier: 'gold',
+  },
+  stormglass_staff: {
+    identifier: 'stormglass_staff',
+    displayName: 'Stormglass Staff',
+    description: 'Sand struck by godless lightning, drawn into a rod. No shrine claims it; it doesn’t seem to mind.',
+    slot: 'weapon',
+    priceInGold: 420,
+    statisticBonuses: { magicPower: 7 },
+    allowedClasses: ['mage'],
+    minimumReputationTier: 'gold',
+  },
+  shrinekeepers_crosier: {
+    identifier: 'shrinekeepers_crosier',
+    displayName: 'Shrinekeeper’s Crosier',
+    description: 'Passed keeper to keeper at the old shrines. Every faith that held it left a blessing behind.',
+    slot: 'weapon',
+    priceInGold: 400,
+    statisticBonuses: { magicPower: 5, magicResistance: 3 },
+    allowedClasses: ['priest'],
+    minimumReputationTier: 'gold',
+  },
+
   // ── Armor ──────────────────────────────────────────────────────────────
   leather_vest: {
     identifier: 'leather_vest',
@@ -127,6 +169,24 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     priceInGold: 85,
     statisticBonuses: { defense: 1, evasion: 0.04 },
   },
+  warded_plate: {
+    identifier: 'warded_plate',
+    displayName: 'Warded Plate',
+    description: 'Plate armor etched with earth-wards. The Darkness has to knock first.',
+    slot: 'armor',
+    priceInGold: 350,
+    statisticBonuses: { defense: 6, magicResistance: 2, speed: -1 },
+    minimumReputationTier: 'gold',
+  },
+  windwoven_mantle: {
+    identifier: 'windwoven_mantle',
+    displayName: 'Windwoven Mantle',
+    description: 'Cloth with Breir’s breath in the weave. Blows land where the wearer just was.',
+    slot: 'armor',
+    priceInGold: 320,
+    statisticBonuses: { defense: 3, evasion: 0.06 },
+    minimumReputationTier: 'gold',
+  },
   // ── Accessories ────────────────────────────────────────────────────────
   swift_charm: {
     identifier: 'swift_charm',
@@ -151,5 +211,23 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     slot: 'accessory',
     priceInGold: 110,
     statisticBonuses: { manaPointsMaximum: 6 },
+  },
+  charm_of_the_eighth_life: {
+    identifier: 'charm_of_the_eighth_life',
+    displayName: 'Charm of the Eighth Life',
+    description: 'A werecat keepsake, one life folded away for later. Nobody sells the ninth.',
+    slot: 'accessory',
+    priceInGold: 340,
+    statisticBonuses: { hitPointsMaximum: 10, evasion: 0.03 },
+    minimumReputationTier: 'gold',
+  },
+  emberglass_pendant: {
+    identifier: 'emberglass_pendant',
+    displayName: 'Emberglass Pendant',
+    description: 'Kosh-fired glass from the pyre shrines. Warm to the touch, deeper than it looks.',
+    slot: 'accessory',
+    priceInGold: 330,
+    statisticBonuses: { magicPower: 2, manaPointsMaximum: 8 },
+    minimumReputationTier: 'gold',
   },
 };
