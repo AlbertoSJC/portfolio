@@ -1,17 +1,18 @@
 import type { GridPosition } from '../grid/GridPosition';
 import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator';
 import type { QuestEnemySpawn } from './QuestDefinition';
-import type { ZoneRoamingGroupDefinition } from './ZoneDefinition';
+import type { MonsterLevelRange, ZoneRoamingGroupDefinition } from './ZoneDefinition';
 
 /**
  * Rolls a fresh enemy party for a roaming group caught on the exploration
  * grid: a random count in the group's range, each on a unique tile from
  * the zone's battle-map spawn pool with a random monster from the group's
- * table.
+ * table, at a level rolled from the zone's monster level range.
  */
 export function generateEncounterEnemySpawns(
   roamingGroup: ZoneRoamingGroupDefinition,
   encounterSpawnTiles: readonly GridPosition[],
+  monsterLevelRange: MonsterLevelRange,
   randomNumberGenerator: SeededRandomNumberGenerator,
 ): QuestEnemySpawn[] {
   const enemyCount = randomNumberGenerator.nextIntegerBetween(
@@ -30,7 +31,11 @@ export function generateEncounterEnemySpawns(
     if (position === undefined || monsterIdentifier === undefined) {
       continue;
     }
-    spawns.push({ monsterIdentifier, position });
+    const spawnLevel = randomNumberGenerator.nextIntegerBetween(
+      monsterLevelRange.minimumLevel,
+      monsterLevelRange.maximumLevel,
+    );
+    spawns.push({ monsterIdentifier, position, spawnLevel });
   }
   return spawns;
 }

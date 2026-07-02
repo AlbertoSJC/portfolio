@@ -75,6 +75,7 @@ export class OverworldScreen {
       label: zone.displayName,
       sublabel: 'Zone',
       kind: 'zone',
+      position: zone.worldMapPosition,
     }));
   }
 }

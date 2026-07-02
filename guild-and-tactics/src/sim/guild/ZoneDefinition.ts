@@ -1,5 +1,3 @@
-import type { GridPosition } from '../grid/GridPosition';
-
 export type ZoneLocationKind = 'tavern' | 'landmark';
 
 /**
@@ -48,6 +46,12 @@ export interface ZoneDefinition {
   identifier: string;
   displayName: string;
   description: string;
+  /**
+   * Normalized (0..1, 0..1) node position on the World Map. Optional: when
+   * every zone sets one the World Map uses them; when any zone omits it,
+   * all zones fall back to the auto-distributed row (set all or none).
+   */
+  worldMapPosition?: { x: number; y: number };
 
   // ── Exploration (the walkable road network) ───────────────────────────
   entryLocationIdentifier: string;
@@ -56,8 +60,15 @@ export interface ZoneDefinition {
   roamingGroups: ZoneRoamingGroupDefinition[];
 
   // ── Battle assembly (the tactical grid a collision/quest plays on) ────
+  /** Also supplies the encounter spawn tiles — they live on the map entry. */
   battleMapIdentifier: string;
-  /** Pre-validated standable tiles enemies may spawn on for a roaming-group fight. */
-  encounterSpawnTiles: GridPosition[];
+  /** Each roaming-encounter monster spawns at a level rolled from this range. */
+  monsterLevelRange: MonsterLevelRange;
   rewardGoldPerEncounter: number;
+}
+
+/** Inclusive level range a zone's roaming-encounter monsters spawn within. */
+export interface MonsterLevelRange {
+  minimumLevel: number;
+  maximumLevel: number;
 }

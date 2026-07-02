@@ -18,6 +18,13 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
       jumpHeight: 2,
       evasion: 0.1,
     },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 5,
+      attack: 2,
+      defense: 1,
+      magicResistance: 1,
+      evasion: 0.01,
+    },
     canFly: false,
     skillIdentifiers: ['savage_bite'],
     // Twisted wolves burn easily and shy from sacred light.
@@ -38,6 +45,12 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
       movementRange: 3,
       jumpHeight: 1,
       evasion: 0,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 6,
+      attack: 2,
+      defense: 2,
+      magicResistance: 1,
     },
     canFly: false,
     skillIdentifiers: ['rock_slam'],
@@ -60,6 +73,12 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
       jumpHeight: 1,
       evasion: 0.05,
     },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 6,
+      attack: 2,
+      defense: 1,
+      magicResistance: 1,
+    },
     canFly: false,
     skillIdentifiers: ['goring_charge'],
     // Boars are tough but burn.
@@ -81,6 +100,14 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
       jumpHeight: 2,
       evasion: 0.15,
     },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 3,
+      manaPointsMaximum: 3,
+      magicPower: 2,
+      magicResistance: 2,
+      defense: 1,
+      evasion: 0.01,
+    },
     canFly: true,
     skillIdentifiers: ['dark_bolt'],
     // A knot of the Darkness itself: Sacred burns it, Dark feeds it.
@@ -101,6 +128,13 @@ export const MONSTERS: Record<string, MonsterDefinition> = {
       movementRange: 3,
       jumpHeight: 1,
       evasion: 0.02,
+    },
+    statisticGrowthPerLevel: {
+      hitPointsMaximum: 5,
+      attack: 2,
+      defense: 1,
+      magicPower: 1,
+      magicResistance: 1,
     },
     canFly: false,
     skillIdentifiers: ['root_lash'],

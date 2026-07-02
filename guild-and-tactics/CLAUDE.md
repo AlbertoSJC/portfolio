@@ -406,12 +406,52 @@ over it, adding roaming-group/player tokens) — same canvas, different
     healer couldn't heal themselves. Browser-verified via
     `tmp/verify_mastery.mjs`'s self-target cast.
 
-**166 vitest tests, typecheck clean.**
+- ✅ **Monster level-scaling per zone** (2026-07-02, same session; resolves
+  the §6.1 deliberate simplification): `MonsterDefinition.level` is now the
+  base level its statistics describe, plus a new `statisticGrowthPerLevel`
+  (class-growth shape); `ZoneDefinition.monsterLevelRange` (North Road 2–3,
+  Marsh Trail 3–5, Quarry Path 4–6); `generateEncounterEnemySpawns` rolls a
+  level per spawn (`QuestEnemySpawn.spawnLevel`, optional) →
+  `createUnitFromMonster(…, spawnLevel)` derives stats
+  (`deriveMonsterStatisticsForLevel`: HP floors at 1, others at 0). Kill XP
+  scales automatically (already level-based). **Quests stay at authored
+  base levels** — deliberate; their difficulty knob is the authored spawn
+  list. Browser pass: `tmp/verify_level_scaling.mjs` (observed a Level 2
+  wolf on North Road and a Level 6 stoneling on Quarry Path in the HUD).
+
+- ✅ **Zone pipeline made scalable** (2026-07-02, same session — the plan
+  is *way more zones*, so 1:1 zone↔map assumptions were removed before
+  they calcify; zero behavior change with current content):
+  - Quests carry an explicit `zoneIdentifier` (the old binding was "same
+    battle map as the zone", which merges tavern boards once maps are
+    shared). A quest's map is now independent of its zone.
+  - `encounterSpawnTiles` moved to `BattleMapEntry` (map-space data, next
+    to `deploymentTiles`) — zones reusing a map inherit them.
+  - `ZoneDefinition.worldMapPosition?` lets content lay out the World Map
+    explicitly (all zones set it, or all omit it → auto row, current
+    behavior).
+
+### Adding a zone (the checklist)
+
+1. `src/content/zones.ts`: new `ZoneDefinition` — locations/roads/
+   patrol routes (LORE-approved names only), `battleMapIdentifier`
+   (reuse or add a map), `monsterLevelRange`, `rewardGoldPerEncounter`.
+2. If it's a new battle map: add it to `battleMapRegistry.ts` **with
+   `deploymentTiles` and `encounterSpawnTiles`** (both map-space).
+3. Quests for its tavern: add to `quests.ts` with `zoneIdentifier` set
+   to the new zone (any battle map).
+4. Run `npm test` — content validity is enforced automatically per zone:
+   patrol-route **catchability** (parity traps are real, see
+   `EncounterBattleAssembly.test.ts`), road/location references, level
+   range sanity, spawn-tile standability, quest→zone references. Store
+   stock + quest board for the new zone self-heal on next boot
+   (`hasZoneBeenStocked` / board-undefined checks in `GameController`).
+
+**173 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them
   yet (see binding rule above: do not invent lore)
-- Monster level-scaling per zone/region
 - Dispatch quests (send members away for passive reward)
 - More maps, quests, and items (toward §8 content targets)
 - Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)

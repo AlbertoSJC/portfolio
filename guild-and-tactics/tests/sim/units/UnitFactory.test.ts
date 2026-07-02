@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { createUnitFromCharacter } from '../../../src/sim/units/UnitFactory';
+import { createUnitFromCharacter, createUnitFromMonster } from '../../../src/sim/units/UnitFactory';
 import { BASE_CLASSES } from '../../../src/content/baseClasses';
+import { MONSTERS } from '../../../src/content/monsters';
 import { RACES } from '../../../src/content/races';
-import type { BaseClassDefinition, RaceDefinition } from '../../../src/sim/units/UnitDefinitions';
+import type {
+  BaseClassDefinition,
+  MonsterDefinition,
+  RaceDefinition,
+} from '../../../src/sim/units/UnitDefinitions';
 
 function raceOrThrow(raceKey: string): RaceDefinition {
   const race = RACES[raceKey];
@@ -154,5 +159,49 @@ describe('createUnitFromCharacter', () => {
     expect(
       veteranWarrior.skillIdentifiers.filter((identifier) => identifier === 'cleaving_arc'),
     ).toHaveLength(1);
+  });
+});
+
+describe('createUnitFromMonster', () => {
+  function monsterOrThrow(monsterKey: string): MonsterDefinition {
+    const monster = MONSTERS[monsterKey];
+    if (monster === undefined) {
+      throw new Error(`Missing monster "${monsterKey}" in content`);
+    }
+    return monster;
+  }
+
+  it('spawns at its base level with unmodified statistics when no level is given', () => {
+    const wolf = monsterOrThrow('twisted_wolf');
+    const unit = createUnitFromMonster(wolf, 'enemy_wolf', { column: 0, row: 0 }, 'south');
+    expect(unit.level).toBe(wolf.level);
+    expect(unit.baseStatistics).toEqual(wolf.statistics);
+  });
+
+  it('scales statistics up by growth per level above the base', () => {
+    const wolf = monsterOrThrow('twisted_wolf'); // base level 3
+    const unit = createUnitFromMonster(wolf, 'enemy_wolf', { column: 0, row: 0 }, 'south', 5);
+    expect(unit.level).toBe(5);
+    // +2 levels: hit points 26 + 5×2 = 36, attack 9 + 2×2 = 13.
+    expect(unit.baseStatistics.hitPointsMaximum).toBe(36);
+    expect(unit.baseStatistics.attack).toBe(13);
+    expect(unit.currentHitPoints).toBe(36);
+    // Speed has no growth entry and stays put.
+    expect(unit.baseStatistics.speed).toBe(wolf.statistics.speed);
+    // Evasion stays fractional: 0.1 + 2×0.01.
+    expect(unit.baseStatistics.evasion).toBeCloseTo(0.12);
+  });
+
+  it('scales statistics down below the base level, never under the floors', () => {
+    const wolf = monsterOrThrow('twisted_wolf'); // base level 3
+    const youngWolf = createUnitFromMonster(wolf, 'enemy_young', { column: 0, row: 0 }, 'south', 1);
+    // −2 levels: hit points 26 − 10 = 16, attack 9 − 4 = 5.
+    expect(youngWolf.baseStatistics.hitPointsMaximum).toBe(16);
+    expect(youngWolf.baseStatistics.attack).toBe(5);
+    // Far below base (content never does this, the clamp is still pinned):
+    // hit points floor at 1, everything else at 0.
+    const impossibleWolf = createUnitFromMonster(wolf, 'enemy_floor', { column: 0, row: 0 }, 'south', -3);
+    expect(impossibleWolf.baseStatistics.hitPointsMaximum).toBe(1);
+    expect(impossibleWolf.baseStatistics.attack).toBe(0);
   });
 });

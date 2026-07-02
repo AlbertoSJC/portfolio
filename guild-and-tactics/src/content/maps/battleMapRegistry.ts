@@ -8,6 +8,12 @@ export interface BattleMapEntry {
   map: BattleMap;
   /** Where deployed party members stand at battle start (south side). */
   deploymentTiles: GridPosition[];
+  /**
+   * Standable tiles roaming-encounter enemies may spawn on (north side).
+   * Map-space data like `deploymentTiles`, so every zone that plays its
+   * fights on this map shares them — new zones need no spawn authoring.
+   */
+  encounterSpawnTiles: GridPosition[];
 }
 
 export const BATTLE_MAPS: Record<string, BattleMapEntry> = {
@@ -21,6 +27,13 @@ export const BATTLE_MAPS: Record<string, BattleMapEntry> = {
       { column: 7, row: 10 },
       { column: 6, row: 10 },
     ],
+    encounterSpawnTiles: [
+      { column: 2, row: 1 },
+      { column: 5, row: 0 },
+      { column: 9, row: 1 },
+      { column: 4, row: 2 },
+      { column: 6, row: 1 },
+    ],
   },
   marsh_road: {
     map: MARSH_ROAD_MAP,
@@ -32,6 +45,13 @@ export const BATTLE_MAPS: Record<string, BattleMapEntry> = {
       { column: 7, row: 10 },
       { column: 8, row: 10 },
     ],
+    encounterSpawnTiles: [
+      { column: 3, row: 2 },
+      { column: 8, row: 2 },
+      { column: 4, row: 1 },
+      { column: 8, row: 1 },
+      { column: 6, row: 2 },
+    ],
   },
   old_quarry: {
     map: OLD_QUARRY_MAP,
@@ -42,6 +62,13 @@ export const BATTLE_MAPS: Record<string, BattleMapEntry> = {
       { column: 8, row: 10 },
       { column: 6, row: 9 },
       { column: 7, row: 9 },
+    ],
+    encounterSpawnTiles: [
+      { column: 6, row: 2 },
+      { column: 8, row: 2 },
+      { column: 3, row: 1 },
+      { column: 10, row: 2 },
+      { column: 4, row: 2 },
     ],
   },
 };

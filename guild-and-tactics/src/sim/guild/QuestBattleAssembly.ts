@@ -96,6 +96,7 @@ export function createEnemyUnitsFromSpawns(
       `enemy_${spawnIndex}_${monster.identifier}`,
       enemySpawn.position,
       'south',
+      enemySpawn.spawnLevel,
     );
   });
 }

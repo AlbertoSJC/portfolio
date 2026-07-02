@@ -833,3 +833,84 @@ permanently, with or without the item.
   vitest-covered: `tmp/verify_mastery.mjs` now casts Dawn's Mercy on the
   caster's *own* tile and doubles as the regression check (heal lands on
   self, mastery still credited).
+
+**2026-07-02 — Monster level-scaling per zone (PRD §6.1).**
+
+Same session. Resolves the "monsters are fixed-level data" deliberate
+simplification flagged 2026-06-19: roaming-encounter monsters now spawn
+at a level rolled from their zone's range, scaled the same way character
+classes grow.
+
+- *Model*: `MonsterDefinition.level` is now explicitly the **base level
+  its `statistics` describe**, and the definition gained
+  `statisticGrowthPerLevel` (same shape as class growth). A spawn above
+  or below base derives statistics linearly
+  (`deriveMonsterStatisticsForLevel` in `UnitFactory.ts`); hit points
+  floor at 1, everything else at 0, evasion stays fractional —
+  mirroring character derivation.
+- *Zone plumbing*: `ZoneDefinition` gained
+  `monsterLevelRange: { minimumLevel, maximumLevel }` (inclusive);
+  `generateEncounterEnemySpawns` rolls a level per spawn from it (seeded
+  RNG, deterministic); `QuestEnemySpawn` gained optional `spawnLevel`,
+  threaded through `createEnemyUnitsFromSpawns` →
+  `createUnitFromMonster`. Kill experience scales automatically —
+  `defeatedEnemyLevels` records the spawned level and
+  `experienceForDefeatingEnemy` was always level-based.
+- *Scope decision*: **quest battles stay at authored base levels**
+  (spawns omit `spawnLevel`). Quests are fixed-reward authored content;
+  their difficulty knob is the authored spawn list + `difficultyRank`.
+  Scaling applies to roaming encounters, which are generated content.
+- *Content*: growth curves for all 5 monsters (wolves/boars grow attack
+  and hit points, stonelings defense, wisps magic, gnarlroots a bit of
+  both); zone ranges make the world's difficulty read left to right —
+  North Road 2–3 (at/below the pools' base levels, the starter road),
+  Marsh Trail 3–5, Quarry Path 4–6 (stonelings/wolves patrol well above
+  their base 3 — the hardest of the first three zones).
+- *Verification*: 5 new vitest tests (171 total, typecheck/build clean) —
+  base-level spawn unchanged, up-scaling math, down-scaling + floor
+  clamps, rolled levels always inside the zone range, and a
+  zone-content-validity check (1 ≤ min ≤ max). New
+  `tmp/verify_level_scaling.mjs` browser pass: caught the North Road
+  wolf pack (spawned a **Level 2** Twisted Wolf — down-scaled below its
+  base 3) and the Quarry Path stoneling watch (a **Level 6** Stoneling —
+  up-scaled), both levels read from the live HUD inspection panel, zero
+  page errors.
+
+**2026-07-02 — Zone pipeline made scalable for many zones.**
+
+Same session, at the user's direction: the plan is *way more zones*, so
+the seams that only worked because 3 zones ↔ 3 battle maps happened to be
+1:1 were fixed before they calcify. No behavior change today — every
+binding resolves identically with the current content.
+
+- *Quest ↔ zone binding is now explicit*: `QuestDefinition` gained
+  `zoneIdentifier`; `questIdentifiersForZone` matches on it instead of
+  the old "same battle map" heuristic, which would have merged two
+  zones' tavern boards the moment they shared a map. A quest's
+  `battleMapIdentifier` is now genuinely independent of its zone — one
+  zone can host quests on several maps.
+- *`encounterSpawnTiles` moved from `ZoneDefinition` to
+  `BattleMapEntry`*, next to `deploymentTiles`: they are map-space data,
+  and per-zone copies would have meant re-authoring (and re-validating)
+  them for every new zone that reuses a map. New zones now get them for
+  free.
+- *`ZoneDefinition.worldMapPosition` (optional)*: zones can place their
+  own World Map node (normalized 0..1 coordinates, same explicit-position
+  support the Town screen already uses). All-or-nothing by design — when
+  any zone omits it, the map falls back to today's auto-distributed row,
+  so the 3 current zones are unchanged and a larger hand-laid world map
+  is pure content work later.
+- *Content-validity tests updated to scale with content*: spawn-tile
+  standability now iterates `BATTLE_MAPS` (covers every map once, not
+  per-zone), the enemy-count check resolves the zone's map entry, and a
+  new check pins every quest's `zoneIdentifier` to a real zone. Together
+  with the existing patrol-reachability, road-reference, and level-range
+  checks, a new zone is fully validated by `npm test` the moment it is
+  added to `ZONES` — see CLAUDE.md's new "Adding a zone" checklist.
+- *Verification*: 173 vitest tests, typecheck/build clean; browser
+  regression via `tmp/verify_level_scaling.mjs` (collisions in two zones,
+  spawn tiles now sourced from the map entry — one run even showed mixed
+  levels in a single battle) and `tmp/verify_mastery.mjs` (tavern quest
+  board, store, town panels — all on the new quest↔zone binding). The
+  scaling script's level collector also got hardened against turn-strip
+  re-renders mid-hover (script flake, not a game bug).

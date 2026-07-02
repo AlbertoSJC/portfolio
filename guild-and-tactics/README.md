@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, and FFTA-style equipment-skill mastery, shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, and monster level-scaling per zone, shipped so far.
 
 ---
 
@@ -322,8 +322,11 @@ network, generated (not authored) per fight.
   immediately, keeps kill XP, forfeits the gold reward, and leaves the
   group alive on the map. Quest battles cannot be fled (embarking is a
   commitment).
-- **Not yet built**: monster level-scaling by region (monsters are
-  fixed-level data today, not yet scaled to a range).
+- **Monster level-scaling (built 2026-07-02)**: each roaming-encounter
+  monster spawns at a level rolled from the zone's `monsterLevelRange`,
+  with statistics derived from per-monster growth curves (North Road 2–3,
+  Marsh Trail 3–5, Quarry Path 4–6). Quest battles stay at authored base
+  levels — quests are fixed-reward authored content.
 
 ## 7. Character progression
 
@@ -536,6 +539,12 @@ days of work, not a rewrite.
      Knife, Tidecaller Staff, Dawnlight Rod. Gear skills carry a ✦ badge
      in battle, a "Gear skills" mastery section on the character sheet,
      and a "Teaches:" line on store cards.
+   - ✅ **Monster level-scaling per zone (§6.1)** — done 2026-07-02, same
+     session: monsters gained growth curves, zones gained a
+     `monsterLevelRange`, and roaming-encounter spawns roll a level from
+     it (North Road 2–3, Marsh Trail 3–5, Quarry Path 4–6). Quest
+     battles stay at authored levels. Resolves the deliberate
+     simplification flagged 2026-06-19.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

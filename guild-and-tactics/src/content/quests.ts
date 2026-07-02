@@ -11,6 +11,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'Carters refuse the forest road again. Thin out the twisted wolves so the wagons roll.',
     difficultyRank: 1,
+    zoneIdentifier: 'north_road',
     battleMapIdentifier: 'forest_clearing',
     enemySpawns: [
       { monsterIdentifier: 'twisted_wolf', position: { column: 2, row: 1 } },
@@ -26,6 +27,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'The walking trees have reached the wood-cutters’ clearing. Burn them out before the forest closes its fist.',
     difficultyRank: 1,
+    zoneIdentifier: 'north_road',
     battleMapIdentifier: 'forest_clearing',
     enemySpawns: [
       { monsterIdentifier: 'gnarlroot', position: { column: 4, row: 2 } },
@@ -41,6 +43,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'Twisted boars are rooting up the causeway dikes. The marsh farmers will pay to keep their feet dry.',
     difficultyRank: 1,
+    zoneIdentifier: 'marsh_trail',
     battleMapIdentifier: 'marsh_road',
     enemySpawns: [
       { monsterIdentifier: 'twisted_boar', position: { column: 3, row: 2 } },
@@ -56,6 +59,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'Pale lights drift over the marsh road by night, and travelers follow them under. Snuff them out.',
     difficultyRank: 2,
+    zoneIdentifier: 'marsh_trail',
     battleMapIdentifier: 'marsh_road',
     enemySpawns: [
       { monsterIdentifier: 'hollow_wisp', position: { column: 4, row: 1 } },
@@ -72,6 +76,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'The old quarry’s stones have started walking, as stones do now. The masons want their pit back.',
     difficultyRank: 2,
+    zoneIdentifier: 'quarry_path',
     battleMapIdentifier: 'old_quarry',
     enemySpawns: [
       { monsterIdentifier: 'stoneling', position: { column: 6, row: 2 } },
@@ -88,6 +93,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'Living rock below, walking trees above — the quarry rim is becoming a fortress that nobody built.',
     difficultyRank: 2,
+    zoneIdentifier: 'quarry_path',
     battleMapIdentifier: 'old_quarry',
     enemySpawns: [
       { monsterIdentifier: 'stoneling', position: { column: 4, row: 2 } },
@@ -104,6 +110,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'A whole twisted pack runs the north woods now, and something fast and tusked runs with it. Bring friends.',
     difficultyRank: 3,
+    zoneIdentifier: 'north_road',
     battleMapIdentifier: 'forest_clearing',
     enemySpawns: [
       { monsterIdentifier: 'twisted_wolf', position: { column: 2, row: 1 } },
@@ -122,6 +129,7 @@ export const QUESTS: Record<string, QuestDefinition> = {
     description:
       'Past the drowned willows the marsh light gathers thick, and the trees walk in circles around something. Break it.',
     difficultyRank: 3,
+    zoneIdentifier: 'marsh_trail',
     battleMapIdentifier: 'marsh_road',
     enemySpawns: [
       { monsterIdentifier: 'hollow_wisp', position: { column: 4, row: 1 } },

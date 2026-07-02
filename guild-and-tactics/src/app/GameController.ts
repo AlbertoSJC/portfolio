@@ -382,7 +382,12 @@ export class GameController {
       return;
     }
 
-    const enemySpawns = generateEncounterEnemySpawns(roamingGroup, zone.encounterSpawnTiles, this.randomNumberGenerator);
+    const enemySpawns = generateEncounterEnemySpawns(
+      roamingGroup,
+      mapEntry.encounterSpawnTiles,
+      zone.monsterLevelRange,
+      this.randomNumberGenerator,
+    );
     const units = createUnitsForEncounterBattle(enemySpawns, deployedMembers, mapEntry.deploymentTiles, this.unitContentTables);
     this.activeRoamingGroupIdentifier = roamingGroupIdentifier;
     this.startBattle(mapEntry, units, deployedMemberIdentifiers, zone.displayName, true, (outcome) =>

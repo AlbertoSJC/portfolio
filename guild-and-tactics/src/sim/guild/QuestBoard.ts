@@ -6,13 +6,13 @@ import type { ZoneDefinition } from './ZoneDefinition';
 /** How many quests a tavern board offers at a time. */
 export const QUEST_BOARD_SIZE = 4;
 
-/** Quests eligible for a zone's tavern — matched by their shared battle map. */
+/** Quests eligible for a zone's tavern — declared on the quest itself. */
 export function questIdentifiersForZone(
   zone: ZoneDefinition,
   quests: Record<string, QuestDefinition>,
 ): string[] {
   return Object.values(quests)
-    .filter((quest) => quest.battleMapIdentifier === zone.battleMapIdentifier)
+    .filter((quest) => quest.zoneIdentifier === zone.identifier)
     .map((quest) => quest.identifier);
 }
 

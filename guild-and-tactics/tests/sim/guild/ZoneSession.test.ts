@@ -31,7 +31,7 @@ const TEST_ZONE: ZoneDefinition = {
     },
   ],
   battleMapIdentifier: 'forest_clearing',
-  encounterSpawnTiles: [{ column: 2, row: 1 }],
+  monsterLevelRange: { minimumLevel: 2, maximumLevel: 3 },
   rewardGoldPerEncounter: 20,
 };
 

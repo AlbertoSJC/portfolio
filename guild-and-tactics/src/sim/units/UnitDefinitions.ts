@@ -50,12 +50,19 @@ export interface AdvancedClassDefinition {
   skills: ClassSkillEntry[];
 }
 
-/** A monster is defined directly with its battle-ready statistics. */
+/**
+ * A monster is defined with the battle-ready statistics of its base
+ * `level`. Spawning it at another level (a zone's `monsterLevelRange`)
+ * derives statistics from `statisticGrowthPerLevel`, the same way class
+ * growth works — see `createUnitFromMonster`.
+ */
 export interface MonsterDefinition {
   identifier: string;
   displayName: string;
+  /** The level `statistics` describes; spawns above/below scale from here. */
   level: number;
   statistics: UnitStatistics;
+  statisticGrowthPerLevel: Partial<UnitStatistics>;
   canFly: boolean;
   skillIdentifiers: string[];
   elementalAffinities: ElementalAffinities;

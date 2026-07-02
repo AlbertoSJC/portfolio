@@ -95,38 +95,48 @@ describe('createUnitsForEncounterBattle', () => {
 });
 
 describe('zone content validity', () => {
-  it('every zone references an existing battle map and existing monsters, with spawn tiles on standable ground', () => {
+  it('every zone references an existing battle map and existing monsters', () => {
     for (const zone of Object.values(ZONES)) {
-      const mapEntry = BATTLE_MAPS[zone.battleMapIdentifier];
-      expect(mapEntry, `battle map for ${zone.identifier}`).toBeDefined();
-      if (mapEntry === undefined) {
-        continue;
-      }
+      expect(BATTLE_MAPS[zone.battleMapIdentifier], `battle map for ${zone.identifier}`).toBeDefined();
       for (const group of zone.roamingGroups) {
         for (const monsterIdentifier of group.monsterIdentifiers) {
           expect(MONSTERS[monsterIdentifier], `monster in ${zone.identifier}/${group.identifier}`).toBeDefined();
         }
       }
-      for (const spawnTile of zone.encounterSpawnTiles) {
-        expect(isPositionInsideMap(mapEntry.map, spawnTile), `spawn tile inside battle map in ${zone.identifier}`).toBe(
-          true,
-        );
+    }
+  });
+
+  it('every battle map has encounter spawn tiles on standable ground', () => {
+    for (const [mapIdentifier, mapEntry] of Object.entries(BATTLE_MAPS)) {
+      expect(mapEntry.encounterSpawnTiles.length, `spawn tiles on ${mapIdentifier}`).toBeGreaterThan(0);
+      for (const spawnTile of mapEntry.encounterSpawnTiles) {
+        expect(isPositionInsideMap(mapEntry.map, spawnTile), `spawn tile inside ${mapIdentifier}`).toBe(true);
         expect(
           tileAt(mapEntry.map, spawnTile).isImpassable,
-          `standable spawn tile in ${zone.identifier} at ${spawnTile.column},${spawnTile.row}`,
+          `standable spawn tile in ${mapIdentifier} at ${spawnTile.column},${spawnTile.row}`,
         ).toBe(false);
       }
     }
   });
 
-  it('every roaming group has a sane enemy count and enough spawn tiles for it', () => {
+  it('every roaming group has a sane enemy count and enough spawn tiles on its zone map', () => {
     for (const zone of Object.values(ZONES)) {
+      const mapEntry = BATTLE_MAPS[zone.battleMapIdentifier];
       for (const group of zone.roamingGroups) {
         const label = `${zone.identifier}/${group.identifier}`;
         expect(group.minimumEnemyCount, label).toBeGreaterThanOrEqual(1);
         expect(group.maximumEnemyCount, label).toBeGreaterThanOrEqual(group.minimumEnemyCount);
-        expect(zone.encounterSpawnTiles.length, label).toBeGreaterThanOrEqual(group.maximumEnemyCount);
+        expect(mapEntry?.encounterSpawnTiles.length, label).toBeGreaterThanOrEqual(group.maximumEnemyCount);
       }
+    }
+  });
+
+  it('every zone has a sane monster level range', () => {
+    for (const zone of Object.values(ZONES)) {
+      expect(zone.monsterLevelRange.minimumLevel, zone.identifier).toBeGreaterThanOrEqual(1);
+      expect(zone.monsterLevelRange.maximumLevel, zone.identifier).toBeGreaterThanOrEqual(
+        zone.monsterLevelRange.minimumLevel,
+      );
     }
   });
 

@@ -109,22 +109,46 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
   };
 }
 
+/**
+ * Statistics for a monster spawned above or below its base level: base
+ * statistics plus growth per level of difference (negative for weaker,
+ * younger spawns). Hit points never scale below 1, everything else never
+ * below 0; evasion stays fractional like character derivation.
+ */
+function deriveMonsterStatisticsForLevel(
+  monster: MonsterDefinition,
+  spawnLevel: number,
+): UnitStatistics {
+  const levelDifference = spawnLevel - monster.level;
+  const derived = { ...monster.statistics };
+  for (const statisticName of Object.keys(derived) as (keyof UnitStatistics)[]) {
+    const growthPerLevel = monster.statisticGrowthPerLevel[statisticName] ?? 0;
+    const rawValue = derived[statisticName] + growthPerLevel * levelDifference;
+    const wholeValue = statisticName === STATISTIC.Evasion ? rawValue : Math.floor(rawValue);
+    const minimumValue = statisticName === STATISTIC.HitPointsMaximum ? 1 : 0;
+    derived[statisticName] = Math.max(minimumValue, wholeValue);
+  }
+  return derived;
+}
+
 export function createUnitFromMonster(
   monster: MonsterDefinition,
   uniqueIdentifier: string,
   position: GridPosition,
   facing: CardinalDirection,
+  spawnLevel: number = monster.level,
 ): Unit {
+  const statistics = deriveMonsterStatisticsForLevel(monster, spawnLevel);
   return {
     identifier: uniqueIdentifier,
     displayName: monster.displayName,
     team: 'enemy',
     raceLabel: 'Creature of the Darkness',
     classLabel: monster.displayName,
-    level: monster.level,
-    baseStatistics: { ...monster.statistics },
-    currentHitPoints: monster.statistics.hitPointsMaximum,
-    currentManaPoints: monster.statistics.manaPointsMaximum,
+    level: spawnLevel,
+    baseStatistics: statistics,
+    currentHitPoints: statistics.hitPointsMaximum,
+    currentManaPoints: statistics.manaPointsMaximum,
     position: { ...position },
     facing,
     canFly: monster.canFly,

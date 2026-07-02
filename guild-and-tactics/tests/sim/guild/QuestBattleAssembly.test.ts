@@ -7,6 +7,7 @@ import { BATTLE_MAPS } from '../../../src/content/maps/battleMapRegistry';
 import { MONSTERS } from '../../../src/content/monsters';
 import { QUESTS } from '../../../src/content/quests';
 import { RACES } from '../../../src/content/races';
+import { ZONES } from '../../../src/content/zones';
 import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
 import type { GuildMember } from '../../../src/sim/guild/GuildState';
 
@@ -90,6 +91,12 @@ describe('quest content validity', () => {
           `standable spawn in ${quest.identifier} at ${enemySpawn.position.column},${enemySpawn.position.row}`,
         ).toBe(false);
       }
+    }
+  });
+
+  it('every quest belongs to an existing zone', () => {
+    for (const quest of Object.values(QUESTS)) {
+      expect(ZONES[quest.zoneIdentifier], `zone for ${quest.identifier}`).toBeDefined();
     }
   });
 

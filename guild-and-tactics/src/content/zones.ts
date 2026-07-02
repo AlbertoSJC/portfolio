@@ -46,13 +46,8 @@ export const ZONES: Record<string, ZoneDefinition> = {
       },
     ],
     battleMapIdentifier: 'forest_clearing',
-    encounterSpawnTiles: [
-      { column: 2, row: 1 },
-      { column: 5, row: 0 },
-      { column: 9, row: 1 },
-      { column: 4, row: 2 },
-      { column: 6, row: 1 },
-    ],
+    // The starter road: spawns at or slightly below the pool's base levels.
+    monsterLevelRange: { minimumLevel: 2, maximumLevel: 3 },
     rewardGoldPerEncounter: 20,
   },
   marsh_trail: {
@@ -95,13 +90,7 @@ export const ZONES: Record<string, ZoneDefinition> = {
       },
     ],
     battleMapIdentifier: 'marsh_road',
-    encounterSpawnTiles: [
-      { column: 3, row: 2 },
-      { column: 8, row: 2 },
-      { column: 4, row: 1 },
-      { column: 8, row: 1 },
-      { column: 6, row: 2 },
-    ],
+    monsterLevelRange: { minimumLevel: 3, maximumLevel: 5 },
     rewardGoldPerEncounter: 25,
   },
   quarry_path: {
@@ -155,13 +144,9 @@ export const ZONES: Record<string, ZoneDefinition> = {
       },
     ],
     battleMapIdentifier: 'old_quarry',
-    encounterSpawnTiles: [
-      { column: 6, row: 2 },
-      { column: 8, row: 2 },
-      { column: 3, row: 1 },
-      { column: 10, row: 2 },
-      { column: 4, row: 2 },
-    ],
+    // The hardest of the first three zones: stonelings and wolves patrol
+    // well above their base levels.
+    monsterLevelRange: { minimumLevel: 4, maximumLevel: 6 },
     rewardGoldPerEncounter: 25,
   },
 };
