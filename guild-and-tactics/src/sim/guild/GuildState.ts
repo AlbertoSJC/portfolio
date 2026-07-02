@@ -1,5 +1,6 @@
 import type { EquipmentSlot } from '../items/EquipmentDefinition';
 import type { BaseClassIdentifier, ClassIdentifier, RaceIdentifier } from '../units/Unit';
+import type { ActiveDispatch } from './DispatchQuest';
 
 export const GUILD_ROSTER_CAPACITY = 20;
 export const BATTLE_PARTY_CAPACITY = 6;
@@ -39,6 +40,8 @@ export interface GuildState {
   /** Each zone's tavern board, keyed by zone identifier. */
   questIdentifiersOnBoard: Record<string, string[]>;
   recruitsOnOffer: RecruitOffer[];
+  /** Members away on dispatch quests — see DispatchQuest.ts. */
+  activeDispatches: ActiveDispatch[];
   completedQuestCount: number;
 }
 

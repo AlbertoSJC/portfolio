@@ -211,6 +211,8 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
     const healedGuild = storage.loadGuildSave();
     expect(healedGuild?.roster[0]?.skillMasteryProgress).toEqual({});
+    // Written before dispatch quests existed — healed the same way.
+    expect(healedGuild?.activeDispatches).toEqual([]);
   });
 
   it('clears a save on request', () => {

@@ -34,7 +34,13 @@ content can be shown two ways from two independent instances — as the
 global modal reachable from the World Map/Zone screens, or docked
 directly into a Town screen's own content panel when picking Guild Hall.
 `src/app/` — controllers / composition root (`GameController`,
-`BattleController`, `ZoneController`).
+`BattleController`, `ZoneController`, `GuildCommands`). `GameController`
+is scenes + battle flow + wiring ONLY: menu-driven guild commands
+(buy/sell/equip/hire/class/dispatch) live in `GuildCommands.ts`, and a
+concluded battle's payout rules (gold/XP/mastery/dispatch ticking) are
+pure sim in `src/sim/guild/BattleSpoils.ts` (formatted for the overlay by
+`src/ui/BattleSpoilsSummary.ts`) — keep new logic in those layers, don't
+let the controller grow rules again.
 
 **Town's building content is a docked panel, not a modal** — deliberately
 different from every other popup in the game (Guild's global modal, the
@@ -447,11 +453,32 @@ over it, adding roaming-group/player tokens) — same canvas, different
    stock + quest board for the new zone self-heal on next boot
    (`hasZoneBeenStocked` / board-undefined checks in `GameController`).
 
-**173 vitest tests, typecheck clean.**
+- ✅ **Dispatch quests** (2026-07-02, same session): the tavern's dispatch
+  board (`src/sim/guild/DispatchQuest.ts`, `src/content/dispatchQuests.ts`)
+  sends ONE member away; **time = concluded battles** (victory/defeat/flee
+  alike — the game has no clock), ticked in
+  `GameController.buildBattleConclusion`, which also announces returns in
+  the outcome summary (+gold to guild, +XP to the member).
+  `GuildState.activeDispatches`; `startDispatch` refuses double-sending a
+  member or double-running a quest; muster cards render Away members
+  disabled (`MusterCardViewModel.isAway`), and embark/catch filter them
+  defensively. Save still v5 (`activeDispatches ??= []`). Tavern UI reuses
+  quest card/detail views (single-select member picker). v1
+  simplifications: no failure roll, no early recall, equipment/class
+  changes while away not blocked. Browser pass: `tmp/verify_dispatch.mjs`.
+
+- ✅ **GameController slimmed** (2026-07-02, same session, user-requested):
+  battle payout rules extracted to pure `sim/guild/BattleSpoils.ts`
+  (+7 tests pinning the PRD §5 economics that were previously
+  browser-only), summary formatting to `ui/BattleSpoilsSummary.ts`, and
+  the ten menu-driven guild commands to `app/GuildCommands.ts`. See the
+  Architecture section above — this boundary is now documented and should
+  be kept.
+
+**189 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them
   yet (see binding rule above: do not invent lore)
-- Dispatch quests (send members away for passive reward)
 - More maps, quests, and items (toward §8 content targets)
 - Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)

@@ -914,3 +914,93 @@ binding resolves identically with the current content.
   board, store, town panels — all on the new quest↔zone binding). The
   scaling script's level collector also got hardened against turn-strip
   re-renders mid-hover (script flake, not a game bug).
+
+**2026-07-02 — Dispatch quests (M4: send members away for passive reward).**
+
+The tavern now has a dispatch board under the quest board: errands that
+take one guild member instead of a battle party. The member leaves the
+muster pool; **time passes in battles the rest of the guild fights**
+(the game has no clock — concluded battles are its heartbeat, victory,
+defeat, and flee alike); when the posted count runs out, the member
+returns in that battle's outcome summary with gold for the guild and
+experience for themselves. v1 dispatches always succeed — a
+stat-dependent success roll is a future iteration if wanted.
+
+- *Sim* (`src/sim/guild/DispatchQuest.ts`): `DispatchQuestDefinition`
+  (zone-bound like quests, `durationInBattles`, gold + member XP);
+  `GuildState.activeDispatches` (`ActiveDispatch[]`); `startDispatch`
+  validates member exists / not already away / quest not already
+  underway; `tickDispatchesAfterBattle` decrements all and resolves the
+  finished ones (pays the guild, `applyExperienceGain` on the member,
+  returns reports for the summary). Broken references (removed content)
+  drop silently rather than crash a save.
+- *Hookups*: `GameController.buildBattleConclusion` ticks after the XP
+  loop and pushes "X returns from Y — +gold, +XP" (+ level-up) lines;
+  `embarkOnQuest`/`catchRoamingGroup` filter dispatched members
+  defensively even if the UI let one through.
+- *UI*: tavern content gained the "Dispatch board" section — cards reuse
+  the quest-card view (underway cards read "Underway — X returns in N
+  battles"); the detail reuses the quest-detail view as a single-select
+  member picker with a "Send <name>" button. Muster cards everywhere
+  (quest embark + collision prompt) now render dispatched members
+  disabled with an "· Away" note (`MusterCardViewModel.isAway`), and
+  roster cards read "· Away on dispatch".
+- *Content* (`src/content/dispatchQuests.ts`): 4 dispatches across the 3
+  zones (Escort the Carters 2 battles/60g, Walk the Forest Bounds
+  4/140g, Guide the Peat-Cutters 3/90g, Watch the Masons' Camp 3/110g) —
+  pay deliberately below active-quest rates for the time they take, so
+  quests stay the main loop.
+- *Save format*: still v5 — `activeDispatches` healed to `[]` on load
+  like the other additive fields (test extended).
+- *Deliberate simplifications*: no failure roll; equipment/class changes
+  while away are not blocked (the member is "away", not frozen — worth
+  revisiting if it ever feels exploitable); a dispatch cannot be
+  recalled early.
+- *Verification*: 9 new vitest tests (182 total, typecheck/build clean) —
+  start validations, per-battle ticking, independent clocks, level-up
+  reporting, content validity (every dispatch's zone exists, every zone
+  posts at least one). Browser pass `tmp/verify_dispatch.mjs`: sent
+  Nyssa from the North Road tavern ("Send Nyssa" → "Underway — Nyssa
+  returns in 2 battles"), her muster card showed disabled + "· Away" at
+  the next collision, fled two encounter battles, and the second outcome
+  overlay announced "Nyssa returns from Escort the Carters — +60 gold,
+  +40 XP" with the save showing `activeDispatches: []` and gold 300→360.
+  Zero page errors.
+
+**2026-07-02 — GameController slimmed: payout rules to sim, commands to
+their own class.**
+
+Same session, at the user's observation that `GameController` was
+growing without bound (572 lines) and `buildBattleConclusion` had become
+a grab-bag. The real problem wasn't size but a boundary leak: the
+conclusion method held actual game rules (reward economics, XP,
+mastery credit, dispatch ticking) in the app layer, where nothing
+vitest-covered them. No behavior change — summary line order shifted
+slightly (all level-ups now before all masteries), nothing else.
+
+- **`src/sim/guild/BattleSpoils.ts` (new)** — `applyBattleSpoils(guild,
+  spoils, equipment, dispatchQuests)`: takes the battle's outputs as
+  plain data (outcome, defeated levels, per-member skill-use counts,
+  remaining pouch), applies the PRD §5 rules (pouch home; kill XP always;
+  gold + bonus XP victory-only; mastery credit; one battle of dispatch
+  time), and returns a structured `BattleSpoilsReport`. 7 new tests pin
+  the economics that previously only browser passes exercised.
+  `src/ui/BattleSpoilsSummary.ts` (new) turns the report into the
+  overlay's summary lines — sim stays free of display strings.
+- **`src/app/GuildCommands.ts` (new)** — the ten menu-driven handlers
+  (buy/sell item + equipment, equip/unequip, class + secondary-skill
+  change, hire, start dispatch) moved wholesale; each still validates
+  through the sim layer and reports via an `onGuildChanged` callback
+  (GameController's persist-and-refresh). The class never touches a
+  screen.
+- **`GameController`** is back to its actual job — scenes, battle flow,
+  wiring (~430 lines): the duplicated character-sheet callback literals
+  collapsed into one shared `characterCallbacks` object (spread into the
+  zone controller's callbacks), and the duplicated deployed-member
+  filtering became one `deployableMembers` helper.
+- *Verification*: 189 vitest tests, typecheck/build clean; browser
+  regression via `tmp/verify_dispatch.mjs` + `tmp/verify_mastery.mjs`
+  (both fully green — they cover the conclusion pipeline, dispatch board,
+  store panel, character sheet), plus a one-off buy check confirming the
+  re-wired store commands persist correctly (gold 300→270, potion count
+  up).

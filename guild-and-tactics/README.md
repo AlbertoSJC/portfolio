@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, and monster level-scaling per zone, shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, monster level-scaling per zone, and dispatch quests, shipped so far.
 
 ---
 
@@ -545,6 +545,12 @@ days of work, not a rewrite.
      it (North Road 2–3, Marsh Trail 3–5, Quarry Path 4–6). Quest
      battles stay at authored levels. Resolves the deliberate
      simplification flagged 2026-06-19.
+   - ✅ **Dispatch quests** — done 2026-07-02, same session: the tavern's
+     new dispatch board posts errands for a single member; they leave the
+     muster pool, time passes in concluded battles, and they return in a
+     battle summary with gold + XP. 4 dispatches across the 3 zones;
+     always-succeed in v1 (a stat-based success roll is a future
+     iteration).
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

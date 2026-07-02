@@ -61,6 +61,7 @@ function normalizeLoadedGuild(guild: GuildState, saveFormatVersion: number): Gui
   }
   guild.storeStock ??= {};
   guild.questIdentifiersOnBoard ??= {};
+  guild.activeDispatches ??= [];
   for (const member of guild.roster) {
     normalizeMember(member);
   }

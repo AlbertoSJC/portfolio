@@ -3,6 +3,7 @@ import {
   type GuildMember,
   type GuildState,
 } from '../../../sim/guild/GuildState';
+import { isMemberDispatched } from '../../../sim/guild/DispatchQuest';
 import type { EquipmentDefinition } from '../../../sim/items/EquipmentDefinition';
 import { experienceRequiredToLevelUpFrom } from '../../../sim/progression/ExperienceAndLevels';
 import type { BaseClassDefinition, RaceDefinition } from '../../../sim/units/UnitDefinitions';
@@ -53,8 +54,12 @@ export function buildRosterCardViewModels(
       .map((equipmentIdentifier) => content.equipment[equipmentIdentifier]?.displayName)
       .filter((displayName) => displayName !== undefined)
       .join(', ');
+    const identity = buildMemberIdentity(member, content);
+    if (isMemberDispatched(guild, member.identifier)) {
+      identity.summaryLine += ' · Away on dispatch';
+    }
     return {
-      ...buildMemberIdentity(member, content),
+      ...identity,
       experienceLine: `XP: ${member.experiencePoints} / ${experienceRequired}`,
       experienceFillPercent: Math.min(100, (member.experiencePoints / experienceRequired) * 100),
       equippedLine: equippedNames === '' ? 'No equipment' : equippedNames,
@@ -83,6 +88,8 @@ export function buildRecruitCardViewModels(
 
 export interface MusterCardViewModel extends MemberIdentityViewModel {
   isSelected: boolean;
+  /** Away on a dispatch quest — shown but not selectable. */
+  isAway: boolean;
 }
 
 export function buildMusterCardViewModels(
@@ -93,5 +100,6 @@ export function buildMusterCardViewModels(
   return guild.roster.map((member) => ({
     ...buildMemberIdentity(member, content),
     isSelected: selectedMemberIdentifiers.has(member.identifier),
+    isAway: isMemberDispatched(guild, member.identifier),
   }));
 }

@@ -15,6 +15,7 @@ export interface ZoneControllerCallbacks {
   onOpenGuildMenu: () => void;
   onReturnToWorldMap: () => void;
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
+  onStartDispatch: (dispatchQuestIdentifier: string, memberIdentifier: string) => void;
   onBuyItem: (itemIdentifier: string) => void;
   onSellItem: (itemIdentifier: string) => void;
   onBuyEquipment: (equipmentIdentifier: string) => void;
@@ -70,6 +71,7 @@ export class ZoneController {
     this.townScreen = new TownScreen(rootElement, sounds, content, {
       onLeaveTown: () => this.leaveTown(),
       onEmbarkQuest: callbacks.onEmbarkQuest,
+      onStartDispatch: callbacks.onStartDispatch,
       onBuyItem: callbacks.onBuyItem,
       onSellItem: callbacks.onSellItem,
       onBuyEquipment: callbacks.onBuyEquipment,

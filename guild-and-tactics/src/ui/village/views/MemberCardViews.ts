@@ -69,12 +69,13 @@ export function renderMusterCard(
   const musterCard = createElementWithClass(
     'button',
     `muster-card ${viewModel.isSelected ? 'is-selected' : ''}`,
-  );
+  ) as HTMLButtonElement;
+  musterCard.disabled = viewModel.isAway;
   musterCard.appendChild(portraitFor(viewModel));
   const cardText = document.createElement('div');
   cardText.innerHTML = `
     <strong>${viewModel.displayName}</strong>
-    <span>${viewModel.summaryLine}</span>
+    <span>${viewModel.summaryLine}${viewModel.isAway ? ' · Away' : ''}</span>
   `;
   musterCard.appendChild(cardText);
   musterCard.addEventListener('mouseenter', () => sounds.playMenuHover());

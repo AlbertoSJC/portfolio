@@ -87,6 +87,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
     storeStock: {},
     questIdentifiersOnBoard: {},
     recruitsOnOffer: [],
+    activeDispatches: [],
     completedQuestCount: 0,
   };
   const tier = reputationTierForQuestCount(guild.completedQuestCount);

@@ -1,4 +1,8 @@
 import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
+import {
+  findActiveDispatchForQuest,
+  type DispatchQuestDefinition,
+} from '../../../sim/guild/DispatchQuest';
 import type { QuestDefinition } from '../../../sim/guild/QuestDefinition';
 import type { BattleMap } from '../../../sim/grid/BattleMap';
 
@@ -67,6 +71,55 @@ export function buildQuestDetailViewModel(
     embarkButtonLabel:
       selectedMemberCount === 0 ? 'Select at least one member' : `Embark with ${selectedMemberCount}`,
     embarkDisabled: selectedMemberCount === 0,
+  };
+}
+
+export interface DispatchCardViewModel extends QuestCardViewModel {
+  isUnderway: boolean;
+}
+
+/** The tavern's dispatch board: one card per dispatch quest posted in this zone. */
+export function buildDispatchCardViewModels(
+  guild: GuildState,
+  zoneIdentifier: string,
+  dispatchQuests: Record<string, DispatchQuestDefinition>,
+): DispatchCardViewModel[] {
+  return Object.values(dispatchQuests)
+    .filter((dispatchQuest) => dispatchQuest.zoneIdentifier === zoneIdentifier)
+    .map((dispatchQuest) => {
+      const activeDispatch = findActiveDispatchForQuest(guild, dispatchQuest.identifier);
+      const awayMemberName =
+        activeDispatch === undefined
+          ? undefined
+          : guild.roster.find((member) => member.identifier === activeDispatch.memberIdentifier)
+              ?.displayName;
+      return {
+        questIdentifier: dispatchQuest.identifier,
+        title: dispatchQuest.displayName,
+        starsLabel: '',
+        locationLine:
+          activeDispatch === undefined || awayMemberName === undefined
+            ? `Send one member · away ${dispatchQuest.durationInBattles} battles`
+            : `Underway — ${awayMemberName} returns in ${activeDispatch.remainingBattles} ${activeDispatch.remainingBattles === 1 ? 'battle' : 'battles'}`,
+        rewardLine: `Reward: ${dispatchQuest.rewardGold} gold · ${dispatchQuest.rewardExperience} XP`,
+        isUnderway: activeDispatch !== undefined,
+      };
+    });
+}
+
+/** The dispatch detail reuses the quest-detail view: a member grid + one action button. */
+export function buildDispatchDetailViewModel(
+  dispatchQuest: DispatchQuestDefinition,
+  selectedMemberName: string | undefined,
+): QuestDetailViewModel {
+  return {
+    title: dispatchQuest.displayName,
+    starsLabel: '',
+    description: dispatchQuest.description,
+    summaryLine: `Away for ${dispatchQuest.durationInBattles} battles · Reward: ${dispatchQuest.rewardGold} gold, ${dispatchQuest.rewardExperience} XP`,
+    musterCounterLine: 'Choose one member to send',
+    embarkButtonLabel: selectedMemberName === undefined ? 'Select a member' : `Send ${selectedMemberName}`,
+    embarkDisabled: selectedMemberName === undefined,
   };
 }
 

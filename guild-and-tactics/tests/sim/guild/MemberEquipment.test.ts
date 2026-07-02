@@ -39,6 +39,7 @@ function createTestGuildWithWarrior(equipmentInventory: Record<string, number>):
     storeStock: {},
     questIdentifiersOnBoard: {},
     recruitsOnOffer: [],
+    activeDispatches: [],
     completedQuestCount: 0,
   };
   return { guild, warrior };

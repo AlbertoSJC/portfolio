@@ -14,7 +14,15 @@ import {
   type StoreFilter,
 } from '../../village/presenters/ItemCardPresenters';
 import { buildMusterCardViewModels } from '../../village/presenters/MemberPresenters';
-import { buildQuestCardViewModels, buildQuestDetailViewModel } from '../../village/presenters/TavernPresenters';
+import {
+  buildDispatchCardViewModels,
+  buildDispatchDetailViewModel,
+  buildQuestCardViewModels,
+  buildQuestDetailViewModel,
+} from '../../village/presenters/TavernPresenters';
+import type { DispatchQuestDefinition } from '../../../sim/guild/DispatchQuest';
+import { findActiveDispatchForQuest } from '../../../sim/guild/DispatchQuest';
+import { findRosterMember } from '../../../sim/guild/GuildState';
 import { createCardList, createHintParagraph } from '../../village/views/DomPrimitives';
 import { renderStoreCard } from '../../village/views/ItemCardView';
 import { renderPillBar } from '../../village/views/PillBarView';
@@ -24,6 +32,7 @@ import { createOverworldMapCanvas, type MapNodeEntry } from '../OverworldMapCanv
 
 export interface ZoneContentTables {
   quests: Record<string, QuestDefinition>;
+  dispatchQuests: Record<string, DispatchQuestDefinition>;
   items: Record<string, ConsumableItemDefinition>;
   equipment: Record<string, EquipmentDefinition>;
   battleMapsByIdentifier: Record<string, { map: BattleMap }>;
@@ -36,6 +45,7 @@ export interface ZoneContentTables {
 export interface TownScreenCallbacks extends GuildMenuCallbacks {
   onLeaveTown: () => void;
   onEmbarkQuest: (questIdentifier: string, deployedMemberIdentifiers: string[]) => void;
+  onStartDispatch: (dispatchQuestIdentifier: string, memberIdentifier: string) => void;
   onBuyItem: (itemIdentifier: string) => void;
   onSellItem: (itemIdentifier: string) => void;
   onBuyEquipment: (equipmentIdentifier: string) => void;
@@ -43,7 +53,11 @@ export interface TownScreenCallbacks extends GuildMenuCallbacks {
 }
 
 type TownContentState =
-  | { kind: 'tavern'; questDetailIdentifier: string | undefined }
+  | {
+      kind: 'tavern';
+      questDetailIdentifier: string | undefined;
+      dispatchDetailIdentifier: string | undefined;
+    }
   | { kind: 'store'; storeFilter: StoreFilter }
   | { kind: 'guild' };
 
@@ -83,6 +97,7 @@ export class TownScreen {
   private lastGuild: GuildState | undefined;
   private contentState: TownContentState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
+  private selectedDispatchMemberIdentifier: string | undefined;
 
   constructor(
     rootElement: HTMLElement,
@@ -171,8 +186,9 @@ export class TownScreen {
 
   private openBuilding(buildingIdentifier: string): void {
     this.selectedMemberIdentifiers.clear();
+    this.selectedDispatchMemberIdentifier = undefined;
     if (buildingIdentifier === 'tavern') {
-      this.contentState = { kind: 'tavern', questDetailIdentifier: undefined };
+      this.contentState = { kind: 'tavern', questDetailIdentifier: undefined, dispatchDetailIdentifier: undefined };
       this.renderContentPanel();
     } else if (buildingIdentifier === 'store') {
       this.contentState = { kind: 'store', storeFilter: 'all' };
@@ -229,6 +245,12 @@ export class TownScreen {
         return this.buildQuestDetailElement(guild, quest);
       }
     }
+    if (state.dispatchDetailIdentifier !== undefined) {
+      const dispatchQuest = this.content.dispatchQuests[state.dispatchDetailIdentifier];
+      if (dispatchQuest !== undefined) {
+        return this.buildDispatchDetailElement(guild, dispatchQuest);
+      }
+    }
     return this.buildQuestListContent(guild, zone.identifier);
   }
 
@@ -254,7 +276,77 @@ export class TownScreen {
       );
     }
     root.appendChild(questList);
+
+    const dispatchTitle = document.createElement('p');
+    dispatchTitle.className = 'menu-section-title';
+    dispatchTitle.textContent = 'Dispatch board';
+    root.appendChild(dispatchTitle);
+    root.appendChild(
+      createHintParagraph(
+        'Errands for a single member — they return with the pay after the posted number of battles.',
+      ),
+    );
+    const dispatchList = createCardList();
+    for (const viewModel of buildDispatchCardViewModels(guild, zoneIdentifier, this.content.dispatchQuests)) {
+      dispatchList.appendChild(
+        renderQuestCard(viewModel, this.sounds, () => {
+          if (this.contentState?.kind === 'tavern') {
+            this.contentState.dispatchDetailIdentifier = viewModel.questIdentifier;
+          }
+          this.selectedDispatchMemberIdentifier = undefined;
+          this.rerenderContent();
+        }),
+      );
+    }
+    root.appendChild(dispatchList);
     return root;
+  }
+
+  /** One member goes, everyone else stays — a single-select muster grid. */
+  private buildDispatchDetailElement(guild: GuildState, dispatchQuest: DispatchQuestDefinition): HTMLElement {
+    const activeDispatch = findActiveDispatchForQuest(guild, dispatchQuest.identifier);
+    if (activeDispatch !== undefined) {
+      const awayMemberName =
+        findRosterMember(guild, activeDispatch.memberIdentifier)?.displayName ?? 'A member';
+      const underway = document.createElement('div');
+      underway.className = 'quest-detail';
+      underway.innerHTML = `
+        <h2>${dispatchQuest.displayName}</h2>
+        <p class="quest-description">${dispatchQuest.description}</p>
+      `;
+      underway.appendChild(
+        createHintParagraph(
+          `Underway — ${awayMemberName} returns in ${activeDispatch.remainingBattles} ${activeDispatch.remainingBattles === 1 ? 'battle' : 'battles'}.`,
+        ),
+      );
+      return underway;
+    }
+
+    const selectedIdentifiers = new Set(
+      this.selectedDispatchMemberIdentifier === undefined ? [] : [this.selectedDispatchMemberIdentifier],
+    );
+    const selectedMemberName =
+      this.selectedDispatchMemberIdentifier === undefined
+        ? undefined
+        : findRosterMember(guild, this.selectedDispatchMemberIdentifier)?.displayName;
+    const viewModel = buildDispatchDetailViewModel(dispatchQuest, selectedMemberName);
+    const musterCards = buildMusterCardViewModels(guild, selectedIdentifiers, this.content);
+    return renderQuestDetail(viewModel, musterCards, this.sounds, {
+      onToggleMember: (memberIdentifier) => {
+        this.selectedDispatchMemberIdentifier =
+          this.selectedDispatchMemberIdentifier === memberIdentifier ? undefined : memberIdentifier;
+        this.rerenderContent();
+      },
+      onEmbark: () => {
+        const memberIdentifier = this.selectedDispatchMemberIdentifier;
+        if (memberIdentifier === undefined) return;
+        if (this.contentState?.kind === 'tavern') {
+          this.contentState.dispatchDetailIdentifier = undefined;
+        }
+        this.selectedDispatchMemberIdentifier = undefined;
+        this.callbacks.onStartDispatch(dispatchQuest.identifier, memberIdentifier);
+      },
+    });
   }
 
   private buildQuestDetailElement(guild: GuildState, quest: QuestDefinition): HTMLElement {

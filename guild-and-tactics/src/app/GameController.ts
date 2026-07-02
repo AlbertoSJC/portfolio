@@ -1,26 +1,11 @@
 import { Battle, type BattleOutcome } from '../sim/battle/Battle';
 import { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator';
-import {
-  addConsumable,
-  addEquipmentPiece,
-  findRosterMember,
-  hasRoomInRoster,
-  removeConsumable,
-  removeEquipmentPiece,
-  spendGold,
-  type GuildState,
-} from '../sim/guild/GuildState';
-import { changeMemberClass } from '../sim/guild/ClassChange';
-import type { BaseClassIdentifier } from '../sim/units/Unit';
-import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
-import { hasZoneBeenStocked, restockStore, storeStockOf, takeOneFromStoreStock } from '../sim/guild/StoreStock';
+import { findRosterMember, type GuildState } from '../sim/guild/GuildState';
+import { hasZoneBeenStocked, restockStore } from '../sim/guild/StoreStock';
 import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
-import { recordEquipmentSkillUses } from '../sim/guild/SkillMastery';
-import type { ClassIdentifier } from '../sim/units/Unit';
-import {
-  sellPriceForEquipment,
-  type EquipmentSlot,
-} from '../sim/items/EquipmentDefinition';
+import { isMemberDispatched } from '../sim/guild/DispatchQuest';
+import { applyBattleSpoils } from '../sim/guild/BattleSpoils';
+import { DISPATCH_QUESTS } from '../content/dispatchQuests';
 import { EQUIPMENT } from '../content/equipment';
 import { completeQuestOnBoard, questIdentifiersForZone, refillQuestBoard } from '../sim/guild/QuestBoard';
 import { createUnitsForQuestBattle, type UnitContentTables } from '../sim/guild/QuestBattleAssembly';
@@ -29,11 +14,6 @@ import { generateEncounterEnemySpawns } from '../sim/guild/EncounterGeneration';
 import { averageRosterLevel, generateRecruitOffers } from '../sim/guild/RecruitGeneration';
 import type { ZoneDefinition } from '../sim/guild/ZoneDefinition';
 import type { Unit } from '../sim/units/Unit';
-import {
-  applyExperienceGain,
-  experienceForDefeatingEnemy,
-} from '../sim/progression/ExperienceAndLevels';
-import { sellPriceForItem } from '../sim/items/ConsumableItemDefinition';
 import type { SaveGameStorage } from '../platform/SaveGameStorage';
 import { BASE_CLASSES } from '../content/baseClasses';
 import { ADVANCED_CLASSES } from '../content/advancedClasses';
@@ -47,26 +27,25 @@ import { ZONES } from '../content/zones';
 import { SKILLS } from '../content/skills';
 import { createNewGuild } from '../content/newGame';
 import { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
-import { GuildMenu } from '../ui/guild/GuildMenu';
+import { buildBattleSpoilsSummaryLines } from '../ui/BattleSpoilsSummary';
+import { GuildMenu, type GuildMenuCallbacks } from '../ui/guild/GuildMenu';
 import { ModalDialog } from '../ui/village/ModalDialog';
 import { OverworldScreen } from '../ui/overworld/OverworldScreen';
 import type { ZoneContentTables } from '../ui/overworld/zone/TownScreen';
 import { BattleController, type BattleConclusion } from './BattleController';
+import { GuildCommands } from './GuildCommands';
 import { ZoneController } from './ZoneController';
 
 const RANDOM_SEED_BIT_MASK = 0x7fffffff;
 
-function canAffordAndInStock(
-  guild: GuildState,
-  zoneIdentifier: string,
-  priceInGold: number,
-  itemIdentifier: string,
-): boolean {
-  return guild.gold >= priceInGold && storeStockOf(guild, zoneIdentifier, itemIdentifier) > 0;
-}
-
 type GameScene = 'overworld' | 'zone' | 'battle';
 
+/**
+ * The composition root: owns the guild state, the scenes (overworld /
+ * zone / battle) and the wiring between them. Menu-driven guild commands
+ * live in GuildCommands; a concluded battle's payout rules live in
+ * sim/guild/BattleSpoils.
+ */
 export class GameController {
   private readonly battleRootElement: HTMLElement;
   private readonly battleCanvas: HTMLCanvasElement;
@@ -75,6 +54,8 @@ export class GameController {
   private readonly saveGameStorage: SaveGameStorage;
   private readonly randomNumberGenerator: SeededRandomNumberGenerator;
   private readonly sounds = new UserInterfaceSounds();
+  private readonly guildCommands: GuildCommands;
+  private readonly characterCallbacks: GuildMenuCallbacks;
   private readonly guildMenuModal: ModalDialog;
   private readonly guildMenu: GuildMenu;
   private readonly overworldScreen: OverworldScreen;
@@ -118,6 +99,18 @@ export class GameController {
     }
     this.saveGameStorage.persistGuildSave(this.guild);
 
+    this.guildCommands = new GuildCommands(this.guild, () => this.persistAndRefresh());
+    this.characterCallbacks = {
+      onHireRecruit: (recruitMemberIdentifier) => this.guildCommands.hireRecruit(recruitMemberIdentifier),
+      onEquipItem: (memberIdentifier, equipmentIdentifier) =>
+        this.guildCommands.equipItem(memberIdentifier, equipmentIdentifier),
+      onUnequipSlot: (memberIdentifier, slot) => this.guildCommands.unequipSlot(memberIdentifier, slot),
+      onChangeClass: (memberIdentifier, classIdentifier) =>
+        this.guildCommands.changeClass(memberIdentifier, classIdentifier),
+      onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
+        this.guildCommands.setSecondarySkillClass(memberIdentifier, classIdentifier),
+    };
+
     this.guildMenuModal = new ModalDialog(document.body, this.sounds);
     this.guildMenu = new GuildMenu(
       this.sounds,
@@ -129,14 +122,7 @@ export class GameController {
         skills: SKILLS,
         items: ITEMS,
       },
-      {
-        onHireRecruit: (recruitMemberIdentifier) => this.hireRecruit(recruitMemberIdentifier),
-        onEquipItem: (memberIdentifier, equipmentIdentifier) => this.equipItem(memberIdentifier, equipmentIdentifier),
-        onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
-        onChangeClass: (memberIdentifier, classIdentifier) => this.changeClass(memberIdentifier, classIdentifier),
-        onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
-          this.setSecondarySkillClass(memberIdentifier, classIdentifier),
-      },
+      this.characterCallbacks,
       {
         onOpen: (content) => this.guildMenuModal.open(content, undefined, { closeable: true }),
         onUpdate: (content) => this.guildMenuModal.refreshContent(content),
@@ -150,6 +136,7 @@ export class GameController {
 
     this.zoneContentTables = {
       quests: QUESTS,
+      dispatchQuests: DISPATCH_QUESTS,
       items: ITEMS,
       equipment: EQUIPMENT,
       battleMapsByIdentifier: BATTLE_MAPS,
@@ -215,21 +202,19 @@ export class GameController {
       this.zoneContentTables,
       this.guild,
       {
+        ...this.characterCallbacks,
         onOpenGuildMenu: () => this.guildMenu.open(this.guild),
         onReturnToWorldMap: () => this.showOverworld(),
         onEmbarkQuest: (questIdentifier, memberIdentifiers) => this.embarkOnQuest(questIdentifier, memberIdentifiers),
-        onBuyItem: (itemIdentifier) => this.buyItem(itemIdentifier),
-        onSellItem: (itemIdentifier) => this.sellItem(itemIdentifier),
-        onBuyEquipment: (equipmentIdentifier) => this.buyEquipment(equipmentIdentifier),
-        onSellEquipment: (equipmentIdentifier) => this.sellEquipment(equipmentIdentifier),
+        onStartDispatch: (dispatchQuestIdentifier, memberIdentifier) =>
+          this.guildCommands.startDispatchQuest(dispatchQuestIdentifier, memberIdentifier),
+        onBuyItem: (itemIdentifier) => this.guildCommands.buyItem(this.activeZoneIdentifier, itemIdentifier),
+        onSellItem: (itemIdentifier) => this.guildCommands.sellItem(itemIdentifier),
+        onBuyEquipment: (equipmentIdentifier) =>
+          this.guildCommands.buyEquipment(this.activeZoneIdentifier, equipmentIdentifier),
+        onSellEquipment: (equipmentIdentifier) => this.guildCommands.sellEquipment(equipmentIdentifier),
         onRoamingGroupCaught: (roamingGroupIdentifier, deployedMemberIdentifiers) =>
           this.catchRoamingGroup(roamingGroupIdentifier, deployedMemberIdentifiers),
-        onHireRecruit: (recruitMemberIdentifier) => this.hireRecruit(recruitMemberIdentifier),
-        onEquipItem: (memberIdentifier, equipmentIdentifier) => this.equipItem(memberIdentifier, equipmentIdentifier),
-        onUnequipSlot: (memberIdentifier, slot) => this.unequipSlot(memberIdentifier, slot),
-        onChangeClass: (memberIdentifier, classIdentifier) => this.changeClass(memberIdentifier, classIdentifier),
-        onSetSecondarySkillClass: (memberIdentifier, classIdentifier) =>
-          this.setSecondarySkillClass(memberIdentifier, classIdentifier),
       },
     );
   }
@@ -239,101 +224,6 @@ export class GameController {
     this.zoneRootElement.classList.add('hidden');
     this.battleRootElement.classList.remove('hidden');
     this.currentScene = 'battle';
-  }
-
-  private buyItem(itemIdentifier: string): void {
-    const item = ITEMS[itemIdentifier];
-    const zoneIdentifier = this.activeZoneIdentifier;
-    if (zoneIdentifier === undefined || item === undefined || !canAffordAndInStock(this.guild, zoneIdentifier, item.priceInGold, itemIdentifier)) {
-      return;
-    }
-    takeOneFromStoreStock(this.guild, zoneIdentifier, itemIdentifier);
-    spendGold(this.guild, item.priceInGold);
-    addConsumable(this.guild, itemIdentifier, 1);
-    this.persistAndRefresh();
-  }
-
-  private sellItem(itemIdentifier: string): void {
-    const item = ITEMS[itemIdentifier];
-    if (item === undefined || !removeConsumable(this.guild, itemIdentifier, 1)) {
-      return;
-    }
-    this.guild.gold += sellPriceForItem(item);
-    this.persistAndRefresh();
-  }
-
-  private buyEquipment(equipmentIdentifier: string): void {
-    const equipment = EQUIPMENT[equipmentIdentifier];
-    const zoneIdentifier = this.activeZoneIdentifier;
-    if (
-      zoneIdentifier === undefined ||
-      equipment === undefined ||
-      !canAffordAndInStock(this.guild, zoneIdentifier, equipment.priceInGold, equipmentIdentifier)
-    ) {
-      return;
-    }
-    takeOneFromStoreStock(this.guild, zoneIdentifier, equipmentIdentifier);
-    spendGold(this.guild, equipment.priceInGold);
-    addEquipmentPiece(this.guild, equipmentIdentifier);
-    this.persistAndRefresh();
-  }
-
-  private sellEquipment(equipmentIdentifier: string): void {
-    const equipment = EQUIPMENT[equipmentIdentifier];
-    if (equipment === undefined || !removeEquipmentPiece(this.guild, equipmentIdentifier)) {
-      return;
-    }
-    this.guild.gold += sellPriceForEquipment(equipment);
-    this.persistAndRefresh();
-  }
-
-  private changeClass(memberIdentifier: string, classIdentifier: ClassIdentifier): void {
-    if (!changeMemberClass(this.guild, memberIdentifier, classIdentifier, RACES, ADVANCED_CLASSES, EQUIPMENT)) {
-      return;
-    }
-    this.persistAndRefresh();
-  }
-
-  private setSecondarySkillClass(
-    memberIdentifier: string,
-    classIdentifier: BaseClassIdentifier | undefined,
-  ): void {
-    const member = findRosterMember(this.guild, memberIdentifier);
-    if (member === undefined) return;
-    member.secondarySkillClassIdentifier = classIdentifier;
-    this.persistAndRefresh();
-  }
-
-  private equipItem(memberIdentifier: string, equipmentIdentifier: string): void {
-    const equipment = EQUIPMENT[equipmentIdentifier];
-    if (equipment === undefined || !equipItemOnMember(this.guild, memberIdentifier, equipment)) {
-      return;
-    }
-    this.persistAndRefresh();
-  }
-
-  private unequipSlot(memberIdentifier: string, slot: EquipmentSlot): void {
-    if (!unequipMemberSlot(this.guild, memberIdentifier, slot)) {
-      return;
-    }
-    this.persistAndRefresh();
-  }
-
-  private hireRecruit(recruitMemberIdentifier: string): void {
-    const recruitOffer = this.guild.recruitsOnOffer.find(
-      (offer) => offer.member.identifier === recruitMemberIdentifier,
-    );
-    if (recruitOffer === undefined || !hasRoomInRoster(this.guild)) {
-      return;
-    }
-    if (!spendGold(this.guild, recruitOffer.hireCostInGold)) {
-      return;
-    }
-    this.guild.roster.push(recruitOffer.member);
-    this.guild.recruitsOnOffer = this.guild.recruitsOnOffer.filter(
-      (offer) => offer.member.identifier !== recruitMemberIdentifier,
-    );
-    this.persistAndRefresh();
   }
 
   /** Persists, refreshes the Guild menu if open, and refreshes whichever screen is currently showing. */
@@ -353,9 +243,7 @@ export class GameController {
     if (quest === undefined || mapEntry === undefined || this.activeZoneIdentifier === undefined) {
       return;
     }
-    const deployedMembers = memberIdentifiers
-      .map((memberIdentifier) => findRosterMember(this.guild, memberIdentifier))
-      .filter((member) => member !== undefined);
+    const deployedMembers = this.deployableMembers(memberIdentifiers);
     if (deployedMembers.length === 0) {
       return;
     }
@@ -375,9 +263,7 @@ export class GameController {
     if (zone === undefined || roamingGroup === undefined || mapEntry === undefined) {
       return;
     }
-    const deployedMembers = deployedMemberIdentifiers
-      .map((memberIdentifier) => findRosterMember(this.guild, memberIdentifier))
-      .filter((member) => member !== undefined);
+    const deployedMembers = this.deployableMembers(deployedMemberIdentifiers);
     if (deployedMembers.length === 0) {
       return;
     }
@@ -393,6 +279,14 @@ export class GameController {
     this.startBattle(mapEntry, units, deployedMemberIdentifiers, zone.displayName, true, (outcome) =>
       this.concludeZoneEncounterBattle(outcome),
     );
+  }
+
+  /** Roster members eligible for deployment — unknown or dispatched members are dropped. */
+  private deployableMembers(memberIdentifiers: readonly string[]) {
+    return memberIdentifiers
+      .map((memberIdentifier) => findRosterMember(this.guild, memberIdentifier))
+      .filter((member) => member !== undefined)
+      .filter((member) => !isMemberDispatched(this.guild, member.identifier));
   }
 
   /** Builds and shows a battle, then hooks up its conclusion callback. Shared by quest and roaming-group fights. */
@@ -463,10 +357,9 @@ export class GameController {
   }
 
   /**
-   * Shared victory/defeat resolution for both quest and roaming-group
-   * battles: kill XP always, gold + `onVictory` side effects only on a
-   * win, defeat keeps kill XP but forfeits the reward (PRD §5). Returns to
-   * the zone the fight started from.
+   * Applies the battle's spoils to the guild (sim/guild/BattleSpoils owns
+   * the PRD §5 payout rules), runs the victory-only side effects, persists,
+   * and returns the overlay content. Shared by quest and roaming-group fights.
    */
   private buildBattleConclusion(
     outcome: Exclude<BattleOutcome, 'ongoing'>,
@@ -485,47 +378,25 @@ export class GameController {
       };
     }
 
-    this.guild.consumableInventory = battle.getRemainingItemPouch();
-
-    const killExperience = battle.defeatedEnemyLevels.reduce(
-      (experienceSum, enemyLevel) => experienceSum + experienceForDefeatingEnemy(enemyLevel),
-      0,
+    const spoilsReport = applyBattleSpoils(
+      this.guild,
+      {
+        outcome,
+        goldRewardOnVictory,
+        bonusExperienceOnVictory,
+        defeatedEnemyLevels: battle.defeatedEnemyLevels,
+        deployedMemberIdentifiers: this.deployedMemberIdentifiers,
+        skillUseCountsByMemberIdentifier: Object.fromEntries(
+          this.deployedMemberIdentifiers.map((memberIdentifier) => [
+            memberIdentifier,
+            battle.getSkillUseCountsForUnit(memberIdentifier),
+          ]),
+        ),
+        remainingItemPouch: battle.getRemainingItemPouch(),
+      },
+      EQUIPMENT,
+      DISPATCH_QUESTS,
     );
-    const experiencePerMember = killExperience + (outcome === 'victory' ? bonusExperienceOnVictory : 0);
-
-    const summaryLines: string[] = [];
-    if (outcome === 'victory') {
-      this.guild.gold += goldRewardOnVictory;
-      summaryLines.push(`Reward: ${goldRewardOnVictory} gold`);
-    } else if (outcome === 'fled') {
-      summaryLines.push('The guild slips away — no reward, but experience is kept.');
-    } else {
-      summaryLines.push('The guild retreats — no reward, but experience is kept.');
-    }
-    summaryLines.push(
-      `${battle.defeatedEnemyLevels.length} foes defeated · ${experiencePerMember} XP per member`,
-    );
-
-    for (const memberIdentifier of this.deployedMemberIdentifiers) {
-      const member = findRosterMember(this.guild, memberIdentifier);
-      if (member === undefined) {
-        continue;
-      }
-      const levelsGained = applyExperienceGain(member, experiencePerMember);
-      if (levelsGained > 0) {
-        summaryLines.push(`${member.displayName} is now level ${member.level}!`);
-      }
-      // Like kill XP, mastery progress from skill uses is kept whatever the outcome.
-      const newlyMasteredSkillIdentifiers = recordEquipmentSkillUses(
-        member,
-        battle.getSkillUseCountsForUnit(member.identifier),
-        EQUIPMENT,
-      );
-      for (const skillIdentifier of newlyMasteredSkillIdentifiers) {
-        const skillName = SKILLS[skillIdentifier]?.displayName ?? skillIdentifier;
-        summaryLines.push(`${member.displayName} has mastered ${skillName}!`);
-      }
-    }
 
     if (outcome === 'victory') {
       onVictory(zone);
@@ -533,7 +404,7 @@ export class GameController {
 
     this.saveGameStorage.persistGuildSave(this.guild);
     return {
-      summaryLines,
+      summaryLines: buildBattleSpoilsSummaryLines(spoilsReport, SKILLS),
       continueButtonLabel: `Return to ${zone.displayName}`,
       onContinue: () => this.showZone(zone.identifier),
     };

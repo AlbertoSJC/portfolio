@@ -16,6 +16,7 @@ function createTestGuild(): GuildState {
     storeStock: {},
     questIdentifiersOnBoard: {},
     recruitsOnOffer: [],
+    activeDispatches: [],
     completedQuestCount: 0,
   };
 }
