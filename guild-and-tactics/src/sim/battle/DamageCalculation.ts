@@ -1,6 +1,6 @@
 import type { DamageSkillEffect } from './SkillDefinition';
 import type { Unit } from '../units/Unit';
-import { effectiveStatistic, elementalAffinityFor, STATISTIC } from '../units/Unit';
+import { effectiveStatistic, elementalAffinityFor, hasStatusEffect, STATISTIC } from '../units/Unit';
 import type { RelativeAttackArc } from './FacingAndFlanking';
 import {
   BACK_ATTACK_CRITICAL_HIT_CHANCE_BONUS,
@@ -11,6 +11,8 @@ import {
   MAGICAL_RESISTANCE_MITIGATION_FACTOR,
   MINIMUM_DAMAGE_DEALT,
   PHYSICAL_DEFENSE_MITIGATION_FACTOR,
+  PROTECT_PHYSICAL_DAMAGE_TAKEN_MULTIPLIER,
+  SHELL_MAGICAL_DAMAGE_TAKEN_MULTIPLIER,
   SIDE_ATTACK_HIT_CHANCE_BONUS,
 } from './combatConstants';
 
@@ -26,7 +28,7 @@ export function calculateHitChance(
   if (attackArc === 'back') {
     hitChance += BACK_ATTACK_HIT_CHANCE_BONUS;
   }
-  if (attacker.activeStatusEffects.some((effect) => effect.kind === 'blind')) {
+  if (hasStatusEffect(attacker, 'blind')) {
     hitChance -= BLIND_HIT_CHANCE_PENALTY;
   }
   return Math.min(1, Math.max(0, hitChance));
@@ -77,5 +79,15 @@ export function calculateDamageBeforeDice(
     // Absorption: return the negative (healing) amount as-is.
     return affinityAdjustedDamage;
   }
-  return Math.max(MINIMUM_DAMAGE_DEALT, affinityAdjustedDamage);
+
+  const guardMultiplier =
+    damageEffect.damageSource === 'physical'
+      ? hasStatusEffect(defender, 'protect')
+        ? PROTECT_PHYSICAL_DAMAGE_TAKEN_MULTIPLIER
+        : 1
+      : hasStatusEffect(defender, 'shell')
+        ? SHELL_MAGICAL_DAMAGE_TAKEN_MULTIPLIER
+        : 1;
+  const guardedDamage = Math.round(affinityAdjustedDamage * guardMultiplier);
+  return Math.max(MINIMUM_DAMAGE_DEALT, guardedDamage);
 }

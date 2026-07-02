@@ -3,8 +3,8 @@ import type { BattleMap } from '../grid/BattleMap';
 import type { CardinalDirection, GridPosition } from '../grid/GridPosition';
 import { arePositionsEqual, directionFromTo, manhattanDistance } from '../grid/GridPosition';
 import type { Unit } from '../units/Unit';
-import { isKnockedOut, tickDownStatModifiers, tickDownStatusEffects } from '../units/Unit';
-import { POISON_DAMAGE_PER_TURN } from './combatConstants';
+import { hasStatusEffect, isKnockedOut, tickDownStatModifiers, tickDownStatusEffects } from '../units/Unit';
+import { POISON_DAMAGE_PER_TURN, REGEN_HEALING_PER_TURN } from './combatConstants';
 import type { BattleEvent } from './BattleEvents';
 import { findReachableTiles } from './MovementRange';
 import type { SkillDefinition } from './SkillDefinition';
@@ -17,7 +17,7 @@ import { advanceToNextReadyUnit, forecastUpcomingTurnOrder } from './TurnOrderQu
 import { ITEM_USE_RANGE, TURN_ORDER_FORECAST_LENGTH } from './combatConstants';
 import type { ConsumableItemDefinition } from '../items/ConsumableItemDefinition';
 
-export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
+export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'fled';
 
 /**
  * The authoritative battle state machine. The renderer and HUD only read
@@ -29,11 +29,14 @@ export class Battle {
   readonly units: Unit[];
   /** Levels of every enemy defeated so far — feeds kill experience after the battle. */
   readonly defeatedEnemyLevels: number[] = [];
+  /** Roaming encounters allow a mid-battle retreat; quest battles do not. */
+  readonly isFleeingPermitted: boolean;
   private readonly skillTable: Record<string, SkillDefinition>;
   private readonly itemTable: Record<string, ConsumableItemDefinition>;
   private readonly itemPouch: Record<string, number>;
   private readonly randomNumberGenerator: SeededRandomNumberGenerator;
   private activeUnitIdentifier: string;
+  private guildHasFled = false;
 
   constructor(
     map: BattleMap,
@@ -42,12 +45,14 @@ export class Battle {
     randomSeed: number,
     itemTable: Record<string, ConsumableItemDefinition> = {},
     itemPouch: Record<string, number> = {},
+    isFleeingPermitted: boolean = false,
   ) {
     this.map = map;
     this.units = units;
     this.skillTable = skillTable;
     this.itemTable = itemTable;
     this.itemPouch = { ...itemPouch };
+    this.isFleeingPermitted = isFleeingPermitted;
     this.randomNumberGenerator = new SeededRandomNumberGenerator(randomSeed);
     const firstUnit = advanceToNextReadyUnit(this.units);
     firstUnit.hasMovedThisTurn = false;
@@ -96,6 +101,9 @@ export class Battle {
   }
 
   getBattleOutcome(): BattleOutcome {
+    if (this.guildHasFled) {
+      return 'fled';
+    }
     const guildHasLivingUnits = this.units.some(
       (unit) => unit.team === 'guild' && !isKnockedOut(unit),
     );
@@ -181,6 +189,25 @@ export class Battle {
       events.push({ kind: 'battleEnded', outcome });
     }
     return events;
+  }
+
+  /**
+   * The whole party retreats, ending the battle immediately. The guild keeps
+   * kill experience but forfeits the reward, and the enemy group survives.
+   */
+  fleeWithActiveUnit(): BattleEvent[] {
+    if (!this.isFleeingPermitted) {
+      throw new Error('Fleeing is not permitted in this battle');
+    }
+    const activeUnit = this.getActiveUnit();
+    if (activeUnit.team !== 'guild') {
+      throw new Error('Only a guild unit can call the retreat');
+    }
+    this.guildHasFled = true;
+    return [
+      { kind: 'guildFled', unitIdentifier: activeUnit.identifier },
+      { kind: 'battleEnded', outcome: 'fled' },
+    ];
   }
 
   getItemPouchEntries(): { item: ConsumableItemDefinition; count: number }[] {
@@ -273,17 +300,32 @@ export class Battle {
   }
 
   /**
-   * Processes start-of-turn status effects (poison damage, sleep auto-skip)
-   * for the current active unit. Returns events produced. When sleep causes
-   * an auto-skip, the returned events include turnEnded/turnStarted from the
-   * internal endActiveUnitTurn call — callers should recurse into the next
-   * unit's turn after logging those events.
+   * Processes start-of-turn status effects (regen healing, poison damage,
+   * sleep auto-skip) for the current active unit. Returns events produced.
+   * When sleep causes an auto-skip, the returned events include
+   * turnEnded/turnStarted from the internal endActiveUnitTurn call — callers
+   * should recurse into the next unit's turn after logging those events.
    */
   processStartOfTurnForActiveUnit(): BattleEvent[] {
     const activeUnit = this.getActiveUnit();
     const events: BattleEvent[] = [];
 
-    if (activeUnit.activeStatusEffects.some((effect) => effect.kind === 'poison')) {
+    if (hasStatusEffect(activeUnit, 'regen')) {
+      const healingRestored = Math.min(
+        REGEN_HEALING_PER_TURN,
+        activeUnit.baseStatistics.hitPointsMaximum - activeUnit.currentHitPoints,
+      );
+      if (healingRestored > 0) {
+        activeUnit.currentHitPoints += healingRestored;
+        events.push({
+          kind: 'regenHealingRestored',
+          targetIdentifier: activeUnit.identifier,
+          amount: healingRestored,
+        });
+      }
+    }
+
+    if (hasStatusEffect(activeUnit, 'poison')) {
       activeUnit.currentHitPoints = Math.max(
         0,
         activeUnit.currentHitPoints - POISON_DAMAGE_PER_TURN,
@@ -304,7 +346,7 @@ export class Battle {
       }
     }
 
-    if (activeUnit.activeStatusEffects.some((effect) => effect.kind === 'sleep')) {
+    if (hasStatusEffect(activeUnit, 'sleep')) {
       events.push({ kind: 'turnSkippedBySleep', unitIdentifier: activeUnit.identifier });
       events.push(...this.endActiveUnitTurn());
     }

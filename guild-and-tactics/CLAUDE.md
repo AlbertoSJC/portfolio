@@ -68,7 +68,7 @@ over it, adding roaming-group/player tokens) — same canvas, different
   browser E2E screenshot passes (need the dev server running; tmp/ is
   untracked, recreate from the dev log's description if absent)
 
-## Status (2026-06-18, M3 complete; M4 underway)
+## Status (2026-07-01, M3 complete; M4 underway)
 
 **M1, M2, and M3 complete.**
 
@@ -242,8 +242,6 @@ over it, adding roaming-group/player tokens) — same canvas, different
     specifically (World Map and Zone screens keep it, since they have no
     "town" to host it in).
 
-**145 vitest tests, typecheck clean.**
-
 - ✅ **Zone exploration rewritten: tile grid → named-location road network**
   (2026-06-22) — resolves the open question raised 2026-06-19 (the boxed
   4-tile patrol loop read as artificial after playtesting; see README §12,
@@ -351,14 +349,45 @@ over it, adding roaming-group/player tokens) — same canvas, different
     character-sheet drill-down/class-change/tab-switching all render
     correctly inside the docked panel.
 
+- ✅ **Mid-battle flee for roaming encounters** (2026-07-01):
+  `BattleOutcome` gained `'fled'`; `Battle` takes an `isFleeingPermitted`
+  constructor flag (`GameController.startBattle` passes `true` for
+  roaming encounters, `false` for quest battles) and exposes
+  `fleeWithActiveUnit()` — deterministic, guild-turn-only, emits
+  `guildFled` + `battleEnded('fled')`. HUD shows a Flee button after End
+  Turn (encounter battles only) and a "Retreat…" outcome overlay.
+  Conclusion economics match defeat: kill XP kept, reward + victory side
+  effects forfeited, roaming group left undefeated on the map. 3 new
+  vitest tests; browser-verified via `tmp/verify_flee.mjs` (encounter
+  offers Flee and returns to the zone; quest battle has no Flee button).
+- ✅ **Five new status effects: slow, haste, protect, shell, regen**
+  (2026-07-01, same session): existing apply/tick/expire machinery reused;
+  new hooks + constants in `combatConstants.ts`.
+  - slow/haste: 0.5×/1.5× speed via new `effectiveSpeed(unit)` (`Unit.ts`),
+    now used for ALL `TurnOrderQueue` speed reads — **this also fixed a
+    latent bug where speed stat-modifiers only changed the HUD number,
+    never actual turn order** (test pins the fix).
+  - protect/shell: 0.7× physical/magical damage taken, applied in
+    `calculateDamageBeforeDice` after elemental affinity (positive-damage
+    path only, so absorption healing is untouched).
+  - regen: +8 HP at start of turn (mirror of poison's 8), processed before
+    poison; new `regenHealingRestored` event + chime + log line.
+  - `Unit.ts` gained `hasStatusEffect()`/`isBeneficialStatusEffect()`;
+    HUD skill info says "Grants"/"Inflicts" accordingly, and the unit
+    summary panel now lists active status effects (they were previously
+    invisible outside the combat log).
+  - New skills: Priest — Mending Prayer (regen, lv5), Ward of Steel
+    (protect, lv7), Ward of Faith (shell, lv9); Mage — Leaden Curse
+    (slow, lv9), Quickening (haste, lv11). Naming is LORE-compatible
+    (Hortian prayer/ward words for Priest, god-free arcane for Mage).
+
+**154 vitest tests, typecheck clean.**
+
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them
   yet (see binding rule above: do not invent lore)
-- A real mid-battle flee option for roaming encounters (new
-  `BattleOutcome` + HUD button)
 - Monster level-scaling per zone/region
 - Dispatch quests (send members away for passive reward)
 - More maps, quests, and items (toward §8 content targets)
 - Equipment-skill mastery (FFTA-style: use an item's skill in battle to learn it permanently)
-- Additional status effects (slow, haste, protect, shell, regen)
 - Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)

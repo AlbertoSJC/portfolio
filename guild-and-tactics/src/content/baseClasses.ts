@@ -92,6 +92,8 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
       { skillIdentifier: 'flame_burst', learnedAtLevel: 3 },
       { skillIdentifier: 'sleep_dust', learnedAtLevel: 5 },
       { skillIdentifier: 'frost_bolt', learnedAtLevel: 7 },
+      { skillIdentifier: 'leaden_curse', learnedAtLevel: 9 },
+      { skillIdentifier: 'quickening', learnedAtLevel: 11 },
     ],
   },
   priest: {
@@ -122,6 +124,9 @@ export const BASE_CLASSES: Record<string, BaseClassDefinition> = {
     skills: [
       { skillIdentifier: 'first_aid', learnedAtLevel: 1 },
       { skillIdentifier: 'sacred_bolt', learnedAtLevel: 3 },
+      { skillIdentifier: 'mending_prayer', learnedAtLevel: 5 },
+      { skillIdentifier: 'ward_of_steel', learnedAtLevel: 7 },
+      { skillIdentifier: 'ward_of_faith', learnedAtLevel: 9 },
     ],
   },
 };

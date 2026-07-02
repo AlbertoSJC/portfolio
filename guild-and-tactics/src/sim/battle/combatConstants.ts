@@ -39,3 +39,14 @@ export const POISON_DAMAGE_PER_TURN = 8;
 
 /** Penalty subtracted from a blinded attacker's hit chance. */
 export const BLIND_HIT_CHANCE_PENALTY = 0.35;
+
+/** Hit points restored by regen at the start of each affected unit's turn. */
+export const REGEN_HEALING_PER_TURN = 8;
+
+/** Speed multipliers while hasted or slowed (they stack against each other). */
+export const HASTE_SPEED_MULTIPLIER = 1.5;
+export const SLOW_SPEED_MULTIPLIER = 0.5;
+
+/** Fraction of damage still taken through protect (physical) and shell (magical). */
+export const PROTECT_PHYSICAL_DAMAGE_TAKEN_MULTIPLIER = 0.7;
+export const SHELL_MAGICAL_DAMAGE_TAKEN_MULTIPLIER = 0.7;

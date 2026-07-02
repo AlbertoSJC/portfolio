@@ -197,6 +197,25 @@ describe('Battle', () => {
     expect(events.some((event) => event.kind === 'poisonDamageDealt')).toBe(true);
   });
 
+  it('restores hit points to a regenerating unit at the start of its turn, capped at maximum', () => {
+    const regeneratingUnit = createTestUnit({
+      currentHitPoints: 10,
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'regen', remainingTurns: 3, sourceSkillName: 'Mending Prayer' }],
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([regeneratingUnit, enemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(regeneratingUnit.currentHitPoints).toBeGreaterThan(10);
+    expect(events.some((event) => event.kind === 'regenHealingRestored')).toBe(true);
+
+    // At full hit points, regen restores nothing and stays silent.
+    regeneratingUnit.currentHitPoints = regeneratingUnit.baseStatistics.hitPointsMaximum;
+    const eventsAtFullHealth = battle.processStartOfTurnForActiveUnit();
+    expect(regeneratingUnit.currentHitPoints).toBe(regeneratingUnit.baseStatistics.hitPointsMaximum);
+    expect(eventsAtFullHealth.some((event) => event.kind === 'regenHealingRestored')).toBe(false);
+  });
+
   it('auto-ends the turn of a sleeping unit and emits a skip event', () => {
     const sleepingUnit = createTestUnit({
       identifier: 'sleeper',
@@ -214,6 +233,31 @@ describe('Battle', () => {
     expect(events.some((event) => event.kind === 'turnSkippedBySleep')).toBe(true);
     expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
     expect(battle.getActiveUnit().identifier).toBe('enemy_wake');
+  });
+
+  it('ends the battle as fled when a guild unit retreats from a fleeable battle', () => {
+    const guildUnit = createTestUnit({ baseStatistics: { speed: 12 } });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = new Battle(TEST_MAP, [guildUnit, enemy], SKILLS, FIXED_TEST_SEED, {}, {}, true);
+    const events = battle.fleeWithActiveUnit();
+    expect(events.some((event) => event.kind === 'guildFled')).toBe(true);
+    expect(events.some((event) => event.kind === 'battleEnded' && event.outcome === 'fled')).toBe(true);
+    expect(battle.getBattleOutcome()).toBe('fled');
+  });
+
+  it('rejects fleeing when the battle does not permit it', () => {
+    const guildUnit = createTestUnit({ baseStatistics: { speed: 12 } });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([guildUnit, enemy]);
+    expect(() => battle.fleeWithActiveUnit()).toThrow();
+  });
+
+  it('rejects fleeing during an enemy turn', () => {
+    const guildUnit = createTestUnit({ baseStatistics: { speed: 6 } });
+    const fasterEnemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 12 } });
+    const battle = new Battle(TEST_MAP, [guildUnit, fasterEnemy], SKILLS, FIXED_TEST_SEED, {}, {}, true);
+    expect(battle.getActiveUnit().team).toBe('enemy');
+    expect(() => battle.fleeWithActiveUnit()).toThrow();
   });
 
   it('ticks down status effects at end of turn and removes expired ones', () => {

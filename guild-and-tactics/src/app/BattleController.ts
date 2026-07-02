@@ -79,6 +79,7 @@ export class BattleController {
         onItemChosen: (itemIdentifier) =>
           this.beginChoosingActionTarget({ kind: 'item', identifier: itemIdentifier }),
         onEndTurnChosen: () => this.beginChoosingFacing(),
+        onFleeChosen: () => this.fleeFromBattle(),
         onCancelChosen: () => this.returnToUnitCommands(),
         onMovePreviewStart: () => this.showMovePreview(),
         onSkillPreviewStart: (skillIdentifier) => this.showSkillPreview(skillIdentifier),
@@ -248,7 +249,7 @@ export class BattleController {
       case 'battleEnded':
         if (event.outcome === 'victory') {
           this.sounds.playVictoryFanfare();
-        } else {
+        } else if (event.outcome === 'defeat') {
           this.sounds.playDefeatSting();
         }
         return;
@@ -257,9 +258,13 @@ export class BattleController {
       case 'turnEnded':
       case 'statusEffectApplied':
       case 'turnSkippedBySleep':
+      case 'guildFled':
         return;
       case 'poisonDamageDealt':
         this.sounds.playDamageImpact(false);
+        return;
+      case 'regenHealingRestored':
+        this.sounds.playHealingChime();
         return;
     }
   }
@@ -387,6 +392,14 @@ export class BattleController {
       }
     }
     return tilesInRange;
+  }
+
+  private fleeFromBattle(): void {
+    if (this.phase !== 'unitCommands') {
+      return;
+    }
+    this.logEvents(this.battle.fleeWithActiveUnit());
+    this.finishBattle();
   }
 
   private beginChoosingFacing(): void {

@@ -5,7 +5,13 @@ import {
   describeConsumableEffect,
   type ConsumableItemDefinition,
 } from '../sim/items/ConsumableItemDefinition';
-import { effectiveStatistic, STATISTIC, type Unit } from '../sim/units/Unit';
+import {
+  effectiveSpeed,
+  effectiveStatistic,
+  isBeneficialStatusEffect,
+  STATISTIC,
+  type Unit,
+} from '../sim/units/Unit';
 import { canUnitAffordSkill } from '../sim/battle/SkillExecution';
 import type { UserInterfaceSounds } from './UserInterfaceSounds';
 
@@ -16,6 +22,7 @@ export interface ActionMenuCallbacks {
   onSkillChosen: (skillIdentifier: string) => void;
   onItemChosen: (itemIdentifier: string) => void;
   onEndTurnChosen: () => void;
+  onFleeChosen: () => void;
   onCancelChosen: () => void;
   onItemPreviewStart: (itemIdentifier: string) => void;
   onMovePreviewStart: () => void;
@@ -56,6 +63,9 @@ function buildUnitSummaryHtml(unit: Unit): string {
   const activeModifierSummary = unit.activeStatModifiers
     .map((modifier) => `${modifier.sourceSkillName} (${modifier.remainingTurns})`)
     .join(', ');
+  const activeStatusEffectSummary = unit.activeStatusEffects
+    .map((effect) => `${effect.kind} (${effect.remainingTurns})`)
+    .join(', ');
   return `
     <h2>${unit.displayName}</h2>
     <div>${unit.raceLabel} ${unit.classLabel} · Level ${unit.level}</div>
@@ -64,8 +74,9 @@ function buildUnitSummaryHtml(unit: Unit): string {
     <div>MP ${unit.currentManaPoints} / ${unit.baseStatistics.manaPointsMaximum}</div>
     <div class="resource-bar"><div class="resource-bar-fill mana-points" style="width:${manaPointFraction * 100}%"></div></div>
     <div>ATK ${effectiveStatistic(unit, STATISTIC.Attack)} · DEF ${effectiveStatistic(unit, STATISTIC.Defense)} · MAG ${effectiveStatistic(unit, STATISTIC.MagicPower)} · RES ${effectiveStatistic(unit, STATISTIC.MagicResistance)}</div>
-    <div>Speed ${effectiveStatistic(unit, STATISTIC.Speed)} · Move ${unit.baseStatistics.movementRange}${unit.canFly ? ' (flies)' : ''} · Evasion ${Math.round(unit.baseStatistics.evasion * 100)}%</div>
+    <div>Speed ${effectiveSpeed(unit)} · Move ${unit.baseStatistics.movementRange}${unit.canFly ? ' (flies)' : ''} · Evasion ${Math.round(unit.baseStatistics.evasion * 100)}%</div>
     ${activeModifierSummary === '' ? '' : `<div>Buffs: ${activeModifierSummary}</div>`}
+    ${activeStatusEffectSummary === '' ? '' : `<div>Status: ${activeStatusEffectSummary}</div>`}
   `;
 }
 
@@ -86,8 +97,10 @@ function describeSkillEffect(skill: SkillDefinition): string {
       const signedAmount = effect.amount >= 0 ? `+${effect.amount}` : `${effect.amount}`;
       return `${signedAmount} ${effect.statistic} for ${effect.durationTurns} turns`;
     }
-    case 'statusEffect':
-      return `Inflicts ${effect.statusEffect} for ${effect.durationTurns} turns`;
+    case 'statusEffect': {
+      const verb = isBeneficialStatusEffect(effect.statusEffect) ? 'Grants' : 'Inflicts';
+      return `${verb} ${effect.statusEffect} for ${effect.durationTurns} turns`;
+    }
   }
 }
 
@@ -227,6 +240,9 @@ export class BattleHud {
       }
     }
     this.appendMenuButton('End Turn', this.callbacks.onEndTurnChosen);
+    if (battle.isFleeingPermitted) {
+      this.appendMenuButton('Flee', this.callbacks.onFleeChosen, { playsCancelSound: true });
+    }
   }
 
   private showSkillInfoBox(skill: SkillDefinition): void {
@@ -279,7 +295,12 @@ export class BattleHud {
     this.outcomeOverlayElement.classList.remove('hidden');
     this.outcomeOverlayElement.replaceChildren();
     const headline = document.createElement('div');
-    headline.textContent = outcome === 'victory' ? 'Victory!' : 'Defeat…';
+    const headlineByOutcome: Record<Exclude<BattleOutcome, 'ongoing'>, string> = {
+      victory: 'Victory!',
+      defeat: 'Defeat…',
+      fled: 'Retreat…',
+    };
+    headline.textContent = headlineByOutcome[outcome];
     const summaryBlock = document.createElement('div');
     summaryBlock.className = 'outcome-summary';
     for (const summaryLine of summaryLines) {

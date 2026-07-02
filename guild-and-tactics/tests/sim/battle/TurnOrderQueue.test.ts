@@ -17,6 +17,51 @@ describe('advanceToNextReadyUnit', () => {
     expect(advanceToNextReadyUnit(units).identifier).toBe('slow');
   });
 
+  it('gives a hasted unit two of the first three turns against an equal-speed unit', () => {
+    // Haste multiplies 10 speed to 15: ready at ticks 7 / 14 vs the normal unit's 10.
+    const hastedUnit = createTestUnit({
+      identifier: 'hasted',
+      baseStatistics: { speed: 10 },
+      activeStatusEffects: [{ kind: 'haste', remainingTurns: 3, sourceSkillName: 'Quickening' }],
+    });
+    const normalUnit = createTestUnit({ identifier: 'normal', baseStatistics: { speed: 10 } });
+    const units = [hastedUnit, normalUnit];
+
+    expect(advanceToNextReadyUnit(units).identifier).toBe('hasted');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('normal');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('hasted');
+  });
+
+  it('makes a slowed unit fall behind an equal-speed unit', () => {
+    const slowedUnit = createTestUnit({
+      identifier: 'slowed',
+      baseStatistics: { speed: 10 },
+      activeStatusEffects: [{ kind: 'slow', remainingTurns: 3, sourceSkillName: 'Leaden Curse' }],
+    });
+    const normalUnit = createTestUnit({ identifier: 'normal', baseStatistics: { speed: 10 } });
+    const units = [slowedUnit, normalUnit];
+
+    expect(advanceToNextReadyUnit(units).identifier).toBe('normal');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('normal');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('slowed');
+  });
+
+  it('counts active speed modifiers toward turn charge', () => {
+    const buffedUnit = createTestUnit({
+      identifier: 'buffed',
+      baseStatistics: { speed: 10 },
+      activeStatModifiers: [
+        { statistic: 'speed', amount: 10, remainingTurns: 3, sourceSkillName: 'Test Buff' },
+      ],
+    });
+    const normalUnit = createTestUnit({ identifier: 'normal', baseStatistics: { speed: 10 } });
+    const units = [buffedUnit, normalUnit];
+
+    expect(advanceToNextReadyUnit(units).identifier).toBe('buffed');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('buffed');
+    expect(advanceToNextReadyUnit(units).identifier).toBe('normal');
+  });
+
   it('skips knocked-out units', () => {
     const livingUnit = createTestUnit({ identifier: 'living', baseStatistics: { speed: 5 } });
     const knockedOutUnit = createTestUnit({

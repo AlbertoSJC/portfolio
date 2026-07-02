@@ -1,5 +1,5 @@
 import type { Unit } from '../units/Unit';
-import { isKnockedOut } from '../units/Unit';
+import { effectiveSpeed, isKnockedOut } from '../units/Unit';
 import { TURN_ORDER_FORECAST_LENGTH, TURN_READY_CHARGE_THRESHOLD } from './combatConstants';
 
 /**
@@ -24,7 +24,7 @@ export function advanceToNextReadyUnit(units: readonly Unit[]): Unit {
       return nextReadyUnit;
     }
     for (const unit of livingUnits) {
-      unit.turnCharge += unit.baseStatistics.speed;
+      unit.turnCharge += effectiveSpeed(unit);
     }
   }
 }
@@ -34,8 +34,8 @@ function compareReadyUnits(first: Unit, second: Unit): number {
   if (second.turnCharge !== first.turnCharge) {
     return second.turnCharge - first.turnCharge;
   }
-  if (second.baseStatistics.speed !== first.baseStatistics.speed) {
-    return second.baseStatistics.speed - first.baseStatistics.speed;
+  if (effectiveSpeed(second) !== effectiveSpeed(first)) {
+    return effectiveSpeed(second) - effectiveSpeed(first);
   }
   return first.identifier.localeCompare(second.identifier);
 }
@@ -58,8 +58,8 @@ export function forecastUpcomingTurnOrder(units: readonly Unit[]): Unit[] {
         if (secondCharge !== firstCharge) {
           return secondCharge - firstCharge;
         }
-        if (second.baseStatistics.speed !== first.baseStatistics.speed) {
-          return second.baseStatistics.speed - first.baseStatistics.speed;
+        if (effectiveSpeed(second) !== effectiveSpeed(first)) {
+          return effectiveSpeed(second) - effectiveSpeed(first);
         }
         return first.identifier.localeCompare(second.identifier);
       });
@@ -75,7 +75,7 @@ export function forecastUpcomingTurnOrder(units: readonly Unit[]): Unit[] {
     for (const unit of livingUnits) {
       simulatedCharges.set(
         unit.identifier,
-        (simulatedCharges.get(unit.identifier) ?? 0) + unit.baseStatistics.speed,
+        (simulatedCharges.get(unit.identifier) ?? 0) + effectiveSpeed(unit),
       );
     }
   }

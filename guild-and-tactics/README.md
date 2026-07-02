@@ -192,7 +192,7 @@ Tactical, turn-based, on a square grid (FFTA model):
 - **Damage model**: deterministic formulas + seeded RNG for hit/crit rolls
   (fully unit-testable, replayable).
 - **Status effects**: poison, slow, haste, blind, sleep, protect, shell,
-  regen… (initial set ~10).
+  regen… (initial set ~10; the 8 listed are all live as of 2026-07-01).
 - **Elements** (tied to the pantheon of Aentea — see `LORE.md`, untracked):
   **Fire** (Kosh) / **Water** (Yiern) / **Earth** (Taurk) / **Wind** (Breir) /
   **Sacred** (Hort) / **Dark** (the unnamed god) / **Lightning** (the
@@ -317,9 +317,12 @@ network, generated (not authored) per fight.
   uncatchable (the road-graph equivalent of the tile-grid's old parity
   bug) — `EncounterBattleAssembly.test.ts` checks every zone's roaming
   group against this before it ships.
-- **Not yet built**: a real mid-battle "flee" action (today, avoidance
-  happens by routing around a group before contact, not by retreating from
-  an already-started fight); monster level-scaling by region (monsters are
+- **Fleeing (built 2026-07-01)**: a roaming-encounter battle offers a
+  "Flee" action on any guild unit's turn — deterministic, ends the battle
+  immediately, keeps kill XP, forfeits the gold reward, and leaves the
+  group alive on the map. Quest battles cannot be fled (embarking is a
+  commitment).
+- **Not yet built**: monster level-scaling by region (monsters are
   fixed-level data today, not yet scaled to a range).
 
 ## 7. Character progression
@@ -513,6 +516,18 @@ days of work, not a rewrite.
      be hosted either way (the global modal, or Town's docked panel) from
      two independent instances — see the CHANGELOG for the two rejected
      intermediate iterations.
+   - ✅ **Mid-battle flee for roaming encounters** — done 2026-07-01:
+     `BattleOutcome` gained `'fled'`; encounter battles (never quest
+     battles) show a Flee button that deterministically ends the fight —
+     kill XP kept, reward forfeited, the roaming group stays on the map.
+     Resolves the deliberate simplification flagged 2026-06-19.
+   - ✅ **Five new status effects** — done 2026-07-01, same session: slow,
+     haste (speed multipliers via a new `effectiveSpeed`, which also fixed
+     speed stat-modifiers never actually affecting turn order), protect,
+     shell (physical/magical damage-taken multipliers), regen (start-of-turn
+     healing mirroring poison). New skills: Priest's Mending Prayer /
+     Ward of Steel / Ward of Faith (lv5/7/9), Mage's Leaden Curse /
+     Quickening (lv9/11). 8 of ~10 target status effects now live (§5).
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

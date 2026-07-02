@@ -361,7 +361,7 @@ export class GameController {
 
     const units = createUnitsForQuestBattle(quest, deployedMembers, mapEntry.deploymentTiles, this.unitContentTables);
     this.activeQuestIdentifier = questIdentifier;
-    this.startBattle(mapEntry, units, memberIdentifiers, quest.displayName, (outcome) =>
+    this.startBattle(mapEntry, units, memberIdentifiers, quest.displayName, false, (outcome) =>
       this.concludeQuestBattle(outcome),
     );
   }
@@ -384,7 +384,7 @@ export class GameController {
     const enemySpawns = generateEncounterEnemySpawns(roamingGroup, zone.encounterSpawnTiles, this.randomNumberGenerator);
     const units = createUnitsForEncounterBattle(enemySpawns, deployedMembers, mapEntry.deploymentTiles, this.unitContentTables);
     this.activeRoamingGroupIdentifier = roamingGroupIdentifier;
-    this.startBattle(mapEntry, units, deployedMemberIdentifiers, zone.displayName, (outcome) =>
+    this.startBattle(mapEntry, units, deployedMemberIdentifiers, zone.displayName, true, (outcome) =>
       this.concludeZoneEncounterBattle(outcome),
     );
   }
@@ -395,6 +395,7 @@ export class GameController {
     units: Unit[],
     deployedMemberIdentifiers: string[],
     combatLogLabel: string,
+    isFleeingPermitted: boolean,
     onConcluded: (outcome: Exclude<BattleOutcome, 'ongoing'>) => BattleConclusion,
   ): void {
     const battle = new Battle(
@@ -404,6 +405,7 @@ export class GameController {
       this.randomNumberGenerator.nextIntegerBetween(0, RANDOM_SEED_BIT_MASK),
       ITEMS,
       this.guild.consumableInventory,
+      isFleeingPermitted,
     );
 
     this.activeBattle = battle;
@@ -489,6 +491,8 @@ export class GameController {
     if (outcome === 'victory') {
       this.guild.gold += goldRewardOnVictory;
       summaryLines.push(`Reward: ${goldRewardOnVictory} gold`);
+    } else if (outcome === 'fled') {
+      summaryLines.push('The guild slips away — no reward, but experience is kept.');
     } else {
       summaryLines.push('The guild retreats — no reward, but experience is kept.');
     }

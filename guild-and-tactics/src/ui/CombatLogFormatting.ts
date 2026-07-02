@@ -40,16 +40,36 @@ export function formatBattleEventAsLogLine(
       return `${unitName(battle, event.targetIdentifier)} gains ${signedAmount} ${event.statistic} for ${event.durationTurns} turns.`;
     }
     case 'statusEffectApplied': {
-      const statusLabel = { poison: 'poisoned', sleep: 'put to sleep', blind: 'blinded' }[event.statusEffect];
+      const statusLabel = {
+        poison: 'poisoned',
+        sleep: 'put to sleep',
+        blind: 'blinded',
+        slow: 'slowed',
+        haste: 'hastened',
+        protect: 'warded against blows',
+        shell: 'warded against magic',
+        regen: 'blessed with regeneration',
+      }[event.statusEffect];
       return `${unitName(battle, event.targetIdentifier)} is ${statusLabel} for ${event.durationTurns} turns.`;
     }
     case 'poisonDamageDealt':
       return `${unitName(battle, event.targetIdentifier)} takes ${event.amount} poison damage.`;
+    case 'regenHealingRestored':
+      return `${unitName(battle, event.targetIdentifier)} regenerates ${event.amount} hit points.`;
     case 'turnSkippedBySleep':
       return `${unitName(battle, event.unitIdentifier)} is fast asleep and cannot move.`;
     case 'unitKnockedOut':
       return `${unitName(battle, event.unitIdentifier)} is knocked out!`;
+    case 'guildFled':
+      return `${unitName(battle, event.unitIdentifier)} calls the retreat!`;
     case 'battleEnded':
-      return event.outcome === 'victory' ? 'Victory! The clearing is safe.' : 'The guild has fallen...';
+      switch (event.outcome) {
+        case 'victory':
+          return 'Victory! The clearing is safe.';
+        case 'defeat':
+          return 'The guild has fallen...';
+        case 'fled':
+          return 'The guild slips away from the fight.';
+      }
   }
 }

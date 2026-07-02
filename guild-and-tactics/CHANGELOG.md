@@ -704,3 +704,68 @@ buildings never closes anything.
   is open switches content in place without closing anything, and that
   character-sheet drill-down/class-change/tab-switching all render
   correctly inside the docked panel.
+
+**2026-07-01 — Mid-battle flee for roaming encounters.**
+
+Resolves the "deliberate simplification" flagged 2026-06-19 (avoidance
+only worked by routing around a group *before* contact): a roaming
+encounter can now be abandoned mid-fight.
+
+- `BattleOutcome` gained `'fled'`; `Battle` gained a constructor flag
+  `isFleeingPermitted` (roaming encounters pass `true`, quest battles
+  `false` — embarking on a posted quest remains a commitment) and a
+  `fleeWithActiveUnit()` command that validates the flag and that a guild
+  unit is acting, then ends the battle immediately with new
+  `guildFled`/`battleEnded('fled')` events. Deterministic by design — the
+  strategic cost is forfeiting the reward and leaving the roaming group
+  alive on the map, not a dice roll.
+- HUD: a "Flee" button appears after End Turn (encounter battles only);
+  the outcome overlay gained a "Retreat…" headline. Conclusion handling
+  matches defeat's economics: kill experience is kept, gold reward and
+  victory side effects are forfeited, the roaming group is *not* marked
+  defeated, and the party returns to the zone.
+- *Verification*: 3 new vitest tests (flee sets the outcome and events;
+  fleeing rejected when not permitted; fleeing rejected on an enemy turn).
+  New `tmp/verify_flee.mjs` browser pass: collision → muster → battle →
+  Flee shows the Retreat overlay and returns to the zone with the group
+  still patrolling; a quest battle's action menu confirmed to have no
+  Flee button. Zero page errors beyond the harmless favicon 404.
+
+**2026-07-01 — Five new status effects: slow, haste, protect, shell, regen.**
+
+Same session. The M3 status-effect machinery (apply/tick/expire) covered
+them without structural change; the work was the hooks they act through
+plus the first skills that use them.
+
+- `slow`/`haste`: speed multipliers (0.5×/1.5×) via a new
+  `effectiveSpeed(unit)` in `Unit.ts`, now used everywhere
+  `TurnOrderQueue` reads speed (charge accumulation, tie-breaks,
+  forecast). **This also fixed a latent bug**: the queue previously read
+  `baseStatistics.speed` directly, so speed *stat modifiers* never
+  actually changed turn order — only the HUD display. A new test pins the
+  fix (a +speed modifier now genuinely earns extra turns).
+- `protect`/`shell`: damage-taken multipliers (0.7× physical/magical) in
+  `calculateDamageBeforeDice`, applied after elemental affinity on the
+  positive-damage path only (absorption healing is untouched), before the
+  minimum-damage floor.
+- `regen`: start-of-turn healing (8, mirroring poison's 8), processed
+  before poison in `processStartOfTurnForActiveUnit`; new
+  `regenHealingRestored` event, healing chime, log line. Silent at full
+  hit points.
+- All five tuning values are named constants in `combatConstants.ts`.
+  `Unit.ts` gained `hasStatusEffect()` (replacing the scattered `.some()`
+  checks) and `isBeneficialStatusEffect()` — the HUD's skill info box now
+  says "Grants haste…" for ally-targeted effects instead of "Inflicts".
+  The unit summary panel now lists active status effects with remaining
+  turns (previously poison/sleep/blind were invisible outside the log).
+- New skills (LORE-compatible naming — Hortian prayer/ward words for the
+  Priest, god-free arcane words for the Mage): Priest learns Mending
+  Prayer (regen, lv5), Ward of Steel (protect, lv7), Ward of Faith
+  (shell, lv9); Mage learns Leaden Curse (slow, lv9) and Quickening
+  (haste, lv11). Status-effect count is now 8 of the ~10 target (§8);
+  skills 24 of ~150.
+- *Verification*: 6 new vitest tests (154 total, typecheck/build clean) —
+  haste/slow turn-order ordering, the speed-modifier fix, protect/shell
+  asymmetry (each reduces only its damage source), regen healing +
+  full-health cap. Browser regression pass via `tmp/verify_flee.mjs`
+  re-run (battle start, action menu, HUD all clean).

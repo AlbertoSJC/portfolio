@@ -110,6 +110,26 @@ export const SKILLS: Record<string, SkillDefinition> = {
   },
 
   // ── Mage (status) ──────────────────────────────────────────────────────
+  leaden_curse: {
+    identifier: 'leaden_curse',
+    displayName: 'Leaden Curse',
+    description: 'A curse of leaden weight that drags at the target\'s every motion, slowing its turns.',
+    manaPointCost: 6,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'slow', durationTurns: 3 },
+  },
+  quickening: {
+    identifier: 'quickening',
+    displayName: 'Quickening',
+    description: 'An incantation that quickens an ally\'s steps until the battle\'s rhythm bends around them.',
+    manaPointCost: 8,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'allies',
+    effect: { kind: 'statusEffect', statusEffect: 'haste', durationTurns: 3 },
+  },
   sleep_dust: {
     identifier: 'sleep_dust',
     displayName: 'Sleep Dust',
@@ -165,6 +185,38 @@ export const SKILLS: Record<string, SkillDefinition> = {
     areaOfEffectRadius: 0,
     targetTeam: 'enemies',
     effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.2, element: 'sacred' },
+  },
+
+  // ── Priest (wards) ─────────────────────────────────────────────────────
+  mending_prayer: {
+    identifier: 'mending_prayer',
+    displayName: 'Mending Prayer',
+    description: 'A sustained prayer of mending — the ally\'s wounds keep knitting closed at the start of each of their turns.',
+    manaPointCost: 5,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'allies',
+    effect: { kind: 'statusEffect', statusEffect: 'regen', durationTurns: 3 },
+  },
+  ward_of_steel: {
+    identifier: 'ward_of_steel',
+    displayName: 'Ward of Steel',
+    description: 'A ward against blade, claw, and tusk — physical blows lose much of their force.',
+    manaPointCost: 5,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'allies',
+    effect: { kind: 'statusEffect', statusEffect: 'protect', durationTurns: 3 },
+  },
+  ward_of_faith: {
+    identifier: 'ward_of_faith',
+    displayName: 'Ward of Faith',
+    description: 'A ward woven of faith that dampens hostile magic before it lands.',
+    manaPointCost: 5,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'allies',
+    effect: { kind: 'statusEffect', statusEffect: 'shell', durationTurns: 3 },
   },
 
   // ── Creatures of the Darkness ──────────────────────────────────────────

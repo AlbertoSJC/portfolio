@@ -43,8 +43,10 @@ export type BattleEvent =
       durationTurns: number;
     }
   | { kind: 'poisonDamageDealt'; targetIdentifier: string; amount: number }
+  | { kind: 'regenHealingRestored'; targetIdentifier: string; amount: number }
   | { kind: 'turnSkippedBySleep'; unitIdentifier: string }
   | { kind: 'unitKnockedOut'; unitIdentifier: string }
+  | { kind: 'guildFled'; unitIdentifier: string }
   | { kind: 'turnStarted'; unitIdentifier: string }
   | { kind: 'turnEnded'; unitIdentifier: string }
-  | { kind: 'battleEnded'; outcome: 'victory' | 'defeat' };
+  | { kind: 'battleEnded'; outcome: 'victory' | 'defeat' | 'fled' };

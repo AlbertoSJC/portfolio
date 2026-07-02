@@ -82,6 +82,30 @@ describe('calculateDamageBeforeDice', () => {
     expect(calculateDamageBeforeDice(attacker, undeadDefender, darkEffect, 'front')).toBeLessThan(0);
   });
 
+  it('reduces physical damage through protect but not magical damage', () => {
+    const attacker = createTestUnit({ baseStatistics: { attack: 10, magicPower: 10 } });
+    const protectedDefender = createTestUnit({
+      baseStatistics: { defense: 6, magicResistance: 6 },
+      activeStatusEffects: [{ kind: 'protect', remainingTurns: 3, sourceSkillName: 'Ward of Steel' }],
+    });
+    // Physical: (10 − 3) × 0.7 = 4.9 → 5 — Magical: 10 − 3 = 7, untouched.
+    expect(calculateDamageBeforeDice(attacker, protectedDefender, PLAIN_PHYSICAL_EFFECT, 'front')).toBe(5);
+    const magicalEffect: DamageSkillEffect = { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.0 };
+    expect(calculateDamageBeforeDice(attacker, protectedDefender, magicalEffect, 'front')).toBe(7);
+  });
+
+  it('reduces magical damage through shell but not physical damage', () => {
+    const attacker = createTestUnit({ baseStatistics: { attack: 10, magicPower: 10 } });
+    const shelledDefender = createTestUnit({
+      baseStatistics: { defense: 6, magicResistance: 6 },
+      activeStatusEffects: [{ kind: 'shell', remainingTurns: 3, sourceSkillName: 'Ward of Faith' }],
+    });
+    const magicalEffect: DamageSkillEffect = { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.0 };
+    // Magical: (10 − 3) × 0.7 = 4.9 → 5 — Physical: 10 − 3 = 7, untouched.
+    expect(calculateDamageBeforeDice(attacker, shelledDefender, magicalEffect, 'front')).toBe(5);
+    expect(calculateDamageBeforeDice(attacker, shelledDefender, PLAIN_PHYSICAL_EFFECT, 'front')).toBe(7);
+  });
+
   it('never deals less than the minimum damage on a connecting hit', () => {
     const weakAttacker = createTestUnit({ baseStatistics: { attack: 1 } });
     const armoredDefender = createTestUnit({ baseStatistics: { defense: 100 } });

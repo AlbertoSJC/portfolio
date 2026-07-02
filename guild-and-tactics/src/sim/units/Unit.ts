@@ -1,4 +1,5 @@
 import type { CardinalDirection, GridPosition } from '../grid/GridPosition';
+import { HASTE_SPEED_MULTIPLIER, SLOW_SPEED_MULTIPLIER } from '../battle/combatConstants';
 
 export type BattleTeam = 'guild' | 'enemy';
 
@@ -53,7 +54,27 @@ export function isBaseClassIdentifier(identifier: ClassIdentifier): identifier i
   return BASE_CLASS_IDENTIFIER_SET.has(identifier);
 }
 
-export type StatusEffectKind = 'poison' | 'sleep' | 'blind';
+export type StatusEffectKind =
+  | 'poison'
+  | 'sleep'
+  | 'blind'
+  | 'slow'
+  | 'haste'
+  | 'protect'
+  | 'shell'
+  | 'regen';
+
+const BENEFICIAL_STATUS_EFFECT_KINDS: ReadonlySet<StatusEffectKind> = new Set([
+  'haste',
+  'protect',
+  'shell',
+  'regen',
+]);
+
+/** Beneficial effects are cast on allies and described as granted, not inflicted. */
+export function isBeneficialStatusEffect(kind: StatusEffectKind): boolean {
+  return BENEFICIAL_STATUS_EFFECT_KINDS.has(kind);
+}
 
 export interface ActiveStatusEffect {
   kind: StatusEffectKind;
@@ -131,6 +152,26 @@ export interface Unit {
 
 export function isKnockedOut(unit: Unit): boolean {
   return unit.currentHitPoints <= 0;
+}
+
+export function hasStatusEffect(unit: Unit, kind: StatusEffectKind): boolean {
+  return unit.activeStatusEffects.some((effect) => effect.kind === kind);
+}
+
+/**
+ * Speed after stat modifiers, then haste/slow multipliers. The turn-order
+ * queue must use this (not the base statistic) so buffs and status effects
+ * genuinely change when units act.
+ */
+export function effectiveSpeed(unit: Unit): number {
+  let speed = effectiveStatistic(unit, STATISTIC.Speed);
+  if (hasStatusEffect(unit, 'haste')) {
+    speed = Math.round(speed * HASTE_SPEED_MULTIPLIER);
+  }
+  if (hasStatusEffect(unit, 'slow')) {
+    speed = Math.round(speed * SLOW_SPEED_MULTIPLIER);
+  }
+  return speed;
 }
 
 /** Base statistic plus every active modifier that targets it. */
