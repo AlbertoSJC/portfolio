@@ -43,6 +43,7 @@ function normalizeMember(member: GuildState['roster'][number]): void {
     delete raw['masteredClasses'];
   }
   member.classLevelsReached ??= {};
+  member.skillMasteryProgress ??= {};
 }
 
 function normalizeLoadedGuild(guild: GuildState, saveFormatVersion: number): GuildState {

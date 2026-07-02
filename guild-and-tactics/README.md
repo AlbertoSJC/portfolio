@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, and a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, and FFTA-style equipment-skill mastery, shipped so far.
 
 ---
 
@@ -528,6 +528,14 @@ days of work, not a rewrite.
      healing mirroring poison). New skills: Priest's Mending Prayer /
      Ward of Steel / Ward of Faith (lv5/7/9), Mage's Leaden Curse /
      Quickening (lv9/11). 8 of ~10 target status effects now live (§5).
+   - ✅ **Equipment-skill mastery (§7)** — done 2026-07-02: gear with a
+     `grantedSkillIdentifier` lets the wearer use that skill while it is
+     equipped; 3 uses in battle master it permanently
+     (`src/sim/guild/SkillMastery.ts`). Four silver-tier skill-bearing
+     weapons shipped (one per base class): Greathorn Cleaver, Moonshadow
+     Knife, Tidecaller Staff, Dawnlight Rod. Gear skills carry a ✦ badge
+     in battle, a "Gear skills" mastery section on the character sheet,
+     and a "Teaches:" line on store cards.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

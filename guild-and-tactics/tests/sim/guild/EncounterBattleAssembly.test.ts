@@ -66,6 +66,7 @@ const TEST_MEMBER: GuildMember = {
   classLevelsReached: {},
   level: 2,
   experiencePoints: 0,
+  skillMasteryProgress: {},
   equippedItemIdentifiers: {},
 };
 

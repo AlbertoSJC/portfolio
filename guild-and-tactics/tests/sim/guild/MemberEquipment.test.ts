@@ -28,6 +28,7 @@ function createTestGuildWithWarrior(equipmentInventory: Record<string, number>):
     classLevelsReached: {},
     level: 2,
     experiencePoints: 0,
+    skillMasteryProgress: {},
     equippedItemIdentifiers: {},
   };
   const guild: GuildState = {

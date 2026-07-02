@@ -10,6 +10,10 @@ import type {
 
 const BASIC_ATTACK_SKILL_IDENTIFIER = 'basic_attack';
 
+function deduplicate(values: readonly string[]): string[] {
+  return [...new Set(values)];
+}
+
 export interface CharacterRecipe {
   identifier: string;
   displayName: string;
@@ -23,6 +27,10 @@ export interface CharacterRecipe {
   equipment?: EquipmentDefinition[];
   /** Skills carried from a previously mastered base class (the secondary skill set). */
   secondarySkillIdentifiers?: string[];
+  /** Equipment-granted skills mastered permanently through use (SkillMastery.ts). */
+  masteredSkillIdentifiers?: string[];
+  /** Skills usable only while the granting gear stays equipped (SkillMastery.ts). */
+  equipmentGrantedSkillIdentifiers?: string[];
 }
 
 function deriveStatisticsForLevel(
@@ -64,6 +72,19 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
     recipe.level,
     recipe.equipment ?? [],
   );
+  // A skill already known through class, secondary set, or mastery never
+  // counts as gear-granted — the unit keeps it if the item comes off.
+  const skillIdentifiersKnownWithoutGear = deduplicate([
+    BASIC_ATTACK_SKILL_IDENTIFIER,
+    ...recipe.baseClass.skills
+      .filter((entry) => entry.learnedAtLevel <= recipe.level)
+      .map((entry) => entry.skillIdentifier),
+    ...(recipe.secondarySkillIdentifiers ?? []),
+    ...(recipe.masteredSkillIdentifiers ?? []),
+  ]);
+  const gearOnlySkillIdentifiers = deduplicate(
+    recipe.equipmentGrantedSkillIdentifiers ?? [],
+  ).filter((skillIdentifier) => !skillIdentifiersKnownWithoutGear.includes(skillIdentifier));
   return {
     identifier: recipe.identifier,
     displayName: recipe.displayName,
@@ -77,13 +98,8 @@ export function createUnitFromCharacter(recipe: CharacterRecipe): Unit {
     position: { ...recipe.position },
     facing: recipe.facing,
     canFly: recipe.race.canFly,
-    skillIdentifiers: [
-      BASIC_ATTACK_SKILL_IDENTIFIER,
-      ...recipe.baseClass.skills
-        .filter((entry) => entry.learnedAtLevel <= recipe.level)
-        .map((entry) => entry.skillIdentifier),
-      ...(recipe.secondarySkillIdentifiers ?? []),
-    ],
+    skillIdentifiers: [...skillIdentifiersKnownWithoutGear, ...gearOnlySkillIdentifiers],
+    equipmentGrantedSkillIdentifiers: gearOnlySkillIdentifiers,
     elementalAffinities: { ...recipe.race.elementalAffinities },
     activeStatModifiers: [],
     activeStatusEffects: [],
@@ -113,6 +129,7 @@ export function createUnitFromMonster(
     facing,
     canFly: monster.canFly,
     skillIdentifiers: [BASIC_ATTACK_SKILL_IDENTIFIER, ...monster.skillIdentifiers],
+    equipmentGrantedSkillIdentifiers: [],
     elementalAffinities: { ...monster.elementalAffinities },
     activeStatModifiers: [],
     activeStatusEffects: [],

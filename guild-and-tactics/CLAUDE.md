@@ -381,7 +381,32 @@ over it, adding roaming-group/player tokens) — same canvas, different
     (slow, lv9), Quickening (haste, lv11). Naming is LORE-compatible
     (Hortian prayer/ward words for Priest, god-free arcane for Mage).
 
-**154 vitest tests, typecheck clean.**
+- ✅ **Equipment-skill mastery** (2026-07-02, PRD §7's second half):
+  `EquipmentDefinition.grantedSkillIdentifier` — the wearer can use that
+  skill while the piece is equipped; each battle use earns 1 mastery point
+  (`GuildMember.skillMasteryProgress`), at 3 (`SKILL_USES_TO_MASTER`,
+  `src/sim/guild/SkillMastery.ts`) it's known permanently without the item.
+  - `Unit.equipmentGrantedSkillIdentifiers` = skills held *only* through
+    gear (UnitFactory subtracts class/secondary/mastered before marking);
+    `Battle` counts skill uses per unit; `GameController.buildBattleConclusion`
+    credits members (kept on defeat/flee, like kill XP) and announces
+    "X has mastered Y!".
+  - Content: 4 silver-tier weapons, one per base class — Greathorn Cleaver
+    → Cleaving Arc, Moonshadow Knife → Shadow Fang, Tidecaller Staff →
+    Tide Surge, Dawnlight Rod → Dawn's Mercy.
+  - UI: ✦ badge + info-box note in the battle menu; "Gear skills" section
+    (Mastery n/3 / Mastered) in the character sheet; "Teaches:" line on
+    store/inventory equipment cards.
+  - Save format still v5 — `skillMasteryProgress` healed to `{}` on load.
+  - Browser pass: `tmp/verify_mastery.mjs` (injects a crafted v5 save).
+  - **Follow-up, same day**: ally-targeted skills can now target the
+    caster's own tile (`BattleController.beginChoosingActionTarget`
+    passes `includeOwnTile: skill.targetTeam === 'allies'`); hostile
+    skills still exclude it. Fixed a pre-existing quirk where a lone
+    healer couldn't heal themselves. Browser-verified via
+    `tmp/verify_mastery.mjs`'s self-target cast.
+
+**166 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones/settlements, with real names — `LORE.md` doesn't name them
@@ -389,5 +414,4 @@ over it, adding roaming-group/player tokens) — same canvas, different
 - Monster level-scaling per zone/region
 - Dispatch quests (send members away for passive reward)
 - More maps, quests, and items (toward §8 content targets)
-- Equipment-skill mastery (FFTA-style: use an item's skill in battle to learn it permanently)
 - Harder quest ranks gated by reputation tier (tiers currently only gate store stock and recruit count)

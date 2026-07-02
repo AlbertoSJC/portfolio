@@ -202,14 +202,16 @@ export class BattleHud {
     this.appendMenuTitle('Actions');
     for (const skill of battle.getSkillsOfActiveUnit()) {
       const unaffordable = !canUnitAffordSkill(activeUnit, skill);
+      const isGrantedByGear = activeUnit.equipmentGrantedSkillIdentifiers.includes(skill.identifier);
+      const gearBadge = isGrantedByGear ? ' ✦' : '';
       const label =
         skill.manaPointCost === 0
-          ? skill.displayName
-          : `${skill.displayName} (${skill.manaPointCost} MP)`;
+          ? `${skill.displayName}${gearBadge}`
+          : `${skill.displayName}${gearBadge} (${skill.manaPointCost} MP)`;
       this.appendMenuButton(label, () => this.callbacks.onSkillChosen(skill.identifier), {
         isDisabled: activeUnit.hasActedThisTurn || unaffordable,
         onHoverStart: () => {
-          this.showSkillInfoBox(skill);
+          this.showSkillInfoBox(skill, isGrantedByGear);
           this.callbacks.onSkillPreviewStart(skill.identifier);
         },
         onHoverEnd: () => {
@@ -245,17 +247,20 @@ export class BattleHud {
     }
   }
 
-  private showSkillInfoBox(skill: SkillDefinition): void {
+  private showSkillInfoBox(skill: SkillDefinition, isGrantedByGear: boolean = false): void {
     const rangeDescription = skill.targetingRange === 0 ? 'Self' : `${skill.targetingRange} tiles`;
     const areaDescription =
       skill.areaOfEffectRadius === 0 ? 'Single target' : `${skill.areaOfEffectRadius}-tile burst`;
+    const gearNote = isGrantedByGear
+      ? '<br>✦ Granted by equipped gear — use it in battle to master it permanently.'
+      : '';
     this.skillInfoBoxElement.classList.remove('hidden');
     this.skillInfoBoxElement.innerHTML = `
       <h3>${skill.displayName}</h3>
       <p>${skill.description}</p>
       <p class="skill-info-details">
         ${describeSkillEffect(skill)}<br>
-        Range: ${rangeDescription} · ${areaDescription} · Cost: ${skill.manaPointCost} MP
+        Range: ${rangeDescription} · ${areaDescription} · Cost: ${skill.manaPointCost} MP${gearNote}
       </p>
     `;
   }

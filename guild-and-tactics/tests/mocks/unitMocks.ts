@@ -36,6 +36,7 @@ export function createTestUnit(
     facing: 'north',
     canFly: false,
     skillIdentifiers: ['basic_attack'],
+    equipmentGrantedSkillIdentifiers: [],
     elementalAffinities: {},
     activeStatModifiers: [],
     activeStatusEffects: [],

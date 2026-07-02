@@ -28,6 +28,7 @@ describe('changeMemberClass — base classes', () => {
       classLevelsReached: {},
       level: 3,
       experiencePoints: 20,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -46,6 +47,7 @@ describe('changeMemberClass — base classes', () => {
       classLevelsReached: {},
       level: 2,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(feryan);
@@ -62,6 +64,7 @@ describe('changeMemberClass — base classes', () => {
       classLevelsReached: {},
       level: 2,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: { weapon: 'iron_sword', armor: 'leather_vest' },
     };
     const guild = createTestGuildWithMember(human);
@@ -81,6 +84,7 @@ describe('changeMemberClass — base classes', () => {
       classLevelsReached: {},
       level: 2,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -98,6 +102,7 @@ describe('changeMemberClass — advanced classes', () => {
       classLevelsReached: { warrior: 5 },
       level: 5,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -114,6 +119,7 @@ describe('changeMemberClass — advanced classes', () => {
       classLevelsReached: { warrior: 4 },
       level: 4,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -130,6 +136,7 @@ describe('changeMemberClass — advanced classes', () => {
       classLevelsReached: { mage: 5, priest: 3 },
       level: 5,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -146,6 +153,7 @@ describe('changeMemberClass — advanced classes', () => {
       classLevelsReached: { mage: 5, priest: 2 },
       level: 5,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(human);
@@ -161,6 +169,7 @@ describe('changeMemberClass — advanced classes', () => {
       classLevelsReached: { warrior: 5 },
       level: 5,
       experiencePoints: 0,
+      skillMasteryProgress: {},
       equippedItemIdentifiers: {},
     };
     const guild = createTestGuildWithMember(feryan);

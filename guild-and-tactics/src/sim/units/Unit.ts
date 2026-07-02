@@ -141,6 +141,12 @@ export interface Unit {
   facing: CardinalDirection;
   canFly: boolean;
   skillIdentifiers: string[];
+  /**
+   * The subset of skillIdentifiers only usable because of worn gear — the
+   * unit loses them if the item comes off, and using them earns mastery
+   * progress (SkillMastery.ts). Always empty for monsters.
+   */
+  equipmentGrantedSkillIdentifiers: string[];
   elementalAffinities: ElementalAffinities;
   activeStatModifiers: ActiveStatModifier[];
   activeStatusEffects: ActiveStatusEffect[];

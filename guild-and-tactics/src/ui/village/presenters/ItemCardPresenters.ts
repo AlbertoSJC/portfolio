@@ -16,6 +16,7 @@ import {
   type EquipmentSlot,
 } from '../../../sim/items/EquipmentDefinition';
 import type { BaseClassDefinition } from '../../../sim/units/UnitDefinitions';
+import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
 import type { ItemIconKind } from '../ItemIcons';
 import { iconKindForConsumable, iconKindForEquipment } from '../ItemIcons';
 import { describeStatisticBonuses } from './StatisticDescriptions';
@@ -53,6 +54,21 @@ export interface ItemContentTables {
   items: Record<string, ConsumableItemDefinition>;
   equipment: Record<string, EquipmentDefinition>;
   baseClasses: Record<string, BaseClassDefinition>;
+  skills: Record<string, SkillDefinition>;
+}
+
+/** "+5 ATK · Teaches: Cleaving Arc" — bonuses plus the granted skill, if any. */
+function describeEquipmentEffects(
+  equipment: EquipmentDefinition,
+  skills: Record<string, SkillDefinition>,
+): string {
+  const bonusLine = describeStatisticBonuses(equipment.statisticBonuses);
+  if (equipment.grantedSkillIdentifier === undefined) {
+    return bonusLine;
+  }
+  const skillName =
+    skills[equipment.grantedSkillIdentifier]?.displayName ?? equipment.grantedSkillIdentifier;
+  return `${bonusLine} · Teaches: ${skillName}`;
 }
 
 export function describeClassRestriction(
@@ -81,7 +97,7 @@ export function buildStoreCardViewModels(
   }
   for (const equipment of Object.values(content.equipment)) {
     if (storeFilter === 'all' || storeFilter === equipment.slot) {
-      storeCards.push(buildEquipmentStoreCard(guild, zoneIdentifier, equipment, content.baseClasses));
+      storeCards.push(buildEquipmentStoreCard(guild, zoneIdentifier, equipment, content));
     }
   }
   return storeCards;
@@ -114,14 +130,14 @@ function buildEquipmentStoreCard(
   guild: GuildState,
   zoneIdentifier: string,
   equipment: EquipmentDefinition,
-  baseClasses: Record<string, BaseClassDefinition>,
+  content: ItemContentTables,
 ): StoreCardViewModel {
   const stockRemaining = storeStockOf(guild, zoneIdentifier, equipment.identifier);
   return {
     iconKind: iconKindForEquipment(equipment),
     title: equipment.displayName,
-    typeLine: `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${describeClassRestriction(equipment, baseClasses)}`,
-    effectLine: describeStatisticBonuses(equipment.statisticBonuses),
+    typeLine: `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${describeClassRestriction(equipment, content.baseClasses)}`,
+    effectLine: describeEquipmentEffects(equipment, content.skills),
     description: equipment.description,
     detailLines: [],
     merchandiseIdentifier: equipment.identifier,
@@ -174,7 +190,7 @@ export function buildInventoryViewModel(
       iconKind: iconKindForEquipment(equipment),
       title: equipment.displayName,
       typeLine: `${EQUIPMENT_SLOT_DISPLAY_NAMES[equipment.slot]} · ${describeClassRestriction(equipment, content.baseClasses)}`,
-      effectLine: describeStatisticBonuses(equipment.statisticBonuses),
+      effectLine: describeEquipmentEffects(equipment, content.skills),
       description: equipment.description,
       detailLines: [
         `Equipped by: ${wearerNames.length === 0 ? '—' : wearerNames.join(', ')}`,

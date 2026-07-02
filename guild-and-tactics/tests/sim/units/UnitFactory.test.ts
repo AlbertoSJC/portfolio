@@ -114,4 +114,45 @@ describe('createUnitFromCharacter', () => {
     expect(humanThief.skillIdentifiers).toContain('basic_attack');
     expect(humanThief.skillIdentifiers).toContain('flanking_strike');
   });
+
+  it('adds equipment-granted skills and marks them as gear-dependent', () => {
+    const armedWarrior = createUnitFromCharacter({
+      identifier: 'test_gear_warrior',
+      displayName: 'Gear Warrior',
+      team: 'guild',
+      race: raceOrThrow('human'),
+      baseClass: baseClassOrThrow('warrior'),
+      level: 1,
+      position: { column: 0, row: 0 },
+      facing: 'north',
+      equipmentGrantedSkillIdentifiers: ['cleaving_arc'],
+    });
+    expect(armedWarrior.skillIdentifiers).toContain('cleaving_arc');
+    expect(armedWarrior.equipmentGrantedSkillIdentifiers).toEqual(['cleaving_arc']);
+  });
+
+  it('keeps mastered skills without gear and never double-lists a class-known skill', () => {
+    const veteranWarrior = createUnitFromCharacter({
+      identifier: 'test_veteran_warrior',
+      displayName: 'Veteran Warrior',
+      team: 'guild',
+      race: raceOrThrow('human'),
+      baseClass: baseClassOrThrow('warrior'),
+      level: 1,
+      position: { column: 0, row: 0 },
+      facing: 'north',
+      masteredSkillIdentifiers: ['cleaving_arc'],
+      // The gear grants a skill already known through class and one through mastery:
+      // neither counts as gear-dependent, so both survive unequipping.
+      equipmentGrantedSkillIdentifiers: ['cleaving_arc', 'power_strike'],
+    });
+    expect(veteranWarrior.skillIdentifiers).toContain('cleaving_arc');
+    expect(veteranWarrior.equipmentGrantedSkillIdentifiers).toEqual([]);
+    expect(
+      veteranWarrior.skillIdentifiers.filter((identifier) => identifier === 'power_strike'),
+    ).toHaveLength(1);
+    expect(
+      veteranWarrior.skillIdentifiers.filter((identifier) => identifier === 'cleaving_arc'),
+    ).toHaveLength(1);
+  });
 });

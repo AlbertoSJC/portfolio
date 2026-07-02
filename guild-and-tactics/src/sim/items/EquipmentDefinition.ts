@@ -24,6 +24,12 @@ export interface EquipmentDefinition {
   allowedClasses?: ClassIdentifier[];
   /** When set, the store only stocks this item at or above this reputation tier. */
   minimumReputationTier?: ReputationTier;
+  /**
+   * When set, the wearer can use this skill in battle while the piece is
+   * equipped. Using it earns mastery progress (see SkillMastery.ts); once
+   * mastered, the skill is known permanently even without the item.
+   */
+  grantedSkillIdentifier?: string;
 }
 
 export function sellPriceForEquipment(equipment: EquipmentDefinition): number {

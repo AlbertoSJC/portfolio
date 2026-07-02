@@ -10,6 +10,10 @@ import type {
 import { createUnitFromCharacter, createUnitFromMonster } from '../units/UnitFactory';
 import type { GuildMember } from './GuildState';
 import { equippedDefinitionsForMember } from './MemberEquipment';
+import {
+  equipmentGrantedSkillIdentifiersForMember,
+  masteredSkillIdentifiersForMember,
+} from './SkillMastery';
 import type { QuestDefinition, QuestEnemySpawn } from './QuestDefinition';
 
 export interface UnitContentTables {
@@ -61,6 +65,11 @@ export function createGuildUnitsFromDeployedMembers(
       facing: 'north',
       equipment: equippedDefinitionsForMember(member.equippedItemIdentifiers, contentTables.equipment),
       secondarySkillIdentifiers,
+      masteredSkillIdentifiers: masteredSkillIdentifiersForMember(member),
+      equipmentGrantedSkillIdentifiers: equipmentGrantedSkillIdentifiersForMember(
+        member,
+        contentTables.equipment,
+      ),
     });
   });
 }

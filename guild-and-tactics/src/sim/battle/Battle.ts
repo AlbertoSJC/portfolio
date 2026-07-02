@@ -29,6 +29,8 @@ export class Battle {
   readonly units: Unit[];
   /** Levels of every enemy defeated so far — feeds kill experience after the battle. */
   readonly defeatedEnemyLevels: number[] = [];
+  /** Uses per skill per unit — feeds equipment-skill mastery after the battle. */
+  private readonly skillUseCountsByUnitIdentifier: Record<string, Record<string, number>> = {};
   /** Roaming encounters allow a mid-battle retreat; quest battles do not. */
   readonly isFleeingPermitted: boolean;
   private readonly skillTable: Record<string, SkillDefinition>;
@@ -182,6 +184,8 @@ export class Battle {
       this.randomNumberGenerator,
     );
     activeUnit.hasActedThisTurn = true;
+    const useCountsForUnit = (this.skillUseCountsByUnitIdentifier[activeUnit.identifier] ??= {});
+    useCountsForUnit[skillIdentifier] = (useCountsForUnit[skillIdentifier] ?? 0) + 1;
     this.recordDefeatedEnemies(events);
 
     const outcome = this.getBattleOutcome();
@@ -222,6 +226,11 @@ export class Battle {
   /** What is left after the battle, to hand back to the guild inventory. */
   getRemainingItemPouch(): Record<string, number> {
     return { ...this.itemPouch };
+  }
+
+  /** How many times the given unit used each skill this battle. */
+  getSkillUseCountsForUnit(unitIdentifier: string): Record<string, number> {
+    return { ...this.skillUseCountsByUnitIdentifier[unitIdentifier] };
   }
 
   getItemByIdentifier(itemIdentifier: string): ConsumableItemDefinition {

@@ -14,6 +14,8 @@ export interface GuildMember {
   classLevelsReached: Partial<Record<BaseClassIdentifier, number>>;
   /** Base class whose unlocked skills are carried into battle as the secondary skill set. */
   secondarySkillClassIdentifier?: BaseClassIdentifier;
+  /** Battle uses accumulated toward each equipment-granted skill — see SkillMastery.ts. */
+  skillMasteryProgress: Record<string, number>;
   level: number;
   experiencePoints: number;
   equippedItemIdentifiers: Partial<Record<EquipmentSlot, string>>;

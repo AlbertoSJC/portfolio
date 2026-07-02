@@ -219,6 +219,53 @@ export const SKILLS: Record<string, SkillDefinition> = {
     effect: { kind: 'statusEffect', statusEffect: 'shell', durationTurns: 3 },
   },
 
+  // ── Equipment-bound (PRD §7 — granted by gear, mastered through use) ──
+  cleaving_arc: {
+    identifier: 'cleaving_arc',
+    displayName: 'Cleaving Arc',
+    description: 'A wide, tusk-heavy sweep that carries through everything beside the first target.',
+    manaPointCost: 5,
+    targetingRange: 1,
+    areaOfEffectRadius: 1,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.1 },
+  },
+  shadow_fang: {
+    identifier: 'shadow_fang',
+    displayName: 'Shadow Fang',
+    description: 'A werecat cut taught knife-to-hand: barely a scratch from the front, ruinous from behind.',
+    manaPointCost: 4,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: {
+      kind: 'damage',
+      damageSource: 'physical',
+      powerMultiplier: 0.9,
+      flankingPowerBonus: 0.9,
+    },
+  },
+  tide_surge: {
+    identifier: 'tide_surge',
+    displayName: 'Tide Surge',
+    description: 'Yiern\'s water called up as a single swell that breaks over the target and its neighbors.',
+    manaPointCost: 8,
+    targetingRange: 3,
+    areaOfEffectRadius: 1,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.1, element: 'water' },
+  },
+  dawns_mercy: {
+    identifier: 'dawns_mercy',
+    displayName: 'Dawn\'s Mercy',
+    description: 'A Hortian prayer of first light that mends every ally standing close together.',
+    manaPointCost: 8,
+    targetingRange: 3,
+    areaOfEffectRadius: 1,
+    targetTeam: 'allies',
+    effect: { kind: 'heal', powerMultiplier: 1.2 },
+  },
+
   // ── Creatures of the Darkness ──────────────────────────────────────────
   savage_bite: {
     identifier: 'savage_bite',

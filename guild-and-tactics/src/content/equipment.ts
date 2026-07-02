@@ -54,6 +54,53 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     statisticBonuses: { magicPower: 2, magicResistance: 2 },
     allowedClasses: ['priest'],
   },
+  // ── Skill-bearing weapons (PRD §7 — the skill is usable while equipped
+  //    and mastered permanently through use; see SkillMastery.ts) ─────────
+  greathorn_cleaver: {
+    identifier: 'greathorn_cleaver',
+    displayName: 'Greathorn Cleaver',
+    description: 'An axe bitted with a greathorn boar\'s tusk. The sweep is in the weight — it teaches itself.',
+    slot: 'weapon',
+    priceInGold: 220,
+    statisticBonuses: { attack: 5 },
+    allowedClasses: ['warrior'],
+    minimumReputationTier: 'silver',
+    grantedSkillIdentifier: 'cleaving_arc',
+  },
+  moonshadow_knife: {
+    identifier: 'moonshadow_knife',
+    displayName: 'Moonshadow Knife',
+    description: 'Werecat knife-craft, quenched under a new moon. The blade remembers the cut its makers favored.',
+    slot: 'weapon',
+    priceInGold: 200,
+    statisticBonuses: { attack: 3, speed: 1 },
+    allowedClasses: ['thief'],
+    minimumReputationTier: 'silver',
+    grantedSkillIdentifier: 'shadow_fang',
+  },
+  tidecaller_staff: {
+    identifier: 'tidecaller_staff',
+    displayName: 'Tidecaller Staff',
+    description: 'Driftwood blessed at Yiern\'s riverside shrines. It pulls at the water in the air.',
+    slot: 'weapon',
+    priceInGold: 230,
+    statisticBonuses: { magicPower: 4 },
+    allowedClasses: ['mage'],
+    minimumReputationTier: 'silver',
+    grantedSkillIdentifier: 'tide_surge',
+  },
+  dawnlight_rod: {
+    identifier: 'dawnlight_rod',
+    displayName: 'Dawnlight Rod',
+    description: 'Carried at Hortian dawn services. Those who bear it long enough learn the morning prayer by heart.',
+    slot: 'weapon',
+    priceInGold: 230,
+    statisticBonuses: { magicPower: 3, magicResistance: 1 },
+    allowedClasses: ['priest'],
+    minimumReputationTier: 'silver',
+    grantedSkillIdentifier: 'dawns_mercy',
+  },
+
   // ── Armor ──────────────────────────────────────────────────────────────
   leather_vest: {
     identifier: 'leather_vest',

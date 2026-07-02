@@ -769,3 +769,67 @@ plus the first skills that use them.
   asymmetry (each reduces only its damage source), regen healing +
   full-health cap. Browser regression pass via `tmp/verify_flee.mjs`
   re-run (battle start, action menu, HUD all clean).
+
+**2026-07-02 — Equipment-skill mastery (FFTA-style, PRD §7).**
+
+The hybrid skill-learning model's second half is live: gear can carry a
+skill that the wearer can use while the piece is equipped; each use in
+battle earns one mastery point, and at 3 points (`SKILL_USES_TO_MASTER`,
+`src/sim/guild/SkillMastery.ts`) the skill is mastered — known
+permanently, with or without the item.
+
+- *Sim*: `EquipmentDefinition` gained `grantedSkillIdentifier`;
+  `GuildMember` gained `skillMasteryProgress` (uses per skill — a skill is
+  "mastered" when its count reaches the threshold, no second field to keep
+  in sync). New `SkillMastery.ts` holds the threshold + the queries +
+  `recordEquipmentSkillUses` (credits a battle's uses, but only for skills
+  granted by *currently worn* gear and not yet mastered — the same
+  condition under which the skill was usable at all; returns what was
+  newly mastered so the UI can announce it). Progress is kept on defeat
+  and flee, matching the kill-XP retreat rule.
+- *Battle plumbing*: `Unit` gained `equipmentGrantedSkillIdentifiers` —
+  the subset of its skills that exists only because of worn gear.
+  `UnitFactory` computes it by *subtracting* everything known without the
+  item (class list at level, secondary set, mastered skills), so a skill
+  that is both class-known and gear-granted never reads as gear-dependent,
+  and the final list is deduplicated. `Battle` counts skill uses per unit
+  (same pattern as `defeatedEnemyLevels` — targeted tracking that feeds
+  post-battle progression); `GameController.buildBattleConclusion` credits
+  each deployed member and pushes "X has mastered Y!" summary lines.
+- *Content* (LORE-aligned): four silver-tier skill-bearing weapons, one
+  per base class — Greathorn Cleaver → Cleaving Arc (physical melee
+  burst, the game's first physical AoE), Moonshadow Knife → Shadow Fang
+  (weak front / brutal flank), Tidecaller Staff → Tide Surge (Yiern water
+  AoE), Dawnlight Rod → Dawn's Mercy (Hortian group heal, the game's
+  first AoE heal). Skills 28 of ~150.
+- *UI*: gear-granted skills show a ✦ badge in the battle action menu and
+  a "Granted by equipped gear — use it in battle to master it
+  permanently" note in the skill info box; the character sheet's skills
+  panel gained a "Gear skills" section showing `Mastery n/3` or
+  `Mastered` per skill; store/inventory equipment cards append
+  "Teaches: <skill>" to their effect line.
+- *Save format*: unchanged (still v5) — `skillMasteryProgress` is healed
+  to `{}` on load like earlier additive fields; a dedicated test covers a
+  pre-mastery v5 save.
+- *Verification*: 12 new vitest tests (166 total, typecheck/build clean) —
+  mastery accrual/threshold/no-double-report, gear-vs-known subtraction in
+  the factory, per-unit use counting in `Battle`, assembly threading, save
+  healing, and a content-validity check that every `grantedSkillIdentifier`
+  points at a real skill. New `tmp/verify_mastery.mjs` browser pass
+  (injected save, priest at 2/3 mastery): ✦ badge + info-box note
+  confirmed in a live battle, one cast + flee produced the "Brakka has
+  mastered Dawn's Mercy!" outcome line and persisted progress 3/3; the
+  Town character sheet showed "Gear skills · Mastery 2/3" and the store
+  card showed "Teaches: Cleaving Arc". Zero page errors beyond the
+  harmless favicon 404.
+- *Pre-existing quirk noticed while scripting the browser pass, fixed
+  same day at the user's request*: skill targeting excluded the caster's
+  own tile for every skill, so a lone healer could not cast an
+  ally-targeted skill on themselves. `beginChoosingActionTarget` now
+  passes `includeOwnTile: skill.targetTeam === 'allies'` — ally skills
+  can self-target, hostile skills still cannot (self-range-0 skills were
+  always fine, they skip tile choice entirely). Controller-layer change,
+  so per this project's pattern it is browser-verified, not
+  vitest-covered: `tmp/verify_mastery.mjs` now casts Dawn's Mercy on the
+  caster's *own* tile and doubles as the regression check (heal lands on
+  self, mastery still credited).

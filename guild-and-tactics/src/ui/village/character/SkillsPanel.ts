@@ -6,6 +6,12 @@ import type {
   BaseClassDefinition,
   ClassSkillEntry,
 } from '../../../sim/units/UnitDefinitions';
+import {
+  equipmentGrantedSkillIdentifiersForMember,
+  isSkillMastered,
+  masteredSkillIdentifiersForMember,
+  SKILL_USES_TO_MASTER,
+} from '../../../sim/guild/SkillMastery';
 import { createSkillIconCanvas, iconKindForSkill } from '../SkillIcons';
 import type { CharacterSheetCallbacks, CharacterSheetContentTables } from './CharacterSheetTypes';
 
@@ -32,6 +38,7 @@ export function buildSkillsPanel(
   scrollArea.className = 'skills-panel-scroll';
 
   const primaryPanel = buildPrimarySkillList(classDefinition, content, member.level);
+  primaryPanel.appendChild(buildGearSkillSection(member, content));
   const secondaryPanel = buildSecondarySkillList(member, content, callbacks);
   secondaryPanel.style.display = 'none';
 
@@ -71,7 +78,49 @@ function buildPrimarySkillList(
   return list;
 }
 
-function buildSkillRow(skill: SkillDefinition, isUnlocked: boolean, learnedAtLevel?: number): HTMLElement {
+/**
+ * Skills tied to gear (PRD §7): granted by a worn item and mastered through
+ * use, plus skills already mastered this way (known even without the item).
+ */
+function buildGearSkillSection(
+  member: GuildMember,
+  content: CharacterSheetContentTables,
+): HTMLElement {
+  const section = document.createElement('div');
+  const grantedSkillIdentifiers = equipmentGrantedSkillIdentifiersForMember(
+    member,
+    content.equipment,
+  );
+  const masteredSkillIdentifiers = masteredSkillIdentifiersForMember(member);
+  const gearSkillIdentifiers = [
+    ...new Set([...grantedSkillIdentifiers, ...masteredSkillIdentifiers]),
+  ];
+  if (gearSkillIdentifiers.length === 0) {
+    return section;
+  }
+
+  const title = document.createElement('p');
+  title.className = 'menu-section-title';
+  title.textContent = 'Gear skills';
+  section.appendChild(title);
+
+  for (const skillIdentifier of gearSkillIdentifiers) {
+    const skill = content.skills[skillIdentifier];
+    if (skill === undefined) continue;
+    const masteryLabel = isSkillMastered(member, skillIdentifier)
+      ? 'Mastered'
+      : `Mastery ${member.skillMasteryProgress[skillIdentifier] ?? 0}/${SKILL_USES_TO_MASTER}`;
+    section.appendChild(buildSkillRow(skill, true, undefined, masteryLabel));
+  }
+  return section;
+}
+
+function buildSkillRow(
+  skill: SkillDefinition,
+  isUnlocked: boolean,
+  learnedAtLevel?: number,
+  rightLabelSuffix?: string,
+): HTMLElement {
   const skillRow = document.createElement('div');
   skillRow.className = isUnlocked ? 'skill-row' : 'skill-row is-locked';
 
@@ -83,9 +132,10 @@ function buildSkillRow(skill: SkillDefinition, isUnlocked: boolean, learnedAtLev
 
   const costNote = skill.manaPointCost === 0 ? '' : ` · ${skill.manaPointCost} MP`;
   const rangeNote = skill.targetingRange === 0 ? 'Self' : `Range ${skill.targetingRange}`;
+  const masteryNote = rightLabelSuffix === undefined ? '' : ` · ${rightLabelSuffix}`;
   const rightLabel = !isUnlocked && learnedAtLevel !== undefined
     ? `Unlocks at Lv.${learnedAtLevel}`
-    : `${rangeNote}${costNote}`;
+    : `${rangeNote}${costNote}${masteryNote}`;
   const infoEl = document.createElement('em');
   infoEl.textContent = rightLabel;
 

@@ -26,6 +26,7 @@ const TEST_MEMBER: GuildMember = {
   classLevelsReached: {},
   level: 2,
   experiencePoints: 0,
+  skillMasteryProgress: {},
   equippedItemIdentifiers: {},
 };
 
@@ -40,6 +41,24 @@ describe('createUnitsForQuestBattle', () => {
     expect(units.filter((unit) => unit.team === 'guild')).toHaveLength(1);
     expect(units.filter((unit) => unit.team === 'enemy')).toHaveLength(quest.enemySpawns.length);
     expect(units[0]?.position).toEqual(mapEntry.deploymentTiles[0]);
+  });
+
+  it('carries gear-granted and mastered skills onto the assembled unit', () => {
+    const quest = QUESTS['wolves_on_the_north_road'];
+    const mapEntry = BATTLE_MAPS['forest_clearing'];
+    if (quest === undefined || mapEntry === undefined) {
+      throw new Error('Missing test content');
+    }
+    const armedMember: GuildMember = {
+      ...TEST_MEMBER,
+      equippedItemIdentifiers: { weapon: 'greathorn_cleaver' },
+      skillMasteryProgress: { tide_surge: 99 }, // mastered long ago, item since sold
+    };
+    const units = createUnitsForQuestBattle(quest, [armedMember], mapEntry.deploymentTiles, CONTENT_TABLES);
+    const guildUnit = units[0];
+    expect(guildUnit?.skillIdentifiers).toContain('cleaving_arc');
+    expect(guildUnit?.equipmentGrantedSkillIdentifiers).toEqual(['cleaving_arc']);
+    expect(guildUnit?.skillIdentifiers).toContain('tide_surge');
   });
 
   it('refuses an empty deployment', () => {

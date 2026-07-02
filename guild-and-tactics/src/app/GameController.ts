@@ -15,6 +15,7 @@ import type { BaseClassIdentifier } from '../sim/units/Unit';
 import { equipItemOnMember, unequipMemberSlot } from '../sim/guild/MemberEquipment';
 import { hasZoneBeenStocked, restockStore, storeStockOf, takeOneFromStoreStock } from '../sim/guild/StoreStock';
 import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
+import { recordEquipmentSkillUses } from '../sim/guild/SkillMastery';
 import type { ClassIdentifier } from '../sim/units/Unit';
 import {
   sellPriceForEquipment,
@@ -508,6 +509,16 @@ export class GameController {
       const levelsGained = applyExperienceGain(member, experiencePerMember);
       if (levelsGained > 0) {
         summaryLines.push(`${member.displayName} is now level ${member.level}!`);
+      }
+      // Like kill XP, mastery progress from skill uses is kept whatever the outcome.
+      const newlyMasteredSkillIdentifiers = recordEquipmentSkillUses(
+        member,
+        battle.getSkillUseCountsForUnit(member.identifier),
+        EQUIPMENT,
+      );
+      for (const skillIdentifier of newlyMasteredSkillIdentifiers) {
+        const skillName = SKILLS[skillIdentifier]?.displayName ?? skillIdentifier;
+        summaryLines.push(`${member.displayName} has mastered ${skillName}!`);
       }
     }
 

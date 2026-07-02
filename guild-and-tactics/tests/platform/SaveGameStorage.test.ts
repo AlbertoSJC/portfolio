@@ -180,6 +180,39 @@ describe('BrowserLocalStorageSaveGameStorage', () => {
     expect(migratedGuild?.completedQuestCount).toBe(4);
   });
 
+  it('heals a v5 save written before skill mastery existed', () => {
+    const keyValueStore = createInMemoryKeyValueStore();
+    const preMasteryGuild = {
+      gold: 600,
+      roster: [
+        {
+          identifier: 'member_pre_mastery',
+          displayName: 'Pre-Mastery Member',
+          raceIdentifier: 'human',
+          classIdentifier: 'warrior',
+          classLevelsReached: {},
+          level: 4,
+          experiencePoints: 0,
+          equippedItemIdentifiers: {},
+          // no skillMasteryProgress — written before the field existed
+        },
+      ],
+      consumableInventory: {},
+      equipmentInventory: {},
+      storeStock: {},
+      questIdentifiersOnBoard: {},
+      recruitsOnOffer: [],
+      completedQuestCount: 6,
+    };
+    keyValueStore.setItem(
+      'guild-and-tactics.save',
+      JSON.stringify({ saveFormatVersion: 5, guild: preMasteryGuild }),
+    );
+    const storage = new BrowserLocalStorageSaveGameStorage(keyValueStore);
+    const healedGuild = storage.loadGuildSave();
+    expect(healedGuild?.roster[0]?.skillMasteryProgress).toEqual({});
+  });
+
   it('clears a save on request', () => {
     const storage = new BrowserLocalStorageSaveGameStorage(createInMemoryKeyValueStore());
     storage.persistGuildSave(createNewGuild(new SeededRandomNumberGenerator(11)));

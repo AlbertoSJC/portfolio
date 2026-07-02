@@ -16,6 +16,7 @@ function createTestMember(level: number, experiencePoints = 0): GuildMember {
     classLevelsReached: {},
     level,
     experiencePoints,
+    skillMasteryProgress: {},
     equippedItemIdentifiers: {},
   };
 }

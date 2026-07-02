@@ -64,6 +64,25 @@ describe('Battle', () => {
     expect(() => battle.useSkillWithActiveUnit('first_aid', woundedAlly.position)).toThrow();
   });
 
+  it('counts each unit\'s skill uses for post-battle mastery', () => {
+    const healer = createTestUnit({
+      identifier: 'healer',
+      skillIdentifiers: ['first_aid'],
+      baseStatistics: { speed: 12 },
+    });
+    const woundedAlly = createTestUnit({
+      position: { column: 1, row: 0 },
+      currentHitPoints: 10,
+      baseStatistics: { speed: 4 },
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 3 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([healer, woundedAlly, enemy]);
+    expect(battle.getSkillUseCountsForUnit('healer')).toEqual({});
+    battle.useSkillWithActiveUnit('first_aid', woundedAlly.position);
+    expect(battle.getSkillUseCountsForUnit('healer')).toEqual({ first_aid: 1 });
+    expect(battle.getSkillUseCountsForUnit(woundedAlly.identifier)).toEqual({});
+  });
+
   it('rejects skills the active unit cannot afford', () => {
     const caster = createTestUnit({
       skillIdentifiers: ['fire_bolt'],

@@ -62,6 +62,7 @@ export function generateRecruitOffers(
         raceIdentifier,
         classIdentifier,
         classLevelsReached: {},
+        skillMasteryProgress: {},
         level,
         experiencePoints: 0,
         equippedItemIdentifiers: {},

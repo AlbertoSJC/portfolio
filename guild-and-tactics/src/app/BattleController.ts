@@ -365,7 +365,12 @@ export class BattleController {
         this.afterPlayerAction();
         return;
       }
-      this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(skill.targetingRange, false);
+      // Ally skills may target the caster's own tile (a healer healing
+      // themselves); hostile skills still cannot.
+      this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(
+        skill.targetingRange,
+        skill.targetTeam === 'allies',
+      );
     } else {
       this.highlightedTiles = this.tilesWithinRangeOfActiveUnit(ITEM_USE_RANGE, true);
     }
