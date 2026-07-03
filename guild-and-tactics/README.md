@@ -566,6 +566,37 @@ days of work, not a rewrite.
      store leak found during verification: tier-gated merchandise used to
      render as permanent "Out of stock" cards below its tier; the store
      now hides locked tiers entirely.
+   - ✅ **World geography & zone/settlement lore** — decided 2026-07-03
+     (authored into `LORE.md`, untracked): the continent's full
+     disposition (cold north → heartland → scorched south, the Darkness
+     pressing hardest at the western rim), 12 lore zones beyond the 3
+     built ones, 9 named settlements, 3 named rail lines, settlement
+     naming conventions, and a bestiary expansion (~30 creatures). This
+     unblocks M4's "more zones/settlements" content passes. Guns and
+     rail travel are established in lore but deferred as approved future
+     gameplay iterations (§12).
+   - ✅ **Four new zones (7 total)** — done 2026-07-03, same session: the
+     heartland/north slice of the canon map — Slumber Meadow (levels
+     1–3, Travellers' Rest), Crosspaths Field (3–5, Crosspaths Halt),
+     Thorns Plain (5–7, Rocky Dwelling, two roaming patrols), The
+     Breirwood (6–8, Highbranch). Four new battle maps, 10 new monsters
+     (15 total, including the first human enemies — bandits), 7 monster
+     skills, 10 procedural sprites, 11 quests (22 total), 4 dispatch
+     errands (8 total). The world map is now laid out geographically via
+     `worldMapPosition` per the lore compass, and the three old
+     "Wanderer's Rest" waystation taverns were renamed under the canon
+     convention (Carters' Respite / Peat-Cutters' Haven / Masons' Rest).
+     Browser-verified end-to-end; see CHANGELOG.
+   - ✅ **Content layer made scalable** — done 2026-07-03, same session:
+     zones/quests/monsters split into per-concept folders (one file per
+     zone, one board per zone, monsters by family) with identical public
+     APIs, and all cross-file content references (monster→skill,
+     quest→zone/map/monster, zone→map/monster, gear→skill) became
+     compile-checked via `keyof typeof`-derived identifier unions +
+     `satisfies` — a typo'd identifier now fails `tsc` with a "did you
+     mean" hint instead of surfacing mid-battle. See CHANGELOG for the
+     two deliberate boundaries (sim stays `string`-typed; exports stay
+     `Record`).
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 
@@ -605,6 +636,22 @@ days of work, not a rewrite.
       grid with a small named-location **road network** per zone (one
       tavern location, the rest plain landmarks, roaming groups patrolling
       across several locations instead of one corner) — see §6.0/§6.1.
+- [x] **World geography & settlement roster**: → **decided 2026-07-03** —
+      the continent's disposition, zone/settlement names, rail lines,
+      naming conventions, and creature roster are canon in `LORE.md`
+      (untracked). Zones get built incrementally through M4+; worldbuilding
+      depth is a goal, a main story is not (things must stay cohesive and
+      scalable, nothing more).
+- [ ] **Guns** (approved direction, future iteration — not scheduled): a
+      new weapon category, WW1-style per the lore (one shot, long reload,
+      powerful, sometimes combined with magic); probably arrives together
+      with new gun-wielding classes rather than being bolted onto existing
+      ones.
+- [ ] **Trains** (approved direction, future iteration — not scheduled):
+      instant travel from settlement X to settlement Y along the named
+      rail lines, with the possibility of a battle breaking out on board
+      mid-journey, and tavern quests asking the guild to escort a train
+      from X to Y.
 
 ## 13. Explicitly out of scope (v1)
 

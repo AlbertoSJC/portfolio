@@ -1,4 +1,13 @@
 import type { DispatchQuestDefinition } from '../sim/guild/DispatchQuest';
+import type { ZoneIdentifier } from './zones';
+
+/**
+ * A dispatch as authored in content: its zone reference is compile-checked
+ * against the zone record.
+ */
+type DispatchQuestContentEntry = DispatchQuestDefinition & {
+  zoneIdentifier: ZoneIdentifier;
+};
 
 /**
  * The tavern dispatch board (M4): errands that need one guild member, not
@@ -6,7 +15,7 @@ import type { DispatchQuestDefinition } from '../sim/guild/DispatchQuest';
  * time they take — quests stay the main loop, dispatches are the passive
  * side income (PRD §5 spirit).
  */
-export const DISPATCH_QUESTS: Record<string, DispatchQuestDefinition> = {
+const DISPATCH_QUEST_ENTRIES = {
   escort_the_carters: {
     identifier: 'escort_the_carters',
     displayName: 'Escort the Carters',
@@ -47,4 +56,46 @@ export const DISPATCH_QUESTS: Record<string, DispatchQuestDefinition> = {
     rewardGold: 110,
     rewardExperience: 70,
   },
-};
+  walk_the_sleepers_home: {
+    identifier: 'walk_the_sleepers_home',
+    displayName: 'Walk the Sleepers Home',
+    description:
+      'Someone wanders into the blue field every market day, and someone has to carry them out before the blooms notice. Light work, if you hold your breath.',
+    zoneIdentifier: 'slumber_meadow',
+    durationInBattles: 2,
+    rewardGold: 55,
+    rewardExperience: 35,
+  },
+  mind_the_halts_freight: {
+    identifier: 'mind_the_halts_freight',
+    displayName: "Mind the Halt's Freight",
+    description:
+      'Crates stack up at Crosspaths Halt between trains, and the goblins count them from the tree line. Sit on the pile until the Heartline comes.',
+    zoneIdentifier: 'crosspaths_field',
+    durationInBattles: 3,
+    rewardGold: 100,
+    rewardExperience: 65,
+  },
+  ride_the_southline: {
+    identifier: 'ride_the_southline',
+    displayName: 'Ride the Southline',
+    description:
+      'A freight run to Dusthalt wants one more blade in the guard car. The pay reflects what the last guard didn’t come back with.',
+    zoneIdentifier: 'thorns_plain',
+    durationInBattles: 3,
+    rewardGold: 130,
+    rewardExperience: 80,
+  },
+  tend_the_shrine_lamps: {
+    identifier: 'tend_the_shrine_lamps',
+    displayName: 'Tend the Shrine Lamps',
+    description:
+      'The Wardens are stretched thin and the lamps at Breir’s and Taurk’s shrines must not go out. Long nights, deep wood, good coin.',
+    zoneIdentifier: 'breirwood',
+    durationInBattles: 4,
+    rewardGold: 170,
+    rewardExperience: 105,
+  },
+} satisfies Record<string, DispatchQuestContentEntry>;
+
+export const DISPATCH_QUESTS: Record<string, DispatchQuestDefinition> = DISPATCH_QUEST_ENTRIES;

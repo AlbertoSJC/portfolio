@@ -439,16 +439,31 @@ over it, adding roaming-group/player tokens) — same canvas, different
 
 ### Adding a zone (the checklist)
 
-1. `src/content/zones.ts`: new `ZoneDefinition` — locations/roads/
-   patrol routes (LORE-approved names only), `battleMapIdentifier`
-   (reuse or add a map), `monsterLevelRange`, `rewardGoldPerEncounter`.
+1. `src/content/zones/<zoneName>.ts`: new zone file (`satisfies
+   ZoneContentEntry`) — locations/roads/patrol routes (LORE-approved
+   names only), `battleMapIdentifier` (reuse or add a map),
+   `monsterLevelRange`, `rewardGoldPerEncounter`, `worldMapPosition`.
+   Register it in `zones/index.ts` — **slot it into the tour order**
+   (the world map draws a road between consecutive entries), don't
+   append blindly.
 2. If it's a new battle map: add it to `battleMapRegistry.ts` **with
    `deploymentTiles` and `encounterSpawnTiles`** (both map-space).
-3. Quests for its tavern: add to `quests.ts` with `zoneIdentifier` set
-   to the new zone (any battle map). **At least one must be rank 1** —
-   ranks are reputation-gated (★ bronze / ★★ silver / ★★★ gold), so a
-   zone without rank-1 work shows fresh guilds an empty board.
-4. Run `npm test` — content validity is enforced automatically per zone:
+3. Quests for its tavern: new `src/content/quests/<zoneName>Quests.ts`
+   (`satisfies Record<string, QuestContentEntry>`), merged in
+   `quests/index.ts`. **At least one must be rank 1** — ranks are
+   reputation-gated (★ bronze / ★★ silver / ★★★ gold), so a zone
+   without rank-1 work shows fresh guilds an empty board.
+4. New monsters go in the matching `src/content/monsters/` family file
+   (beasts / humanoids / spirits / floraAndStone, `satisfies Record<
+   string, MonsterContentEntry>`) + a drawer in `SpriteRegistry.ts`
+   keyed by displayName. Cross-file references (zone → map/monsters,
+   quest → zone/map/monsters, monster → skills, gear → skills) are
+   **compile-checked** via identifier types derived `keyof typeof` from
+   each record (`SkillIdentifier`, `MonsterIdentifier`,
+   `BattleMapIdentifier`, `ZoneIdentifier`) — a typo fails `tsc` with a
+   "did you mean" hint. The exported records stay `Record<string, X>`
+   so dynamic lookups (save data) keep working.
+5. Run `npm test` — content validity is enforced automatically per zone:
    patrol-route **catchability** (parity traps are real, see
    `EncounterBattleAssembly.test.ts`), road/location references, level
    range sanity, spawn-tile standability, quest→zone references, ≥1
@@ -515,9 +530,32 @@ over it, adding roaming-group/player tokens) — same canvas, different
   - Browser pass: `tmp/verify_gold_store.mjs` (bronze store shows neither
     silver nor gold pieces; gold store stocks all ten).
 
+- ✅ **Four new zones — the first canon-world content pass** (2026-07-03):
+  Slumber Meadow (1–3, Travellers' Rest), Crosspaths Field (3–5,
+  Crosspaths Halt), Thorns Plain (5–7, Rocky Dwelling, **two** roaming
+  patrols), The Breirwood (6–8, Highbranch) — each on its own new battle
+  map. 10 new monsters (15 total; bandits are the first human enemies,
+  `elementalAffinities: {}`), 7 monster skills, 10 sprite drawers keyed
+  by displayName in `SpriteRegistry.ts`, 11 quests (22), 4 dispatches
+  (8). **World map became geographic**: every zone sets
+  `worldMapPosition` (set all or none), and the ZONES record order is a
+  deliberate winding tour — the world map chains consecutive entries, so
+  keep new zones ordered to avoid road crossings. Old waystation taverns
+  renamed per canon (Carters' Respite / Peat-Cutters' Haven / Masons'
+  Rest) — displayName only, identifiers/saves untouched. Browser pass:
+  `tmp/verify_new_zones.mjs` (world map, town arrival, deliberate
+  patrol collision → battle, rank gating; note in CHANGELOG about
+  picking the *visible* map canvas after screen switches).
+
 **193 vitest tests, typecheck clean.**
 
 **M4 next targets:**
-- More zones/settlements, with real names — `LORE.md` doesn't name them
-  yet (see binding rule above: do not invent lore)
-- More maps, quests, and items (toward §8 content targets)
+- More zones from the canon list (8 lore zones remain: Aegda Mountains,
+  Frozen Fingers, Taurk's Wisdom, The Broadwater, Stormperch Crags, The
+  Sunscar, Ashen Reach, The Duskward Marches) — follow the "Adding a
+  zone" checklist; LORE.md "The lay of the land" is the source of truth
+  for names, creatures, and placement.
+- More items toward §8 targets; a reputation gate for reaching the
+  harder zones (README §6 mentions zone gating as still open).
+- Guns & trains are lore-established but deferred (approved future
+  iterations, README §12) — do not build them in this pass.

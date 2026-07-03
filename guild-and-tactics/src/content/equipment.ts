@@ -1,4 +1,13 @@
 import type { EquipmentDefinition } from '../sim/items/EquipmentDefinition';
+import type { SkillIdentifier } from './skills';
+
+/**
+ * An equipment piece as authored in content: its granted-skill reference
+ * (if any) is compile-checked against the skill pool.
+ */
+type EquipmentContentEntry = EquipmentDefinition & {
+  grantedSkillIdentifier?: SkillIdentifier;
+};
 
 /**
  * Store equipment for Wanderer's Rest. Weapons are class-bound; armor and
@@ -6,7 +15,7 @@ import type { EquipmentDefinition } from '../sim/items/EquipmentDefinition';
  * `minimumReputationTier` (see `src/sim/guild/ReputationTier.ts`); rarities
  * beyond tier-gating remain M4 content work.
  */
-export const EQUIPMENT: Record<string, EquipmentDefinition> = {
+const EQUIPMENT_ENTRIES = {
   // ── Weapons ────────────────────────────────────────────────────────────
   iron_sword: {
     identifier: 'iron_sword',
@@ -230,4 +239,6 @@ export const EQUIPMENT: Record<string, EquipmentDefinition> = {
     statisticBonuses: { magicPower: 2, manaPointsMaximum: 8 },
     minimumReputationTier: 'gold',
   },
-};
+} satisfies Record<string, EquipmentContentEntry>;
+
+export const EQUIPMENT: Record<string, EquipmentDefinition> = EQUIPMENT_ENTRIES;

@@ -4,7 +4,7 @@ import type { SkillDefinition } from '../sim/battle/SkillDefinition';
  * The shared skill pool (PRD §7): skills are defined once and referenced by
  * any class or monster that knows them.
  */
-export const SKILLS: Record<string, SkillDefinition> = {
+const SKILL_ENTRIES = {
   basic_attack: {
     identifier: 'basic_attack',
     displayName: 'Attack',
@@ -317,4 +317,84 @@ export const SKILLS: Record<string, SkillDefinition> = {
     targetTeam: 'enemies',
     effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.2, element: 'dark' },
   },
-};
+  drowse_spores: {
+    identifier: 'drowse_spores',
+    displayName: 'Drowse Spores',
+    description: 'A puff of blue flower-dust from the bloom’s maw — Slumber Meadow’s namesake, weaponized.',
+    manaPointCost: 6,
+    targetingRange: 2,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'sleep', durationTurns: 2 },
+  },
+  jagged_shiv: {
+    identifier: 'jagged_shiv',
+    displayName: 'Jagged Shiv',
+    description: 'A rusted blade jabbed in fast, mean, and low.',
+    manaPointCost: 2,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.2 },
+  },
+  crushing_blow: {
+    identifier: 'crushing_blow',
+    displayName: 'Crushing Blow',
+    description: 'A club the size of a fence post, swung with an orc’s full shoulders.',
+    manaPointCost: 3,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.5 },
+  },
+  horn_toss: {
+    identifier: 'horn_toss',
+    displayName: 'Horn Toss',
+    description: 'The minotaur hooks its horns under the target and heaves.',
+    manaPointCost: 3,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.5 },
+  },
+  talon_dive: {
+    identifier: 'talon_dive',
+    displayName: 'Talon Dive',
+    description: 'A silent stoop out of the canopy, talons first.',
+    manaPointCost: 2,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.3 },
+  },
+  gale_burst: {
+    identifier: 'gale_burst',
+    displayName: 'Gale Burst',
+    description: 'A hard knot of Breir’s wind, loosed all at once.',
+    manaPointCost: 4,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.2, element: 'wind' },
+  },
+  bough_smash: {
+    identifier: 'bough_smash',
+    displayName: 'Bough Smash',
+    description: 'A limb thick as a roof beam comes down like one.',
+    manaPointCost: 3,
+    targetingRange: 1,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'damage', damageSource: 'physical', powerMultiplier: 1.5, element: 'earth' },
+  },
+} satisfies Record<string, SkillDefinition>;
+
+/**
+ * Every valid skill identifier, derived from the pool above — content
+ * files reference skills through this type so a typo'd identifier is a
+ * compile error, not a mid-battle surprise. The sim layer keeps plain
+ * `string` (it must not depend on content).
+ */
+export type SkillIdentifier = keyof typeof SKILL_ENTRIES;
+
+export const SKILLS: Record<string, SkillDefinition> = SKILL_ENTRIES;

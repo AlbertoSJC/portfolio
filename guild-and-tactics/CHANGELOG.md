@@ -1065,3 +1065,96 @@ slightly (all level-ups now before all masteries), nothing else.
   `tmp/verify_gold_store.mjs`: bronze store shows base stock only (no
   silver or gold pieces — the leak check), gold store stocks all ten new
   pieces (screenshot `tmp/verify_gold_store.png`).
+
+**2026-07-03 — Four new zones: the first content pass on the canon world
+(M4).**
+
+- *Lore first*: the continent's geography became canon in `LORE.md`
+  (untracked) earlier the same day — "The lay of the land": cold north →
+  heartland → scorched south, the Darkness pressing at the western rim,
+  12 lore zones beyond the built ones, 9 named settlements, 3 rail
+  lines (Heartline/Southline/Westline), settlement naming conventions
+  ("…Rest"/synonyms for road inns, "…halt" for rail stops), and a
+  bestiary. Guns and trains are lore-established but deferred (README
+  §12 future iterations).
+- *Four new zones* (`src/content/zones.ts`), the heartland/north slice of
+  the canon map, each with its own new battle map:
+  - **Slumber Meadow** (levels 1–3, the new gentlest zone): rainy meadow,
+    settlement tavern **Travellers' Rest**; man-eater blooms (with a
+    sleep-inflicting `drowse_spores`) and meadow ghosts.
+  - **Crosspaths Field** (3–5): lake + goblin caverns, rail-halt tavern
+    **Crosspaths Halt**; goblin raiders and orc brutes, warband-sized
+    encounters (2–3 enemies).
+  - **Thorns Plain** (5–7): thorn-brake choke-point map, settlement
+    **Rocky Dwelling**; bandits (the first human enemies — no elemental
+    quirks at all), minotaurs, and **two** simultaneous roaming groups,
+    a first.
+  - **The Breirwood** (6–8, the new hardest zone): shrine-mound map,
+    Werecat settlement **Highbranch**; treewalkers, dire owls, thornback
+    boars, wind sprites (wind-absorbing, earth-weak). Also two patrols.
+- *Roster grew from 5 to 15 monsters* (10 new `MonsterDefinition`s with
+  growth curves + LORE-aligned affinities), 7 new monster skills, and 10
+  new procedural sprites in `SpriteRegistry.ts` (hooded bandit, horned
+  minotaur, gust-swirl wind sprite, etc.).
+- *11 new quests* (22 total; every zone keeps ≥1 bronze posting, the
+  Breirwood/Thorns rank-3 capstones pay 250–280 gold) and *4 new dispatch
+  errands* (8 total, one per new zone).
+- *World map is now geographic*: every zone sets `worldMapPosition` per
+  the lore compass (Breirwood north, Thorns Plain south…), and the ZONES
+  record was reordered into a winding tour so the world map's
+  consecutive-entry road chain draws without crossings. The three
+  existing waystation taverns — all confusingly named "Wanderer's Rest"
+  — were renamed under the canon convention: **Carters' Respite** (North
+  Road), **Peat-Cutters' Haven** (Marsh Trail), **Masons' Rest** (Quarry
+  Path); identifiers untouched, saves unaffected.
+- *Verification*: 193 vitest tests (the content-validity suites are
+  parameterized over the zone record, so all four new zones' patrol
+  catchability, road references, spawn standability, level sanity, and
+  bronze-quest coverage are enforced automatically), typecheck + build
+  clean. Browser pass via `tmp/verify_new_zones.mjs` (screenshots in
+  `tmp/shots/`): geographic world map with all 7 zones; Slumber Meadow
+  walk to Travellers' Rest (quest board shows the two new ★ postings +
+  dispatch); Crosspaths Field deliberate collision with the goblin
+  warband at the Cavern Mouth (muster → battle on the new map, goblin
+  sprites, Flee offered); Thorns Plain road map with both patrol tokens;
+  Breirwood walk to Highbranch (★ quest visible, ★★/★★★ correctly
+  rank-gated at bronze). Zero page errors beyond the known favicon 404.
+  One script gotcha for future passes: `document.querySelector('canvas
+  .overworld-map-canvas')` can find a hidden stale canvas after screen
+  switches — pick the visible one.
+
+**2026-07-03 — Content layer made scalable: folder splits + compile-checked
+cross-references (user-requested, pre-commit).**
+
+- *Why*: with 8 lore zones still to build, the single-file content modules
+  were about to triple, and cross-file identifier references (a monster's
+  skills, a quest's zone/map/monsters) were only caught at test time — or,
+  for monster→skill, not at all (a typo flowed through `UnitFactory` into
+  battle).
+- *Folder splits* (public API unchanged — `ZONES`/`QUESTS`/`MONSTERS` stay
+  the same imports, resolved via directory index):
+  - `content/zones/` — one file per zone + an index whose **record order
+    is the world map's road tour** (documented in the index).
+  - `content/quests/` — one file per zone's tavern board + index.
+  - `content/monsters/` — by family (beasts / humanoids / spirits /
+    floraAndStone) + index, since monsters are shared across zones.
+- *Compile-checked references, no enums*: each content record is declared
+  `satisfies Record<string, …>` and exports a derived identifier union
+  (`SkillIdentifier = keyof typeof SKILL_ENTRIES`, likewise
+  `MonsterIdentifier` / `BattleMapIdentifier` / `ZoneIdentifier` /
+  `QuestIdentifier`). Content-side entry types (`MonsterContentEntry`,
+  `ZoneContentEntry`, `QuestContentEntry`, plus inline checks for
+  equipment's `grantedSkillIdentifier` and dispatches' `zoneIdentifier`)
+  narrow the reference fields to those unions — verified by deliberately
+  typo-ing a skill and watching `tsc` fail with a "Did you mean
+  'savage_bite'?" hint. Two deliberate boundaries: **sim types keep plain
+  `string`** (sim must not depend on content, and saves stay simple), and
+  **exported records stay `Record<string, X>`** (GameController and
+  friends index them with identifiers from save data — literal-typed
+  exports would reject `string` keys). Class skill lists were left
+  unchecked on purpose: all 33 classes shipped in M3, that content
+  doesn't grow.
+- *Verification*: 193 vitest tests, typecheck, and build all clean —
+  behavior-identical refactor, zero importer changes needed
+  (`moduleResolution: bundler` resolves the old specifiers to the new
+  directory indexes).

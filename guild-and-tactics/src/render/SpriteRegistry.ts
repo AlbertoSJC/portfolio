@@ -492,10 +492,424 @@ function drawHollowWisp(
   drawingContext.fill();
 }
 
+function drawManeaterBloom(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const stalkColor = '#4c7038';
+  const petalColor = '#5f7fd4';
+  const mawColor = '#2e3d24';
+  // Splayed leaf-roots at the base.
+  drawingContext.strokeStyle = stalkColor;
+  drawingContext.lineWidth = 2.5;
+  for (const rootX of [-8, -2, 5, 9]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX, anchorY - 6);
+    drawingContext.lineTo(anchorX + rootX, anchorY);
+    drawingContext.stroke();
+  }
+  // Curved stalk.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX, anchorY - 5);
+  drawingContext.quadraticCurveTo(anchorX - 6, anchorY - 18, anchorX + 2, anchorY - 26);
+  drawingContext.lineWidth = 4;
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+  // Blue petals around a dark open maw.
+  for (const petalAngle of [0, 1, 2, 3, 4, 5]) {
+    const angle = (petalAngle * Math.PI) / 3;
+    drawingContext.beginPath();
+    drawingContext.ellipse(
+      anchorX + 2 + Math.cos(angle) * 8,
+      anchorY - 28 + Math.sin(angle) * 8,
+      4.5,
+      3,
+      angle,
+      0,
+      Math.PI * 2,
+    );
+    outlineAndFill(drawingContext, petalColor);
+  }
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX + 2, anchorY - 28, 5.5, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, mawColor);
+  // Two pale fangs in the maw.
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 1.5;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 0.5, anchorY - 30);
+  drawingContext.lineTo(anchorX - 0.5, anchorY - 27);
+  drawingContext.moveTo(anchorX + 4.5, anchorY - 30);
+  drawingContext.lineTo(anchorX + 4.5, anchorY - 27);
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawMeadowGhost(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const sheetColor = '#dfe6f2';
+  // A hovering sheet: dome head, wavering hem that never touches ground.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 24, 9, Math.PI, 0);
+  drawingContext.lineTo(anchorX + 9, anchorY - 10);
+  drawingContext.quadraticCurveTo(anchorX + 5, anchorY - 14, anchorX + 3, anchorY - 9);
+  drawingContext.quadraticCurveTo(anchorX, anchorY - 14, anchorX - 3, anchorY - 9);
+  drawingContext.quadraticCurveTo(anchorX - 5, anchorY - 14, anchorX - 9, anchorY - 10);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, sheetColor);
+  // Hollow eyes.
+  drawingContext.fillStyle = FIGURE_OUTLINE_COLOR;
+  for (const eyeDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.ellipse(anchorX + eyeDirection * 3.5, anchorY - 24, 2, 3, 0, 0, Math.PI * 2);
+    drawingContext.fill();
+  }
+}
+
+function drawGoblinRaider(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const skinColor = '#6f8f3c';
+  // Small hunched torso — a head shorter than any humanoid race.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 6, anchorY - 2);
+  drawingContext.lineTo(anchorX + 6, anchorY - 2);
+  drawingContext.lineTo(anchorX + 4, anchorY - 13);
+  drawingContext.lineTo(anchorX - 5, anchorY - 11);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, skinColor);
+  // Big head with long pointed ears.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 19, 6.5, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, skinColor);
+  for (const earDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + earDirection * 4, anchorY - 21);
+    drawingContext.lineTo(anchorX + earDirection * 13, anchorY - 24);
+    drawingContext.lineTo(anchorX + earDirection * 5, anchorY - 17);
+    drawingContext.closePath();
+    outlineAndFill(drawingContext, skinColor);
+  }
+  // Mean little eyes.
+  drawingContext.fillStyle = WOLF_EYE_COLOR;
+  for (const eyeDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + eyeDirection * 2.5, anchorY - 20, 1.2, 0, Math.PI * 2);
+    drawingContext.fill();
+  }
+  // The shiv.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX + 10, anchorY - 16);
+  drawingContext.lineTo(anchorX + 7, anchorY - 6);
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 2;
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawOrcBrute(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const skinColor = '#4c6b3a';
+  // Massive shoulders-forward torso.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 11, anchorY - 2);
+  drawingContext.lineTo(anchorX + 11, anchorY - 2);
+  drawingContext.lineTo(anchorX + 13, anchorY - 20);
+  drawingContext.lineTo(anchorX - 13, anchorY - 20);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, skinColor);
+  // Low-set head with jutting tusks.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 25, 7.5, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, skinColor);
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 2;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 4, anchorY - 21);
+  drawingContext.lineTo(anchorX - 6, anchorY - 26);
+  drawingContext.moveTo(anchorX + 4, anchorY - 21);
+  drawingContext.lineTo(anchorX + 6, anchorY - 26);
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+  // The fence-post club.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX + 15, anchorY - 32);
+  drawingContext.lineTo(anchorX + 12, anchorY - 5);
+  drawingContext.strokeStyle = STAFF_WOOD_COLOR;
+  drawingContext.lineWidth = 4;
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawBandit(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const cloakColor = '#6b5233';
+  const maskColor = '#3a3f47';
+  // Hooded human silhouette: cloaked torso.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 8, anchorY - 2);
+  drawingContext.lineTo(anchorX + 8, anchorY - 2);
+  drawingContext.lineTo(anchorX + 5, anchorY - 20);
+  drawingContext.lineTo(anchorX - 5, anchorY - 20);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, cloakColor);
+  // Hood: a peaked head shape.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 7, anchorY - 20);
+  drawingContext.quadraticCurveTo(anchorX, anchorY - 36, anchorX + 7, anchorY - 20);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, cloakColor);
+  // Masked face slit.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 4, anchorY - 23);
+  drawingContext.lineTo(anchorX + 4, anchorY - 23);
+  drawingContext.strokeStyle = maskColor;
+  drawingContext.lineWidth = 3.5;
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+  // A drawn dagger at the side.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX + 13, anchorY - 18);
+  drawingContext.lineTo(anchorX + 9, anchorY - 6);
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 2.5;
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawMinotaur(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const hideColor = '#7a4b2e';
+  const hornColor = '#e8e0cf';
+  // Towering torso — the biggest silhouette on the board.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 11, anchorY - 2);
+  drawingContext.lineTo(anchorX + 11, anchorY - 2);
+  drawingContext.lineTo(anchorX + 13, anchorY - 24);
+  drawingContext.lineTo(anchorX - 13, anchorY - 24);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, hideColor);
+  // Bull head with a broad muzzle.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 30, 8, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  drawingContext.beginPath();
+  drawingContext.ellipse(anchorX, anchorY - 26, 5, 3.5, 0, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  // The horns, swept up and out.
+  drawingContext.strokeStyle = hornColor;
+  drawingContext.lineWidth = 3;
+  for (const hornDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + hornDirection * 6, anchorY - 33);
+    drawingContext.quadraticCurveTo(
+      anchorX + hornDirection * 15,
+      anchorY - 36,
+      anchorX + hornDirection * 14,
+      anchorY - 43,
+    );
+    drawingContext.stroke();
+  }
+  drawingContext.lineWidth = 1;
+  // Baleful eyes.
+  drawingContext.fillStyle = WOLF_EYE_COLOR;
+  for (const eyeDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + eyeDirection * 3.5, anchorY - 31, 1.4, 0, Math.PI * 2);
+    drawingContext.fill();
+  }
+}
+
+function drawThornbackBoar(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const hideColor = '#4e3d2c';
+  const thornColor = '#3a4a2e';
+  drawingContext.strokeStyle = FIGURE_OUTLINE_COLOR;
+  for (const legX of [-9, -4, 5, 9]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + legX, anchorY - 8);
+    drawingContext.lineTo(anchorX + legX, anchorY - 1);
+    drawingContext.stroke();
+  }
+  // Barrel body.
+  drawingContext.beginPath();
+  drawingContext.ellipse(anchorX - 1, anchorY - 13, 14, 9, 0, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  // The briar ridge along its back.
+  drawingContext.strokeStyle = thornColor;
+  drawingContext.lineWidth = 2;
+  for (const thornX of [-9, -4, 1, 6]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + thornX, anchorY - 20);
+    drawingContext.lineTo(anchorX + thornX + 2, anchorY - 27);
+    drawingContext.stroke();
+  }
+  drawingContext.lineWidth = 1;
+  // Snouted head and tusks.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX + 13, anchorY - 11, 6, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, hideColor);
+  drawingContext.strokeStyle = BLADE_COLOR;
+  drawingContext.lineWidth = 2;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX + 16, anchorY - 8);
+  drawingContext.lineTo(anchorX + 20, anchorY - 13);
+  drawingContext.stroke();
+  drawingContext.lineWidth = 1;
+}
+
+function drawDireOwl(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const featherColor = '#8a7a5c';
+  const eyeColor = '#ffd23e';
+  // Upright perched body.
+  drawingContext.beginPath();
+  drawingContext.ellipse(anchorX, anchorY - 13, 8, 12, 0, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, featherColor);
+  // Folded wings as side strokes.
+  drawingContext.strokeStyle = FIGURE_OUTLINE_COLOR;
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 7, anchorY - 20);
+  drawingContext.quadraticCurveTo(anchorX - 11, anchorY - 12, anchorX - 6, anchorY - 4);
+  drawingContext.moveTo(anchorX + 7, anchorY - 20);
+  drawingContext.quadraticCurveTo(anchorX + 11, anchorY - 12, anchorX + 6, anchorY - 4);
+  drawingContext.stroke();
+  // Wide flat head with ear tufts.
+  drawingContext.beginPath();
+  drawingContext.ellipse(anchorX, anchorY - 28, 8.5, 6.5, 0, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, featherColor);
+  for (const tuftDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + tuftDirection * 5, anchorY - 33);
+    drawingContext.lineTo(anchorX + tuftDirection * 8, anchorY - 39);
+    drawingContext.lineTo(anchorX + tuftDirection * 2.5, anchorY - 34);
+    drawingContext.closePath();
+    outlineAndFill(drawingContext, featherColor);
+  }
+  // Huge round eyes — the unsettling part.
+  for (const eyeDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + eyeDirection * 3.5, anchorY - 28, 2.8, 0, Math.PI * 2);
+    outlineAndFill(drawingContext, eyeColor);
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + eyeDirection * 3.5, anchorY - 28, 1.1, 0, Math.PI * 2);
+    drawingContext.fillStyle = FIGURE_OUTLINE_COLOR;
+    drawingContext.fill();
+  }
+}
+
+function drawTreewalker(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const barkColor = '#3d3122';
+  const leafColor = '#4f7031';
+  // Two thick walking legs instead of gnarlroot's root-splay.
+  drawingContext.strokeStyle = barkColor;
+  drawingContext.lineWidth = 4;
+  for (const legX of [-6, 6]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX + legX * 0.5, anchorY - 10);
+    drawingContext.lineTo(anchorX + legX, anchorY);
+    drawingContext.stroke();
+  }
+  // Massive trunk, taller than gnarlroot.
+  drawingContext.beginPath();
+  drawingContext.moveTo(anchorX - 8, anchorY - 8);
+  drawingContext.lineTo(anchorX + 8, anchorY - 8);
+  drawingContext.lineTo(anchorX + 4, anchorY - 30);
+  drawingContext.lineTo(anchorX - 4, anchorY - 30);
+  drawingContext.closePath();
+  outlineAndFill(drawingContext, barkColor);
+  // Knot-hole eyes glaring from the trunk.
+  drawingContext.fillStyle = WOLF_EYE_COLOR;
+  for (const eyeDirection of [-1, 1]) {
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + eyeDirection * 2.5, anchorY - 24, 1.4, 0, Math.PI * 2);
+    drawingContext.fill();
+  }
+  // A full crown of branches.
+  drawingContext.strokeStyle = barkColor;
+  drawingContext.lineWidth = 2.5;
+  for (const branch of [
+    { tipX: -13, tipY: -40 },
+    { tipX: -5, tipY: -44 },
+    { tipX: 5, tipY: -44 },
+    { tipX: 13, tipY: -40 },
+  ]) {
+    drawingContext.beginPath();
+    drawingContext.moveTo(anchorX, anchorY - 29);
+    drawingContext.lineTo(anchorX + branch.tipX, anchorY + branch.tipY);
+    drawingContext.stroke();
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX + branch.tipX, anchorY + branch.tipY, 4.5, 0, Math.PI * 2);
+    outlineAndFill(drawingContext, leafColor);
+  }
+  drawingContext.lineWidth = 1;
+}
+
+function drawWindSprite(
+  drawingContext: CanvasRenderingContext2D,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const gustColor = '#cfe8dc';
+  const coreColor = '#7fbfa5';
+  // Three stacked gust arcs — a small standing whirlwind.
+  drawingContext.strokeStyle = gustColor;
+  drawingContext.lineWidth = 3;
+  for (const gust of [
+    { y: -8, radius: 9 },
+    { y: -16, radius: 7 },
+    { y: -23, radius: 5 },
+  ]) {
+    drawingContext.beginPath();
+    drawingContext.arc(anchorX, anchorY + gust.y, gust.radius, Math.PI * 0.15, Math.PI * 1.6);
+    drawingContext.stroke();
+  }
+  drawingContext.lineWidth = 1;
+  // The bright core it swirls around.
+  drawingContext.beginPath();
+  drawingContext.arc(anchorX, anchorY - 28, 5, 0, Math.PI * 2);
+  outlineAndFill(drawingContext, coreColor);
+}
+
 const MONSTER_DRAWERS: Record<string, MonsterDrawer> = {
   'Twisted Wolf': drawTwistedWolf,
   Stoneling: drawStoneling,
   Gnarlroot: drawGnarlroot,
   'Twisted Boar': drawTwistedBoar,
   'Hollow Wisp': drawHollowWisp,
+  'Man-Eater Bloom': drawManeaterBloom,
+  'Meadow Ghost': drawMeadowGhost,
+  'Goblin Raider': drawGoblinRaider,
+  'Orc Brute': drawOrcBrute,
+  Bandit: drawBandit,
+  Minotaur: drawMinotaur,
+  'Thornback Boar': drawThornbackBoar,
+  'Dire Owl': drawDireOwl,
+  Treewalker: drawTreewalker,
+  'Wind Sprite': drawWindSprite,
 };
