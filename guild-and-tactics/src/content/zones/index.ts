@@ -12,10 +12,9 @@ import { THORNS_PLAIN_ZONE } from './thornsPlain';
  * zone. All names and creature rosters follow LORE.md's "The lay of the
  * land" (canon 2026-07-03).
  *
- * ORDER MATTERS for presentation: the world map draws a road between
- * consecutive entries, so zones are listed as a winding north → heartland
- * → south → east tour that matches their `worldMapPosition`s without the
- * road crossing itself. Slot new zones into the tour, don't append.
+ * The World Map's roads between zones are authored explicitly in
+ * `worldMap.ts` (record order here no longer draws anything) — a new zone
+ * needs roads there, plus a `worldMapPosition`, or it floats unreachable.
  */
 const ZONE_ENTRIES = {
   breirwood: BREIRWOOD_ZONE,

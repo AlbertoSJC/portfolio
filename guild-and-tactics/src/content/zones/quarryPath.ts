@@ -58,6 +58,8 @@ export const QUARRY_PATH_ZONE = {
     },
   ],
   battleMapIdentifier: 'old_quarry',
+  // Silver-rank roads: the roadwatch turns back unproven guilds.
+  minimumReputationTier: 'silver',
   monsterLevelRange: { minimumLevel: 4, maximumLevel: 6 },
   rewardGoldPerEncounter: 25,
 } satisfies ZoneContentEntry;

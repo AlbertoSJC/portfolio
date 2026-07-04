@@ -1,3 +1,5 @@
+import type { ReputationTier } from './ReputationTier';
+
 export type ZoneLocationKind = 'tavern' | 'landmark';
 
 /**
@@ -52,6 +54,12 @@ export interface ZoneDefinition {
    * all zones fall back to the auto-distributed row (set all or none).
    */
   worldMapPosition?: { x: number; y: number };
+  /**
+   * Reputation tier required to enter the zone; omitted means open to any
+   * guild. Locked zones stay visible on the World Map — attempting entry is
+   * turned back by the roadwatch (see ZoneAccess) rather than hidden.
+   */
+  minimumReputationTier?: ReputationTier;
 
   // ── Exploration (the walkable road network) ───────────────────────────
   entryLocationIdentifier: string;

@@ -67,6 +67,8 @@ export const THORNS_PLAIN_ZONE = {
     },
   ],
   battleMapIdentifier: 'thorn_flats',
+  // Silver-rank roads: the roadwatch turns back unproven guilds.
+  minimumReputationTier: 'silver',
   monsterLevelRange: { minimumLevel: 5, maximumLevel: 7 },
   rewardGoldPerEncounter: 30,
 } satisfies ZoneContentEntry;

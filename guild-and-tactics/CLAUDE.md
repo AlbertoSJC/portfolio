@@ -442,10 +442,15 @@ over it, adding roaming-group/player tokens) — same canvas, different
 1. `src/content/zones/<zoneName>.ts`: new zone file (`satisfies
    ZoneContentEntry`) — locations/roads/patrol routes (LORE-approved
    names only), `battleMapIdentifier` (reuse or add a map),
-   `monsterLevelRange`, `rewardGoldPerEncounter`, `worldMapPosition`.
-   Register it in `zones/index.ts` — **slot it into the tour order**
-   (the world map draws a road between consecutive entries), don't
-   append blindly.
+   `monsterLevelRange`, `rewardGoldPerEncounter`, `worldMapPosition`,
+   and — for zones above the entry difficulty — `minimumReputationTier`
+   (omitted = open to any guild; the roadwatch dialogue handles the
+   refusal automatically).
+   Register it in `zones/index.ts`, then **add its world roads in
+   `zones/worldMap.ts`** — a zone without a road is unreachable. Keep
+   reputation-locked zones as *branches* off the open network, never
+   corridors (`WorldTravel.test.ts` fails the build if a zone can't be
+   reached at its own unlock tier without crossing locked zones).
 2. If it's a new battle map: add it to `battleMapRegistry.ts` **with
    `deploymentTiles` and `encounterSpawnTiles`** (both map-space).
 3. Quests for its tavern: new `src/content/quests/<zoneName>Quests.ts`
@@ -547,7 +552,54 @@ over it, adding roaming-group/player tokens) — same canvas, different
   patrol collision → battle, rank gating; note in CHANGELOG about
   picking the *visible* map canvas after screen switches).
 
-**193 vitest tests, typecheck clean.**
+- ✅ **Reputation-gated zone access — the roadwatch guard** (2026-07-04):
+  `ZoneDefinition.minimumReputationTier?` (optional; omitted = open) +
+  `src/sim/guild/ZoneAccess.ts` (`requiredReputationTierForZone` /
+  `isZoneAccessibleAtTier`). Quarry Path + Thorns Plain need silver, The
+  Breirwood gold; the four gentler zones stay open. **Diegetic by
+  design (user-decided)**: locked zones stay visible on the World Map —
+  `GameController.showZone()` checks access at its top (the one
+  chokepoint for zone entry, before any screen switch) and opens
+  `src/ui/overworld/ZoneGuardDialogue.ts` in its own `guardDialogueModal`
+  instead of entering: an in-world refusal naming the required rank,
+  with an explicit requirement line (unlike the store/quest-board's
+  silent gating). Locked World Map nodes carry a small sentry badge
+  (`MapNodeEntry.isGuarded?` → `drawGuardBadge` in
+  `OverworldMapCanvas.ts` — the renderer stays rule-agnostic;
+  `OverworldScreen.nodeEntries` sets the flag from the same access
+  check). No save change — access is derived like the tier
+  itself. 8 new tests (`ZoneAccess.test.ts`) incl. content sweeps: a
+  bronze guild always has ≥1 accessible zone with a level-1 floor, and
+  no gated zone sits at level 1. Browser pass: `tmp/verify_zone_gate.mjs`.
+
+- ✅ **FFTA2-style world travel** (2026-07-04, same session): the guild
+  **stands at one zone** (`GuildState.currentZoneIdentifier`, optional —
+  healed to `STARTING_ZONE_IDENTIFIER` at boot, no save bump) and
+  travels the World Map by road. `src/sim/guild/WorldTravel.ts`
+  (`WorldRoad`, `findWorldTravelRoute` — BFS with an `isZonePassable`
+  filter: locked zones are valid destinations, refused at the border,
+  but never waypoints). Roads are authored in
+  `src/content/zones/worldMap.ts` (compile-checked identifiers) — the
+  ZONES record order **no longer draws the World Map's roads**; the
+  bronze zones form the connected core and locked zones hang off as
+  branches, a layout rule enforced per tier by `WorldTravel.test.ts`.
+  `GameController.travelToZone`/`stepAlongWorldRoute` walk the marker
+  along each road segment (650ms per segment), persist, and auto-enter
+  on arrival. **Walking animations are shared machinery**: `src/ui/
+  overworld/travelAnimationLoop.ts` (rAF loop, returns a cancel fn) +
+  `mapTokens.ts`'s `walkingTokenPoint` (road lerp + corner-offset ease
+  + bob), driven by `OverworldScreen.animateTravelStep` on the World
+  Map and `ZoneScreen.animateWalkStep` inside zones (550ms/segment,
+  patrol tokens gliding their patrol stop in lockstep with the party).
+  Both canvases repaint via `createOverworldMapCanvas`'s
+  `registerRedraw` hook instead of rebuilding;
+  `createZoneRoadMapCanvas` takes a `getTokenDrawState` provider. The
+  sim resolves each step before its animation plays; `ZoneController.
+  dispose` cancels an in-flight walk. World-map pass-through is
+  deliberately safe (patrols only exist inside zones). Browser pass:
+  `tmp/verify_world_travel.mjs` (includes an in-zone mid-walk shot).
+
+**208 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones from the canon list (8 lore zones remain: Aegda Mountains,
@@ -555,7 +607,6 @@ over it, adding roaming-group/player tokens) — same canvas, different
   Sunscar, Ashen Reach, The Duskward Marches) — follow the "Adding a
   zone" checklist; LORE.md "The lay of the land" is the source of truth
   for names, creatures, and placement.
-- More items toward §8 targets; a reputation gate for reaching the
-  harder zones (README §6 mentions zone gating as still open).
+- More items toward §8 targets.
 - Guns & trains are lore-established but deferred (approved future
   iterations, README §12) — do not build them in this pass.

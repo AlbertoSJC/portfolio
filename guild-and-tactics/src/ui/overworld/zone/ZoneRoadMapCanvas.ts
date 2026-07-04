@@ -2,40 +2,29 @@ import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
 import type { ZoneRoamingGroupLocation } from '../../../sim/guild/ZoneSession';
 import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
 import { createOverworldMapCanvas, type MapEdge, type MapNodeEntry } from '../OverworldMapCanvas';
-import { MAP_INK, MAP_MARKER, MAP_PARCHMENT } from '../../mapPalette';
+import {
+  drawMonsterIcon,
+  drawPlayerToken,
+  TOKEN_CORNER_OFFSET_X,
+  TOKEN_CORNER_OFFSET_Y,
+  walkingTokenPoint,
+} from '../mapTokens';
 
-const MONSTER_COLOR = MAP_INK;
-const TOKEN_SIZE = 32;
-const TOKEN_CORNER_OFFSET_X = 40;
-const TOKEN_CORNER_OFFSET_Y = -24;
 const MONSTER_STACK_OFFSET_X = 14;
 
-/** A roaming group's marker — same two-eyed blot as the old exploration grid, just sized for a node badge. */
-function drawMonsterIcon(context: CanvasRenderingContext2D, cx: number, cy: number): void {
-  const radius = TOKEN_SIZE * 0.26;
-  context.fillStyle = MONSTER_COLOR;
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = MAP_PARCHMENT;
-  context.beginPath();
-  context.arc(cx - radius * 0.4, cy - radius * 0.15, radius * 0.18, 0, Math.PI * 2);
-  context.arc(cx + radius * 0.4, cy - radius * 0.15, radius * 0.18, 0, Math.PI * 2);
-  context.fill();
+/** One walking step in flight: everyone's previous stop, and how far along the segment the walk is (0..1). */
+export interface ZoneWalkAnimation {
+  progress: number;
+  playerFromLocationIdentifier: string;
+  /** Each active roaming group's location before this step, by group identifier. */
+  groupFromLocationIdentifiers: Record<string, string>;
 }
 
-/** The player's marker — same head-and-cloak token as the old exploration grid. */
-function drawPlayerToken(context: CanvasRenderingContext2D, cx: number, cy: number): void {
-  context.fillStyle = MAP_MARKER;
-  context.beginPath();
-  context.arc(cx, cy - TOKEN_SIZE * 0.08, TOKEN_SIZE * 0.22, 0, Math.PI * 2);
-  context.fill();
-  context.beginPath();
-  context.moveTo(cx, cy - TOKEN_SIZE * 0.02);
-  context.lineTo(cx - TOKEN_SIZE * 0.18, cy + TOKEN_SIZE * 0.28);
-  context.lineTo(cx + TOKEN_SIZE * 0.18, cy + TOKEN_SIZE * 0.28);
-  context.closePath();
-  context.fill();
+/** Everything the canvas needs to place the player and patrol tokens, resting or mid-walk. */
+export interface ZoneTokenDrawState {
+  playerLocationIdentifier: string;
+  activeRoamingGroupLocations: readonly ZoneRoamingGroupLocation[];
+  walkAnimation?: ZoneWalkAnimation;
 }
 
 function buildNodeEntries(zone: ZoneDefinition): MapNodeEntry[] {
@@ -55,46 +44,74 @@ function buildEdges(zone: ZoneDefinition): MapEdge[] {
   }));
 }
 
+function drawZoneTokens(
+  context: CanvasRenderingContext2D,
+  centers: Map<string, { x: number; y: number }>,
+  state: ZoneTokenDrawState,
+): void {
+  const stackIndexByLocation = new Map<string, number>();
+  for (const group of state.activeRoamingGroupLocations) {
+    const restingCenter = centers.get(group.locationIdentifier);
+    if (restingCenter === undefined) continue;
+    const stackIndex = stackIndexByLocation.get(group.locationIdentifier) ?? 0;
+    stackIndexByLocation.set(group.locationIdentifier, stackIndex + 1);
+    const restingOffsetX = -TOKEN_CORNER_OFFSET_X + stackIndex * MONSTER_STACK_OFFSET_X;
+
+    const fromLocationIdentifier = state.walkAnimation?.groupFromLocationIdentifiers[group.groupIdentifier];
+    const fromCenter = fromLocationIdentifier === undefined ? undefined : centers.get(fromLocationIdentifier);
+    if (state.walkAnimation !== undefined && fromCenter !== undefined) {
+      const walkingPoint = walkingTokenPoint(
+        fromCenter,
+        restingCenter,
+        state.walkAnimation.progress,
+        restingOffsetX,
+        TOKEN_CORNER_OFFSET_Y,
+      );
+      drawMonsterIcon(context, walkingPoint.x, walkingPoint.y);
+    } else {
+      drawMonsterIcon(context, restingCenter.x + restingOffsetX, restingCenter.y + TOKEN_CORNER_OFFSET_Y);
+    }
+  }
+
+  const playerRestingCenter = centers.get(state.playerLocationIdentifier);
+  if (playerRestingCenter === undefined) return;
+  const playerFromCenter =
+    state.walkAnimation === undefined ? undefined : centers.get(state.walkAnimation.playerFromLocationIdentifier);
+  if (state.walkAnimation !== undefined && playerFromCenter !== undefined) {
+    const walkingPoint = walkingTokenPoint(
+      playerFromCenter,
+      playerRestingCenter,
+      state.walkAnimation.progress,
+      TOKEN_CORNER_OFFSET_X,
+      TOKEN_CORNER_OFFSET_Y,
+    );
+    drawPlayerToken(context, walkingPoint.x, walkingPoint.y);
+  } else {
+    drawPlayerToken(context, playerRestingCenter.x + TOKEN_CORNER_OFFSET_X, playerRestingCenter.y + TOKEN_CORNER_OFFSET_Y);
+  }
+}
+
 /**
  * The walkable road-network map for one zone: builds on the shared
  * World Map/Town node-graph renderer (`createOverworldMapCanvas`), adding
- * roaming-group and player tokens on top via `afterRender` — this module's
- * only job is that mapping plus the two ported icon-drawing functions
- * above.
+ * roaming-group and player tokens on top via `afterRender`. Token
+ * positions come from `getTokenDrawState` on every repaint, so the caller
+ * can animate a walk (player and patrols gliding in lockstep) by mutating
+ * that state and invoking the `registerRedraw` hook.
  */
 export function createZoneRoadMapCanvas(
   zone: ZoneDefinition,
-  playerLocationIdentifier: string,
-  activeRoamingGroupLocations: readonly ZoneRoamingGroupLocation[],
   sounds: UserInterfaceSounds,
   onLocationClicked: (locationIdentifier: string) => void,
+  getTokenDrawState: () => ZoneTokenDrawState,
+  registerRedraw?: (redraw: () => void) => void,
 ): HTMLCanvasElement {
-  const nodes = buildNodeEntries(zone);
-  const edges = buildEdges(zone);
-
   return createOverworldMapCanvas(
-    nodes,
+    buildNodeEntries(zone),
     sounds,
     onLocationClicked,
-    edges,
-    (context, centers) => {
-      const groupsByLocation = new Map<string, number>();
-      for (const group of activeRoamingGroupLocations) {
-        const center = centers.get(group.locationIdentifier);
-        if (center === undefined) continue;
-        const stackIndex = groupsByLocation.get(group.locationIdentifier) ?? 0;
-        groupsByLocation.set(group.locationIdentifier, stackIndex + 1);
-        drawMonsterIcon(
-          context,
-          center.x - TOKEN_CORNER_OFFSET_X + stackIndex * MONSTER_STACK_OFFSET_X,
-          center.y + TOKEN_CORNER_OFFSET_Y,
-        );
-      }
-
-      const playerCenter = centers.get(playerLocationIdentifier);
-      if (playerCenter !== undefined) {
-        drawPlayerToken(context, playerCenter.x + TOKEN_CORNER_OFFSET_X, playerCenter.y + TOKEN_CORNER_OFFSET_Y);
-      }
-    },
+    buildEdges(zone),
+    (context, centers) => drawZoneTokens(context, centers, getTokenDrawState()),
+    registerRedraw,
   );
 }

@@ -35,6 +35,8 @@ export interface MapNodeEntry {
   kind: MapNodeKind;
   /** Normalized (0..1, 0..1) layout position. Omit to auto-distribute in a horizontal row (World Map/Town behavior). */
   position?: { x: number; y: number };
+  /** Draws a small sentry badge on the node — the World Map's cue that the roadwatch will turn the guild back. */
+  isGuarded?: boolean;
 }
 
 /** An explicit connection drawn between two nodes. Omit entirely to fall back to connecting consecutive array entries. */
@@ -54,6 +56,7 @@ const NODE_VERTICAL_MARGIN_MAX = 120;
 const ICON_CENTER_OFFSET_Y = -16;
 const LABEL_OFFSET_Y = 8;
 const SUBLABEL_OFFSET_Y = 21;
+const GUARD_BADGE_RADIUS = 11;
 
 const COLOR_BACKGROUND = MAP_PARCHMENT;
 const COLOR_PATH = MAP_INK_MEDIUM;
@@ -250,6 +253,45 @@ function drawLandmarkIcon(context: CanvasRenderingContext2D, cx: number, cy: num
   context.stroke();
 }
 
+/**
+ * A small roadwatch-sentry badge pinned to a node's top-right corner: a
+ * helmeted figure with an upright spear, marking a zone the guild's
+ * reputation cannot enter yet.
+ */
+function drawGuardBadge(context: CanvasRenderingContext2D, cx: number, cy: number): void {
+  context.fillStyle = MAP_PARCHMENT_CREAM;
+  context.strokeStyle = MAP_WOOD_DARK;
+  context.lineWidth = 1.2;
+  context.beginPath();
+  context.arc(cx, cy, GUARD_BADGE_RADIUS, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+
+  // Upright spear at the sentry's side, head at the top.
+  context.strokeStyle = MAP_INK_MEDIUM;
+  context.lineWidth = 1.4;
+  context.beginPath();
+  context.moveTo(cx + 4.5, cy - 5);
+  context.lineTo(cx + 4.5, cy + 7.5);
+  context.stroke();
+  context.fillStyle = MAP_INK_MEDIUM;
+  context.beginPath();
+  context.moveTo(cx + 4.5, cy - 8.5);
+  context.lineTo(cx + 2.8, cy - 4.5);
+  context.lineTo(cx + 6.2, cy - 4.5);
+  context.closePath();
+  context.fill();
+
+  // Helmeted head above a shoulder dome.
+  context.fillStyle = MAP_INK;
+  context.beginPath();
+  context.arc(cx - 2, cy - 2, 3, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.arc(cx - 2, cy + 7.5, 5.5, Math.PI, 0);
+  context.fill();
+}
+
 function drawNodeIcon(context: CanvasRenderingContext2D, kind: MapNodeKind, cx: number, cy: number): void {
   switch (kind) {
     case 'zone':
@@ -360,6 +402,10 @@ function renderNodeMap(
     context.font = '10px sans-serif';
     context.fillStyle = COLOR_SUBLABEL;
     context.fillText(node.sublabel, center.x, center.y + SUBLABEL_OFFSET_Y);
+
+    if (node.isGuarded === true) {
+      drawGuardBadge(context, center.x + NODE_WIDTH / 2, center.y - NODE_HEIGHT / 2);
+    }
   }
 
   drawMapVignette(context, canvas.width, canvas.height);
@@ -402,12 +448,16 @@ export function createOverworldMapCanvas(
   onNodeSelected: (identifier: string) => void,
   edges?: readonly MapEdge[],
   afterRender?: (context: CanvasRenderingContext2D, centers: Map<string, { x: number; y: number }>) => void,
+  registerRedraw?: (redraw: () => void) => void,
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.className = 'overworld-map-canvas';
   canvas.style.cursor = 'pointer';
 
   let hoveredNodeIdentifier: string | undefined;
+  // Hands the caller a way to repaint with fresh afterRender state (e.g.
+  // an animated travel token) without rebuilding the canvas.
+  registerRedraw?.(() => renderNodeMap(canvas, nodes, hoveredNodeIdentifier, edges, afterRender));
 
   function resizeAndRender(): void {
     const width = Math.round(canvas.clientWidth);

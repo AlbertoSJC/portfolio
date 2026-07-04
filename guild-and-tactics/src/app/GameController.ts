@@ -3,6 +3,8 @@ import { SeededRandomNumberGenerator } from '../sim/SeededRandomNumberGenerator'
 import { findRosterMember, type GuildState } from '../sim/guild/GuildState';
 import { hasZoneBeenStocked, restockStore } from '../sim/guild/StoreStock';
 import { reputationTierForQuestCount } from '../sim/guild/ReputationTier';
+import { isZoneAccessibleAtTier } from '../sim/guild/ZoneAccess';
+import { findWorldTravelRoute } from '../sim/guild/WorldTravel';
 import { isMemberDispatched } from '../sim/guild/DispatchQuest';
 import { applyBattleSpoils } from '../sim/guild/BattleSpoils';
 import { DISPATCH_QUESTS } from '../content/dispatchQuests';
@@ -24,11 +26,13 @@ import { QUESTS } from '../content/quests';
 import { RACES } from '../content/races';
 import { RECRUIT_NAMES_BY_RACE } from '../content/recruitNames';
 import { ZONES } from '../content/zones';
+import { STARTING_ZONE_IDENTIFIER, WORLD_ROADS } from '../content/zones/worldMap';
 import { SKILLS } from '../content/skills';
 import { createNewGuild } from '../content/newGame';
 import { UserInterfaceSounds } from '../ui/UserInterfaceSounds';
 import { buildBattleSpoilsSummaryLines } from '../ui/BattleSpoilsSummary';
 import { GuildMenu, type GuildMenuCallbacks } from '../ui/guild/GuildMenu';
+import { buildZoneGuardDialogue } from '../ui/overworld/ZoneGuardDialogue';
 import { ModalDialog } from '../ui/village/ModalDialog';
 import { OverworldScreen } from '../ui/overworld/OverworldScreen';
 import type { ZoneContentTables } from '../ui/overworld/zone/TownScreen';
@@ -37,6 +41,8 @@ import { GuildCommands } from './GuildCommands';
 import { ZoneController } from './ZoneController';
 
 const RANDOM_SEED_BIT_MASK = 0x7fffffff;
+/** How long the guild token walks one world road segment (zone to zone). */
+const WORLD_TRAVEL_SEGMENT_MILLISECONDS = 650;
 
 type GameScene = 'overworld' | 'zone' | 'battle';
 
@@ -57,6 +63,7 @@ export class GameController {
   private readonly guildCommands: GuildCommands;
   private readonly characterCallbacks: GuildMenuCallbacks;
   private readonly guildMenuModal: ModalDialog;
+  private readonly guardDialogueModal: ModalDialog;
   private readonly guildMenu: GuildMenu;
   private readonly overworldScreen: OverworldScreen;
   private readonly zoneContentTables: ZoneContentTables;
@@ -70,6 +77,7 @@ export class GameController {
   private activeZoneController: ZoneController | undefined;
   private activeZoneIdentifier: string | undefined;
   private deployedMemberIdentifiers: string[] = [];
+  private isTravellingOnWorldMap = false;
 
   constructor(
     battleRootElement: HTMLElement,
@@ -86,6 +94,11 @@ export class GameController {
     this.randomNumberGenerator = new SeededRandomNumberGenerator(Date.now() & RANDOM_SEED_BIT_MASK);
 
     this.guild = this.saveGameStorage.loadGuildSave() ?? createNewGuild(this.randomNumberGenerator);
+    // Saves from before world travel existed (or naming a since-removed
+    // zone) place the guild at the starting zone.
+    if (this.guild.currentZoneIdentifier === undefined || ZONES[this.guild.currentZoneIdentifier] === undefined) {
+      this.guild.currentZoneIdentifier = STARTING_ZONE_IDENTIFIER;
+    }
     const bootTier = reputationTierForQuestCount(this.guild.completedQuestCount);
     for (const zone of Object.values(ZONES)) {
       // Saves from before a zone existed (or from before per-zone stock/boards
@@ -118,6 +131,7 @@ export class GameController {
     };
 
     this.guildMenuModal = new ModalDialog(document.body, this.sounds);
+    this.guardDialogueModal = new ModalDialog(document.body, this.sounds);
     this.guildMenu = new GuildMenu(
       this.sounds,
       {
@@ -135,8 +149,8 @@ export class GameController {
       },
     );
 
-    this.overworldScreen = new OverworldScreen(overworldRootElement, this.sounds, ZONES, {
-      onEnterZone: (zoneIdentifier) => this.showZone(zoneIdentifier),
+    this.overworldScreen = new OverworldScreen(overworldRootElement, this.sounds, ZONES, WORLD_ROADS, {
+      onZoneSelected: (zoneIdentifier) => this.travelToZone(zoneIdentifier),
       onOpenGuildMenu: () => this.guildMenu.open(this.guild),
     });
 
@@ -178,7 +192,83 @@ export class GameController {
     this.overworldScreen.render(this.guild);
   }
 
+  /**
+   * The FFTA2-style World Map travel rule: the guild stands at one zone and
+   * walks the road network to another — it cannot jump across the map. The
+   * route only ever crosses zones the guild's reputation may enter, so a
+   * locked zone is never a corridor; a locked destination is refused by the
+   * roadwatch dialogue before a single step is taken.
+   */
+  private travelToZone(destinationZoneIdentifier: string): void {
+    if (this.isTravellingOnWorldMap) {
+      return;
+    }
+    const destinationZone = ZONES[destinationZoneIdentifier];
+    if (destinationZone === undefined) {
+      return;
+    }
+    const currentTier = reputationTierForQuestCount(this.guild.completedQuestCount);
+    if (!isZoneAccessibleAtTier(destinationZone, currentTier)) {
+      this.guardDialogueModal.open(
+        buildZoneGuardDialogue(destinationZone, currentTier, this.sounds, () =>
+          this.guardDialogueModal.forceClose(),
+        ),
+      );
+      return;
+    }
+
+    const currentZoneIdentifier = this.guild.currentZoneIdentifier ?? STARTING_ZONE_IDENTIFIER;
+    if (destinationZoneIdentifier === currentZoneIdentifier) {
+      this.showZone(destinationZoneIdentifier);
+      return;
+    }
+    const route = findWorldTravelRoute(currentZoneIdentifier, destinationZoneIdentifier, WORLD_ROADS, (zoneIdentifier) => {
+      const zone = ZONES[zoneIdentifier];
+      return zone !== undefined && isZoneAccessibleAtTier(zone, currentTier);
+    });
+    if (route === undefined || route.length === 0) {
+      return;
+    }
+    this.isTravellingOnWorldMap = true;
+    this.stepAlongWorldRoute(route, 0);
+  }
+
+  private stepAlongWorldRoute(route: readonly string[], stepIndex: number): void {
+    const nextZoneIdentifier = route[stepIndex];
+    const fromZoneIdentifier = this.guild.currentZoneIdentifier;
+    if (nextZoneIdentifier === undefined || fromZoneIdentifier === undefined) {
+      this.isTravellingOnWorldMap = false;
+      return;
+    }
+    this.overworldScreen.animateTravelStep(
+      fromZoneIdentifier,
+      nextZoneIdentifier,
+      WORLD_TRAVEL_SEGMENT_MILLISECONDS,
+      () => {
+        this.guild.currentZoneIdentifier = nextZoneIdentifier;
+        if (stepIndex + 1 < route.length) {
+          this.stepAlongWorldRoute(route, stepIndex + 1);
+          return;
+        }
+        this.isTravellingOnWorldMap = false;
+        this.saveGameStorage.persistGuildSave(this.guild);
+        this.showZone(nextZoneIdentifier);
+      },
+    );
+  }
+
   private showZone(zoneIdentifier: string): void {
+    const requestedZone = ZONES[zoneIdentifier];
+    const currentTier = reputationTierForQuestCount(this.guild.completedQuestCount);
+    if (requestedZone !== undefined && !isZoneAccessibleAtTier(requestedZone, currentTier)) {
+      this.guardDialogueModal.open(
+        buildZoneGuardDialogue(requestedZone, currentTier, this.sounds, () =>
+          this.guardDialogueModal.forceClose(),
+        ),
+      );
+      return;
+    }
+
     this.activeBattleController?.dispose();
     this.activeBattleController = undefined;
     this.activeBattle = undefined;

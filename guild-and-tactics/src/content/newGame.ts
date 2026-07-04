@@ -11,6 +11,7 @@ import { QUESTS } from './quests';
 import { RACES } from './races';
 import { RECRUIT_NAMES_BY_RACE } from './recruitNames';
 import { ZONES } from './zones';
+import { STARTING_ZONE_IDENTIFIER } from './zones/worldMap';
 
 const STARTING_MEMBER_LEVEL = 2;
 const STARTING_POTIONS = 2;
@@ -89,6 +90,7 @@ export function createNewGuild(randomNumberGenerator: SeededRandomNumberGenerato
     recruitsOnOffer: [],
     activeDispatches: [],
     completedQuestCount: 0,
+    currentZoneIdentifier: STARTING_ZONE_IDENTIFIER,
   };
   const tier = reputationTierForQuestCount(guild.completedQuestCount);
   for (const zone of Object.values(ZONES)) {

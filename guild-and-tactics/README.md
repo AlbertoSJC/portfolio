@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, monster level-scaling per zone, and dispatch quests, shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, monster level-scaling per zone, dispatch quests, and reputation-gated zone access (a diegetic roadwatch-guard dialogue), shipped so far.
 
 ---
 
@@ -241,9 +241,12 @@ class / minor stat variance, for gold) is **global**, via the Guild menu,
 not per-zone. Guild roster cap: ~20; battle party size: up to 6.
 
 **Guild progression**: completing quests raises guild **reputation**
-(guild-wide); tiers (Bronze → Silver → Gold → …) unlock better store stock
-and better recruits. Harder quest ranks and reaching new zones gated by
-reputation are still open (§6.0 next steps).
+(guild-wide); tiers (Bronze → Silver → Gold → …) unlock better store
+stock, better recruits, harder quest ranks, and access to the more
+dangerous zones. Zone gating is **diegetic**: locked zones stay visible
+on the World Map with a small roadwatch-sentry badge on their node, and
+attempting entry is turned back by a guard dialogue naming the required
+rank — never a hidden or greyed-out node.
 
 ### 6.0 World map, zones, and towns (decided — supersedes the original settlement framing)
 
@@ -253,9 +256,15 @@ gold/reputation as a top-right pill, menu access as small bottom-right
 corner buttons, not a header bar). Procedural and swappable later via the
 same swap-point principle as `SpriteRegistry`:
 
-- **World map** (zoomed out, FFTA2-style): zone nodes connected by roads.
-  Clicking a node enters that zone. There is no "home" node — by design,
-  the guild has nowhere it belongs.
+- **World map** (zoomed out, FFTA2-style): zone nodes connected by an
+  explicitly authored road network. **The guild stands at one zone** (a
+  marker token, persisted in the save) and travels by road: clicking a
+  destination walks the marker zone by zone along the shortest open
+  route, then enters the destination — it cannot jump across the map,
+  and reputation-locked zones are never crossed en route (they hang off
+  the network as branches, never corridors — enforced by a per-tier
+  reachability test). There is no "home" node — by design, the guild has
+  nowhere it belongs; new charters start at the gentlest zone.
 - **Zone screen** (zoomed in, **FFTA1-style — revised 2026-06-22**): a
   small named-location **road network**, not a walkable tile grid — a
   handful of locations (one a tavern, the rest plain landmarks) connected
@@ -587,6 +596,25 @@ days of work, not a rewrite.
      "Wanderer's Rest" waystation taverns were renamed under the canon
      convention (Carters' Respite / Peat-Cutters' Haven / Masons' Rest).
      Browser-verified end-to-end; see CHANGELOG.
+   - ✅ **Reputation-gated zone access (the roadwatch guard)** — done
+     2026-07-04: the last un-hooked tier reward. Quarry Path and Thorns
+     Plain require silver, The Breirwood gold; the four gentler zones
+     stay open. Locked zones remain visible on the World Map — entering
+     one is refused **in-world** by a roadwatch-guard dialogue that
+     names the required rank ("Thorns Plain opens to Silver-rank
+     guilds…"), rather than hiding or disabling the node; gated nodes
+     carry a small sentry badge so barred roads read at a glance. New
+     `src/sim/guild/ZoneAccess.ts` + `ZoneDefinition.minimumReputationTier`
+     (optional, no save change); closes the "new-zone gating" note from
+     the 2026-07-02 quest-ranks bullet.
+   - ✅ **FFTA2-style world travel** — done 2026-07-04, same session: the
+     guild now stands at one zone (marker token, persisted as
+     `GuildState.currentZoneIdentifier`) and travels along an explicitly
+     authored world road network (`src/content/zones/worldMap.ts`,
+     `src/sim/guild/WorldTravel.ts`) instead of clicking any node
+     directly. Locked zones can be destinations (refused by the guard)
+     but never waypoints; the road layout keeps them as branches off the
+     bronze core, enforced per tier by `WorldTravel.test.ts`.
    - ✅ **Content layer made scalable** — done 2026-07-03, same session:
      zones/quests/monsters split into per-concept folders (one file per
      zone, one board per zone, monsters by family) with identical public

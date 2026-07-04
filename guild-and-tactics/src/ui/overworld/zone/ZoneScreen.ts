@@ -7,7 +7,8 @@ import { buildMusterCardViewModels, type MemberContentTables } from '../../villa
 import { createHintParagraph } from '../../village/views/DomPrimitives';
 import { renderMusterCard } from '../../village/views/MemberCardViews';
 import { createSoundedButton } from '../../village/views/SoundedButton';
-import { createZoneRoadMapCanvas } from './ZoneRoadMapCanvas';
+import { runTravelAnimationLoop } from '../travelAnimationLoop';
+import { createZoneRoadMapCanvas, type ZoneWalkAnimation } from './ZoneRoadMapCanvas';
 
 export interface ZoneScreenCallbacks {
   onLocationClicked: (locationIdentifier: string) => void;
@@ -33,10 +34,13 @@ export class ZoneScreen {
   private readonly content: MemberContentTables;
   private readonly callbacks: ZoneScreenCallbacks;
   private readonly modal: ModalDialog;
-  private currentZone: ZoneDefinition | undefined;
   private lastGuild: GuildState | undefined;
   private musterState: CollisionMusterState | undefined;
   private readonly selectedMemberIdentifiers = new Set<string>();
+  private playerLocationIdentifier: string | undefined;
+  private activeGroupLocations: readonly ZoneRoamingGroupLocation[] = [];
+  private walkAnimation: ZoneWalkAnimation | undefined;
+  private redrawGrid: (() => void) | undefined;
 
   constructor(
     rootElement: HTMLElement,
@@ -57,15 +61,26 @@ export class ZoneScreen {
     playerLocationIdentifier: string,
     activeGroupLocations: readonly ZoneRoamingGroupLocation[],
   ): void {
-    this.currentZone = zone;
     this.lastGuild = guild;
+    this.playerLocationIdentifier = playerLocationIdentifier;
+    this.activeGroupLocations = activeGroupLocations;
     this.rootElement.replaceChildren();
 
     const mapContainer = document.createElement('div');
     mapContainer.className = 'map-fullbleed-canvas-container';
     mapContainer.appendChild(
-      createZoneRoadMapCanvas(zone, playerLocationIdentifier, activeGroupLocations, this.sounds, (locationIdentifier) =>
-        this.callbacks.onLocationClicked(locationIdentifier),
+      createZoneRoadMapCanvas(
+        zone,
+        this.sounds,
+        (locationIdentifier) => this.callbacks.onLocationClicked(locationIdentifier),
+        () => ({
+          playerLocationIdentifier: this.playerLocationIdentifier ?? playerLocationIdentifier,
+          activeRoamingGroupLocations: this.activeGroupLocations,
+          walkAnimation: this.walkAnimation,
+        }),
+        (redraw) => {
+          this.redrawGrid = redraw;
+        },
       ),
     );
     this.rootElement.appendChild(mapContainer);
@@ -104,10 +119,51 @@ export class ZoneScreen {
     this.synchronizeModal();
   }
 
-  /** Re-renders in place — call after every exploration step. */
+  /** Repaints the map's tokens in place (no walk) — e.g. after a roaming group is defeated. */
   rerenderGrid(playerLocationIdentifier: string, activeGroupLocations: readonly ZoneRoamingGroupLocation[]): void {
-    if (this.currentZone === undefined || this.lastGuild === undefined) return;
-    this.render(this.currentZone, this.lastGuild, playerLocationIdentifier, activeGroupLocations);
+    this.playerLocationIdentifier = playerLocationIdentifier;
+    this.activeGroupLocations = activeGroupLocations;
+    this.redrawGrid?.();
+  }
+
+  /**
+   * Glides the player token one road segment while every patrol token
+   * glides one patrol stop in lockstep, then reports arrival. The sim has
+   * already moved when this is called — `from*` are the pre-step
+   * positions, and the screen's resting state is the post-step positions
+   * throughout, so any mid-walk repaint stays consistent. Returns a cancel
+   * function for teardown mid-walk.
+   */
+  animateWalkStep(
+    fromPlayerLocationIdentifier: string,
+    fromGroupLocations: readonly ZoneRoamingGroupLocation[],
+    toPlayerLocationIdentifier: string,
+    toGroupLocations: readonly ZoneRoamingGroupLocation[],
+    durationMilliseconds: number,
+    onArrived: () => void,
+  ): () => void {
+    const groupFromLocationIdentifiers: Record<string, string> = {};
+    for (const group of fromGroupLocations) {
+      groupFromLocationIdentifiers[group.groupIdentifier] = group.locationIdentifier;
+    }
+    this.playerLocationIdentifier = toPlayerLocationIdentifier;
+    this.activeGroupLocations = toGroupLocations;
+    return runTravelAnimationLoop(
+      durationMilliseconds,
+      (progress) => {
+        this.walkAnimation = {
+          progress,
+          playerFromLocationIdentifier: fromPlayerLocationIdentifier,
+          groupFromLocationIdentifiers,
+        };
+        this.redrawGrid?.();
+      },
+      () => {
+        this.walkAnimation = undefined;
+        this.redrawGrid?.();
+        onArrived();
+      },
+    );
   }
 
   openCollisionMuster(encounterLabel: string, onConfirm: (deployedMemberIdentifiers: string[]) => void): void {

@@ -69,6 +69,8 @@ export const BREIRWOOD_ZONE = {
     },
   ],
   battleMapIdentifier: 'breirwood_deep',
+  // Gold-rank roads: only well-proven guilds are let past the Wood Gate.
+  minimumReputationTier: 'gold',
   // The hardest zone on the map: the deep wood is not starter country.
   monsterLevelRange: { minimumLevel: 6, maximumLevel: 8 },
   rewardGoldPerEncounter: 35,

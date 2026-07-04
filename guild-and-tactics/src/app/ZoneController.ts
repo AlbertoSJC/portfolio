@@ -9,7 +9,8 @@ import type { MemberContentTables } from '../ui/village/presenters/MemberPresent
 import { ZoneScreen } from '../ui/overworld/zone/ZoneScreen';
 import { TownScreen, type ZoneContentTables } from '../ui/overworld/zone/TownScreen';
 
-const STEP_DELAY_MILLISECONDS = 160;
+/** How long the party token walks one road segment inside a zone. */
+const ZONE_WALK_SEGMENT_MILLISECONDS = 550;
 
 export interface ZoneControllerCallbacks {
   onOpenGuildMenu: () => void;
@@ -45,7 +46,7 @@ export class ZoneController {
   private readonly session: ZoneSession;
   private readonly screen: ZoneScreen;
   private readonly townScreen: TownScreen;
-  private readonly pendingTimeoutIdentifiers: number[] = [];
+  private cancelWalkAnimation: (() => void) | undefined;
   private guild: GuildState;
   private isMoving = false;
   private mode: ZoneVisitMode = 'exploring';
@@ -98,9 +99,8 @@ export class ZoneController {
   }
 
   dispose(): void {
-    for (const timeoutIdentifier of this.pendingTimeoutIdentifiers) {
-      window.clearTimeout(timeoutIdentifier);
-    }
+    this.cancelWalkAnimation?.();
+    this.cancelWalkAnimation = undefined;
   }
 
   private renderScreen(): void {
@@ -156,25 +156,37 @@ export class ZoneController {
       this.isMoving = false;
       return;
     }
+    const playerFromLocationIdentifier = this.session.getPlayerLocationIdentifier();
+    const groupFromLocations = this.session.getActiveRoamingGroupLocations();
     const result = this.session.movePlayerTo(nextLocationIdentifier);
-    this.screen.rerenderGrid(this.session.getPlayerLocationIdentifier(), this.session.getActiveRoamingGroupLocations());
 
-    if (result.collidedGroupIdentifier !== undefined) {
-      this.isMoving = false;
-      this.handleCollision(result.collidedGroupIdentifier);
-      return;
-    }
-    if (result.enteredTavern) {
-      this.isMoving = false;
-      this.enterTown();
-      return;
-    }
-    if (stepIndex + 1 >= route.length) {
-      this.isMoving = false;
-      return;
-    }
-    this.pendingTimeoutIdentifiers.push(
-      window.setTimeout(() => this.stepAlongRoute(route, stepIndex + 1), STEP_DELAY_MILLISECONDS),
+    // The sim has already resolved the step; the walk animation is purely
+    // presentational, so collisions and tavern arrivals only surface once
+    // the tokens visibly meet.
+    this.cancelWalkAnimation = this.screen.animateWalkStep(
+      playerFromLocationIdentifier,
+      groupFromLocations,
+      this.session.getPlayerLocationIdentifier(),
+      this.session.getActiveRoamingGroupLocations(),
+      ZONE_WALK_SEGMENT_MILLISECONDS,
+      () => {
+        this.cancelWalkAnimation = undefined;
+        if (result.collidedGroupIdentifier !== undefined) {
+          this.isMoving = false;
+          this.handleCollision(result.collidedGroupIdentifier);
+          return;
+        }
+        if (result.enteredTavern) {
+          this.isMoving = false;
+          this.enterTown();
+          return;
+        }
+        if (stepIndex + 1 >= route.length) {
+          this.isMoving = false;
+          return;
+        }
+        this.stepAlongRoute(route, stepIndex + 1);
+      },
     );
   }
 

@@ -43,6 +43,13 @@ export interface GuildState {
   /** Members away on dispatch quests — see DispatchQuest.ts. */
   activeDispatches: ActiveDispatch[];
   completedQuestCount: number;
+  /**
+   * Zone the guild currently stands at on the World Map — travel moves it
+   * along world roads (WorldTravel.ts). Optional because pre-travel saves
+   * lack it; the boot sequence heals a missing/unknown value to the
+   * starting zone.
+   */
+  currentZoneIdentifier?: string;
 }
 
 export function canAffordGoldCost(guild: GuildState, goldCost: number): boolean {

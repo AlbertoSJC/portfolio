@@ -1158,3 +1158,141 @@ cross-references (user-requested, pre-commit).**
   behavior-identical refactor, zero importer changes needed
   (`moduleResolution: bundler` resolves the old specifiers to the new
   directory indexes).
+
+**2026-07-04 — Reputation-gated zone access: the roadwatch guard (M4).**
+
+The last un-hooked reputation reward (README §6, deferred since
+2026-06-18 "for when more zones exist" — seven now do). Deliberately
+**diegetic, not hidden** (user-decided): locked zones stay visible on
+the World Map, and trying to enter one is turned back by a guard
+dialogue instead of the node being greyed out or missing — the player
+always sees where the world goes next and what it takes to get there.
+
+- *Sim* (`src/sim/guild/ZoneAccess.ts`, new): `ZoneDefinition` gained an
+  optional `minimumReputationTier` (omitted = open to any guild);
+  `requiredReputationTierForZone` / `isZoneAccessibleAtTier` wrap the
+  existing `meetsReputationRequirement`. No save-format change — access
+  is derived on demand, like the tier itself.
+- *Content*: Quarry Path (levels 4–6) and Thorns Plain (5–7) now require
+  **silver**; The Breirwood (6–8) requires **gold**. The four gentler
+  zones (Slumber Meadow, North Road, Marsh Trail, Crosspaths Field,
+  levels 1–5) stay open, so a fresh guild has four roads to rank up on.
+- *UI* (`src/ui/overworld/ZoneGuardDialogue.ts`, new): "A roadwatch
+  guard bars the way" — an in-world refusal naming the zone and the
+  guild's current rank, plus a plain-text requirement line ("Thorns
+  Plain opens to Silver-rank guilds…") so the carrot is explicit where
+  the store/quest-board gating is silent. Lore-compatible: LORE.md
+  already frames escort work in rank language ("escort duty here is
+  gold-rank work"). Hosted in its own `ModalDialog` owned by
+  `GameController`; the check sits at the top of `showZone()` — the one
+  chokepoint every zone entry goes through — before any screen
+  switches, so a refusal leaves the World Map exactly as it was.
+- *Guard badge on the World Map (follow-up, same day, user-requested)*:
+  locked zone nodes now carry a small **roadwatch-sentry badge** (helmeted
+  figure with an upright spear, `drawGuardBadge`) pinned to their
+  top-right corner, so the player can see at a glance which roads are
+  barred before clicking. `MapNodeEntry` gained an optional
+  `isGuarded?: boolean` — the generic node-map renderer stays
+  rule-agnostic; `OverworldScreen.nodeEntries` sets the flag from the
+  same `isZoneAccessibleAtTier` check the gate uses, and badges
+  disappear zone by zone as the guild ranks up (the screen re-renders
+  with fresh guild state on every visit/refresh). Town/zone road maps
+  are untouched (they never set the flag).
+- *Verification*: 201 vitest tests (8 new in `ZoneAccess.test.ts`:
+  default-open/blocked/admitted matrix plus content-validity sweeps —
+  a bronze guild always has ≥1 accessible zone, a level-1 zone among
+  them, and no gated zone sits at the level floor), typecheck + build
+  clean. Browser pass `tmp/verify_zone_gate.mjs` (screenshots in
+  `tmp/shots/`): bronze guild clicking Thorns Plain gets the guard
+  dialogue (zone name + Silver named, zone screen never opens), "Turn
+  back" closes it, Breirwood's dialogue demands Gold, Slumber Meadow
+  still opens normally; a silver guild enters Thorns Plain but is still
+  refused at the Breirwood; a gold guild walks into the Breirwood.
+  Screenshot passes confirmed the sentry badge on exactly the three
+  gated nodes at bronze and on none at gold. Zero page errors beyond
+  the known favicon 404.
+
+**2026-07-04 — FFTA2-style world travel: the guild stands somewhere (M4,
+same session).**
+
+Playtesting the zone gate surfaced the deeper oddity (user-flagged): the
+guild could click any World Map node from anywhere — no position, no
+sense of distance, and a locked zone in the middle of the map would have
+been meaningless anyway. Now the guild **stands at one zone** and
+travels by road, FFTA2-style.
+
+- *Sim* (`src/sim/guild/WorldTravel.ts`, new): `WorldRoad` (undirected
+  zone-to-zone edge) + `findWorldTravelRoute` — BFS with an
+  `isZonePassable` filter, the World Map twin of `ZoneRoadGraph.ts`.
+  Locked zones can be a *destination* (the roadwatch refuses at the
+  border, as before) but never a *waypoint*: routes simply do not cross
+  them. `GuildState.currentZoneIdentifier` (optional) persists the
+  position; no save-format bump — pre-travel saves (or saves naming a
+  removed zone) heal to the starting zone at boot, `newGame` sets it
+  outright.
+- *Content* (`src/content/zones/worldMap.ts`, new): the explicit road
+  list (compile-checked zone identifiers) + `STARTING_ZONE_IDENTIFIER`
+  (Slumber Meadow — "fresh guilds cut their teeth here"). Layout rule:
+  the four bronze zones form the connected core (Crosspaths Field as
+  the heartland hub), and every locked zone hangs off it as a branch —
+  the North Road is the lone road up into the gold Breirwood (as in
+  LORE.md's map), Quarry Path sits off the eastern loop, Thorns Plain
+  off the south. The ZONES record order no longer draws anything
+  (`zones/index.ts` comment updated); the old winding-tour
+  consecutive-entry chain is retired on the World Map.
+- *Flow* (`GameController.travelToZone` / `stepAlongWorldRoute`):
+  clicking a zone gate-checks the destination first (dialogue, zero
+  movement), else BFS-routes through currently-unlocked zones and steps
+  the marker one zone per 160ms (`ZoneController`'s exact stepping
+  pattern, one level up), persisting and auto-entering on arrival.
+  Clicking the zone you stand on enters it directly. A second click
+  while travelling is ignored.
+- *UI*: `OverworldScreen` draws the road edges explicitly (the
+  `edges` param existed since the road-network rewrite — first real
+  use on the World Map) and the guild's head-and-cloak token on its
+  current zone via `afterRender`. `drawPlayerToken`/`drawMonsterIcon`
+  moved to a shared `src/ui/overworld/mapTokens.ts` (zone road maps
+  and the World Map now share them); plaque copy updated ("click a
+  zone to travel there by road").
+- *Walking animation (follow-up, same session, user-requested — then
+  extended to zone interiors and slowed so the walk actually reads)*:
+  tokens don't hop node to node — they **walk the trails**, on the
+  World Map (650ms per road segment) *and* inside every zone (550ms),
+  where the roaming patrol tokens glide their one patrol stop in
+  lockstep with the party's step. Shared machinery:
+  `src/ui/overworld/travelAnimationLoop.ts` (`runTravelAnimationLoop` —
+  one rAF loop with progress 0..1 and a cancel function) and
+  `mapTokens.ts`'s `walkingTokenPoint` (linear along the road, easing
+  off the resting corner offset onto the road mid-segment and back at
+  each stop, light walking bob) — used by `OverworldScreen.
+  animateTravelStep` and the new `ZoneScreen.animateWalkStep` alike.
+  `createOverworldMapCanvas` gained an optional `registerRedraw` param
+  handing the caller a repaint hook, so animation frames redraw the
+  existing canvas instead of rebuilding it; `createZoneRoadMapCanvas`
+  now takes a `getTokenDrawState` provider instead of baked-in token
+  positions (and `ZoneScreen.rerenderGrid` became a light repaint, no
+  longer a full screen rebuild per step). The sim resolves each step
+  *before* its animation plays — collisions and tavern arrivals
+  surface when the tokens visibly meet, positions only advance on
+  arrival, and `ZoneController.dispose` cancels an in-flight walk
+  (replacing the old pending-timeout list) so a mid-walk teardown
+  can't fire callbacks on a dead screen.
+- *Deliberate simplifications*: passing through a zone on the World Map
+  is safe — roaming patrols live inside a zone's own road network and
+  only threaten you once you enter it; travel costs nothing and cannot
+  be ambushed (a future iteration could add road events — the lore's
+  train-escort framing points that way).
+- *Verification*: 208 vitest tests (7 new in `WorldTravel.test.ts`:
+  BFS route/blocked/unreachable cases plus content sweeps — every road
+  references real zones, the starting zone is bronze-open, and **every
+  zone is reachable at its own unlock tier from the start without
+  crossing locked zones**, the layout rule as a permanent test),
+  typecheck + build clean. Browser pass `tmp/verify_world_travel.mjs`:
+  a fresh bronze save heals to Slumber Meadow (marker visible on the
+  new road-network map), clicking The Marsh Trail walks two hops
+  (via Crosspaths Field) and auto-enters it with the save updated,
+  returning to the World Map shows the marker at the Marsh Trail, and
+  a refused Breirwood click moves nothing. `tmp/verify_zone_gate.mjs`
+  re-run fully green under the travel model (silver guild *travels* to
+  Thorns Plain, gold guild walks North Road → Breirwood). Zero page
+  errors.
