@@ -106,6 +106,18 @@ describe('calculateDamageBeforeDice', () => {
     expect(calculateDamageBeforeDice(attacker, shelledDefender, PLAIN_PHYSICAL_EFFECT, 'front')).toBe(7);
   });
 
+  it('multiplies physical damage dealt while berserk but not magical damage', () => {
+    const berserkAttacker = createTestUnit({
+      baseStatistics: { attack: 10, magicPower: 10 },
+      activeStatusEffects: [{ kind: 'berserk', remainingTurns: 3, sourceSkillName: 'Feral Frenzy' }],
+    });
+    const defender = createTestUnit({ baseStatistics: { defense: 6, magicResistance: 6 } });
+    // Physical: 10 × 1.3 × 1.0 − 3 = 10 — Magical: 10 × 1.0 − 3 = 7, untouched.
+    expect(calculateDamageBeforeDice(berserkAttacker, defender, PLAIN_PHYSICAL_EFFECT, 'front')).toBe(10);
+    const magicalEffect: DamageSkillEffect = { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.0 };
+    expect(calculateDamageBeforeDice(berserkAttacker, defender, magicalEffect, 'front')).toBe(7);
+  });
+
   it('never deals less than the minimum damage on a connecting hit', () => {
     const weakAttacker = createTestUnit({ baseStatistics: { attack: 1 } });
     const armoredDefender = createTestUnit({ baseStatistics: { defense: 100 } });

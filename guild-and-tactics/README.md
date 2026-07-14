@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, five more status effects, FFTA-style equipment-skill mastery, monster level-scaling per zone, dispatch quests, and reputation-gated zone access (a diegetic roadwatch-guard dialogue), shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, ten more status effects (13 total), FFTA-style equipment-skill mastery, monster level-scaling per zone, dispatch quests (now with a success/failure roll), FFTA2-style world travel, and reputation-gated zone access (a diegetic roadwatch-guard dialogue), shipped so far.
 
 ---
 
@@ -192,7 +192,8 @@ Tactical, turn-based, on a square grid (FFTA model):
 - **Damage model**: deterministic formulas + seeded RNG for hit/crit rolls
   (fully unit-testable, replayable).
 - **Status effects**: poison, slow, haste, blind, sleep, protect, shell,
-  regen… (initial set ~10; the 8 listed are all live as of 2026-07-01).
+  regen, silence, doom, stop, confuse, berserk — all 13 live as of
+  2026-07-14 (past the original ~10 target).
 - **Elements** (tied to the pantheon of Aentea — see `LORE.md`, untracked):
   **Fire** (Kosh) / **Water** (Yiern) / **Earth** (Taurk) / **Wind** (Breir) /
   **Sacred** (Hort) / **Dark** (the unnamed god) / **Lightning** (the
@@ -559,7 +560,8 @@ days of work, not a rewrite.
      muster pool, time passes in concluded battles, and they return in a
      battle summary with gold + XP. 4 dispatches across the 3 zones;
      always-succeed in v1 (a stat-based success roll is a future
-     iteration).
+     iteration). *(Superseded 2026-07-14 below — dispatches can now
+     fail.)*
    - ✅ **Harder quest ranks gated by reputation tier** — done 2026-07-02:
      tavern boards post ★ quests from bronze, ★★ from silver, ★★★ from
      gold, mirroring the store's silent tier gating; boards self-heal
@@ -625,6 +627,20 @@ days of work, not a rewrite.
      mean" hint instead of surfacing mid-battle. See CHANGELOG for the
      two deliberate boundaries (sim stays `string`-typed; exports stay
      `Record`).
+   - ✅ **Five more status effects: silence, doom, stop, confuse, berserk**
+     — done 2026-07-14: status-effect count now 13, past the original
+     ~10 target (§5/§8). One new skill each, one per class (Spellthief,
+     Necromancer, Illusionist, Berserker) plus the Stoneling monster
+     (stop). Found and fixed a real interaction bug in the same pass: a
+     lethal `doom` countdown could be silently swallowed if it finished
+     on a turn also pre-empted by `stop` — fixed by checking doom before
+     stop instead of after. See CHANGELOG for the full breakdown.
+   - ✅ **Dispatch quests can now fail** — done 2026-07-14, same session:
+     closes the "always-succeed in v1" note from the 2026-07-02 dispatch
+     bullet above. Success chance is level-vs-rank based (85% baseline,
+     ±5%/level, −3% per battle of duration beyond the first, clamped
+     5–99%); a failed roll returns the member with no reward. See
+     CHANGELOG.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

@@ -50,3 +50,6 @@ export const SLOW_SPEED_MULTIPLIER = 0.5;
 /** Fraction of damage still taken through protect (physical) and shell (magical). */
 export const PROTECT_PHYSICAL_DAMAGE_TAKEN_MULTIPLIER = 0.7;
 export const SHELL_MAGICAL_DAMAGE_TAKEN_MULTIPLIER = 0.7;
+
+/** Physical damage dealt while berserk is multiplied by this (the rage trade-off for losing control). */
+export const BERSERK_PHYSICAL_DAMAGE_DEALT_MULTIPLIER = 1.3;

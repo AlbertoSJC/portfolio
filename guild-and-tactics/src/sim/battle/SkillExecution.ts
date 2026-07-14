@@ -2,15 +2,15 @@ import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator
 import type { GridPosition } from '../grid/GridPosition';
 import { manhattanDistance } from '../grid/GridPosition';
 import type { Unit } from '../units/Unit';
-import { effectiveStatistic, isKnockedOut, STATISTIC } from '../units/Unit';
+import { effectiveStatistic, hasStatusEffect, isKnockedOut, STATISTIC } from '../units/Unit';
 import type { BattleEvent } from './BattleEvents';
 import { determineRelativeAttackArc } from './FacingAndFlanking';
+import type { DamageSkillEffect, SkillDefinition } from './SkillDefinition';
 import {
   calculateCriticalHitChance,
   calculateDamageBeforeDice,
   calculateHitChance,
 } from './DamageCalculation';
-import type { SkillDefinition } from './SkillDefinition';
 import {
   CRITICAL_HIT_DAMAGE_MULTIPLIER,
   MINIMUM_HEALING_RESTORED,
@@ -26,6 +26,11 @@ export function isTargetTileWithinSkillRange(
 
 export function canUnitAffordSkill(user: Unit, skill: SkillDefinition): boolean {
   return user.currentManaPoints >= skill.manaPointCost;
+}
+
+/** Silence blocks any skill that costs mana; a silenced unit can still attack for free. */
+export function isUnitSilencedForSkill(user: Unit, skill: SkillDefinition): boolean {
+  return hasStatusEffect(user, 'silence') && skill.manaPointCost > 0;
 }
 
 function isUnitAValidTargetForSkill(user: Unit, skill: SkillDefinition, candidate: Unit): boolean {
@@ -83,6 +88,87 @@ export function executeSkill(
   return events;
 }
 
+/**
+ * Rolls hit/crit and applies a damage effect against one specific target.
+ * Shared by the normal (team-filtered) skill path and
+ * `resolveForcedDamageAttack` (which picks its own target, bypassing the
+ * skill's team filter — e.g. confuse striking an ally).
+ */
+function resolveDamageEffectAgainstTarget(
+  user: Unit,
+  target: Unit,
+  damageEffect: DamageSkillEffect,
+  randomNumberGenerator: SeededRandomNumberGenerator,
+  events: BattleEvent[],
+): void {
+  const attackArc = determineRelativeAttackArc(user, target);
+  const hitChance = calculateHitChance(user, target, attackArc);
+  if (!randomNumberGenerator.rollChance(hitChance)) {
+    events.push({
+      kind: 'attackMissed',
+      attackerIdentifier: user.identifier,
+      defenderIdentifier: target.identifier,
+    });
+    return;
+  }
+  const wasCriticalHit = randomNumberGenerator.rollChance(calculateCriticalHitChance(attackArc));
+  let damageDealt = calculateDamageBeforeDice(user, target, damageEffect, attackArc);
+  if (damageDealt < 0) {
+    // Elemental absorption (e.g. Dark striking the Undead) heals instead.
+    const healingFromAbsorption = Math.abs(damageDealt);
+    target.currentHitPoints = Math.min(
+      target.baseStatistics.hitPointsMaximum,
+      target.currentHitPoints + healingFromAbsorption,
+    );
+    events.push({
+      kind: 'healingReceived',
+      healerIdentifier: user.identifier,
+      targetIdentifier: target.identifier,
+      amount: healingFromAbsorption,
+    });
+    return;
+  }
+  if (wasCriticalHit) {
+    damageDealt = Math.round(damageDealt * CRITICAL_HIT_DAMAGE_MULTIPLIER);
+  }
+  target.currentHitPoints = Math.max(0, target.currentHitPoints - damageDealt);
+  events.push({
+    kind: 'damageDealt',
+    attackerIdentifier: user.identifier,
+    defenderIdentifier: target.identifier,
+    amount: damageDealt,
+    wasCriticalHit,
+  });
+  if (isKnockedOut(target)) {
+    events.push({ kind: 'unitKnockedOut', unitIdentifier: target.identifier });
+  }
+}
+
+/**
+ * Forces a damage skill against a specific target the caller already chose,
+ * ignoring the skill's normal team-targeting rule. Used by confuse, which
+ * must be able to strike an ally.
+ */
+export function resolveForcedDamageAttack(
+  user: Unit,
+  target: Unit,
+  skill: SkillDefinition,
+  randomNumberGenerator: SeededRandomNumberGenerator,
+): BattleEvent[] {
+  const events: BattleEvent[] = [
+    {
+      kind: 'skillUsed',
+      unitIdentifier: user.identifier,
+      skillIdentifier: skill.identifier,
+      targetTile: target.position,
+    },
+  ];
+  if (skill.effect.kind === 'damage') {
+    resolveDamageEffectAgainstTarget(user, target, skill.effect, randomNumberGenerator, events);
+  }
+  return events;
+}
+
 function applySkillEffectToUnit(
   user: Unit,
   skill: SkillDefinition,
@@ -93,49 +179,7 @@ function applySkillEffectToUnit(
   const effect = skill.effect;
   switch (effect.kind) {
     case 'damage': {
-      const attackArc = determineRelativeAttackArc(user, target);
-      const hitChance = calculateHitChance(user, target, attackArc);
-      if (!randomNumberGenerator.rollChance(hitChance)) {
-        events.push({
-          kind: 'attackMissed',
-          attackerIdentifier: user.identifier,
-          defenderIdentifier: target.identifier,
-        });
-        return;
-      }
-      const wasCriticalHit = randomNumberGenerator.rollChance(
-        calculateCriticalHitChance(attackArc),
-      );
-      let damageDealt = calculateDamageBeforeDice(user, target, effect, attackArc);
-      if (damageDealt < 0) {
-        // Elemental absorption (e.g. Dark striking the Undead) heals instead.
-        const healingFromAbsorption = Math.abs(damageDealt);
-        target.currentHitPoints = Math.min(
-          target.baseStatistics.hitPointsMaximum,
-          target.currentHitPoints + healingFromAbsorption,
-        );
-        events.push({
-          kind: 'healingReceived',
-          healerIdentifier: user.identifier,
-          targetIdentifier: target.identifier,
-          amount: healingFromAbsorption,
-        });
-        return;
-      }
-      if (wasCriticalHit) {
-        damageDealt = Math.round(damageDealt * CRITICAL_HIT_DAMAGE_MULTIPLIER);
-      }
-      target.currentHitPoints = Math.max(0, target.currentHitPoints - damageDealt);
-      events.push({
-        kind: 'damageDealt',
-        attackerIdentifier: user.identifier,
-        defenderIdentifier: target.identifier,
-        amount: damageDealt,
-        wasCriticalHit,
-      });
-      if (isKnockedOut(target)) {
-        events.push({ kind: 'unitKnockedOut', unitIdentifier: target.identifier });
-      }
+      resolveDamageEffectAgainstTarget(user, target, effect, randomNumberGenerator, events);
       return;
     }
     case 'heal': {

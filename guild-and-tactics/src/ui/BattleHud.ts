@@ -12,7 +12,7 @@ import {
   STATISTIC,
   type Unit,
 } from '../sim/units/Unit';
-import { canUnitAffordSkill } from '../sim/battle/SkillExecution';
+import { canUnitAffordSkill, isUnitSilencedForSkill } from '../sim/battle/SkillExecution';
 import type { UserInterfaceSounds } from './UserInterfaceSounds';
 
 const COMBAT_LOG_MAXIMUM_LINES = 60;
@@ -201,7 +201,8 @@ export class BattleHud {
     });
     this.appendMenuTitle('Actions');
     for (const skill of battle.getSkillsOfActiveUnit()) {
-      const unaffordable = !canUnitAffordSkill(activeUnit, skill);
+      const unaffordable =
+        !canUnitAffordSkill(activeUnit, skill) || isUnitSilencedForSkill(activeUnit, skill);
       const isGrantedByGear = activeUnit.equipmentGrantedSkillIdentifiers.includes(skill.identifier);
       const gearBadge = isGrantedByGear ? ' ✦' : '';
       const label =

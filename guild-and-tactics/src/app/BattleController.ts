@@ -258,9 +258,13 @@ export class BattleController {
       case 'turnEnded':
       case 'statusEffectApplied':
       case 'turnSkippedBySleep':
+      case 'turnSkippedByStop':
       case 'guildFled':
+      case 'berserkAttackResolved':
+      case 'confusedAttackResolved':
         return;
       case 'poisonDamageDealt':
+      case 'doomTriggered':
         this.sounds.playDamageImpact(false);
         return;
       case 'regenHealingRestored':
@@ -284,7 +288,13 @@ export class BattleController {
       return;
     }
 
-    if (startOfTurnEvents.some((event) => event.kind === 'turnSkippedBySleep')) {
+    const autoResolvedTurnEventKinds = new Set([
+      'turnSkippedBySleep',
+      'turnSkippedByStop',
+      'berserkAttackResolved',
+      'confusedAttackResolved',
+    ]);
+    if (startOfTurnEvents.some((event) => autoResolvedTurnEventKinds.has(event.kind))) {
       this.startTurnForActiveUnit();
       return;
     }

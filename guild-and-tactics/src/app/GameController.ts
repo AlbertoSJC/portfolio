@@ -502,6 +502,7 @@ export class GameController {
       },
       EQUIPMENT,
       DISPATCH_QUESTS,
+      this.randomNumberGenerator,
     );
 
     if (outcome === 'victory') {

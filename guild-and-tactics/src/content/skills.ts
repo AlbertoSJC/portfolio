@@ -187,6 +187,54 @@ const SKILL_ENTRIES = {
     effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.2, element: 'sacred' },
   },
 
+  // ── Spellthief (status) ────────────────────────────────────────────────
+  mana_theft: {
+    identifier: 'mana_theft',
+    displayName: 'Mana Theft',
+    description: 'A spellthief\'s touch that unravels the target\'s grip on their own magic, leaving only muscle and steel.',
+    manaPointCost: 4,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'silence', durationTurns: 3 },
+  },
+
+  // ── Necromancer (status) ───────────────────────────────────────────────
+  grave_sentence: {
+    identifier: 'grave_sentence',
+    displayName: 'Grave Sentence',
+    description: 'A curse of the unnamed god\'s own patience — a countdown the target can feel closing in.',
+    manaPointCost: 8,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'doom', durationTurns: 3 },
+  },
+
+  // ── Illusionist (status) ───────────────────────────────────────────────
+  shattered_mind: {
+    identifier: 'shattered_mind',
+    displayName: 'Shattered Mind',
+    description: 'A burst of false sight that turns the target against friend and foe alike.',
+    manaPointCost: 6,
+    targetingRange: 3,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'confuse', durationTurns: 2 },
+  },
+
+  // ── Berserker (status) ─────────────────────────────────────────────────
+  feral_frenzy: {
+    identifier: 'feral_frenzy',
+    displayName: 'Feral Frenzy',
+    description: 'The berserker gives up all restraint — every ounce of will turns to raw, unaimed violence.',
+    manaPointCost: 5,
+    targetingRange: 0,
+    areaOfEffectRadius: 0,
+    targetTeam: 'self',
+    effect: { kind: 'statusEffect', statusEffect: 'berserk', durationTurns: 3 },
+  },
+
   // ── Priest (wards) ─────────────────────────────────────────────────────
   mending_prayer: {
     identifier: 'mending_prayer',
@@ -316,6 +364,16 @@ const SKILL_ENTRIES = {
     areaOfEffectRadius: 0,
     targetTeam: 'enemies',
     effect: { kind: 'damage', damageSource: 'magical', powerMultiplier: 1.2, element: 'dark' },
+  },
+  petrifying_gaze: {
+    identifier: 'petrifying_gaze',
+    displayName: 'Petrifying Gaze',
+    description: 'A stoneling\'s stare locks its target still as the rock it\'s made of.',
+    manaPointCost: 4,
+    targetingRange: 2,
+    areaOfEffectRadius: 0,
+    targetTeam: 'enemies',
+    effect: { kind: 'statusEffect', statusEffect: 'stop', durationTurns: 2 },
   },
   drowse_spores: {
     identifier: 'drowse_spores',

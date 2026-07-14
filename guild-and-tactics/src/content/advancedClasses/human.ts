@@ -97,7 +97,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skills: [],
+    skills: [{ skillIdentifier: 'shattered_mind', learnedAtLevel: 1 }],
   },
 
   bishop: {
@@ -231,7 +231,7 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.6,
     },
-    skills: [],
+    skills: [{ skillIdentifier: 'mana_theft', learnedAtLevel: 1 }],
   },
 
   inquisitor: {

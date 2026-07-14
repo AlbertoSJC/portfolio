@@ -598,8 +598,63 @@ over it, adding roaming-group/player tokens) — same canvas, different
   dispose` cancels an in-flight walk. World-map pass-through is
   deliberately safe (patrols only exist inside zones). Browser pass:
   `tmp/verify_world_travel.mjs` (includes an in-zone mid-walk shot).
+- ✅ **Five more status effects: silence, doom, stop, confuse, berserk**
+  (2026-07-14): status-effect count is now 13, past the original ~10
+  target. One new skill each: Mana Theft (silence, human spellthief),
+  Grave Sentence (doom, undead necromancer), Shattered Mind (confuse,
+  human illusionist), Feral Frenzy (berserk, shared berserker,
+  self-targeted), Petrifying Gaze (stop, `floraAndStone` Stoneling).
+  - `silence` blocks any skill with `manaPointCost > 0` via one shared
+    `isUnitSilencedForSkill` predicate, checked at all three call sites
+    that needed it (`Battle.useSkillWithActiveUnit` throws, `BattleHud`
+    marks the button unaffordable, the enemy AI skips silenced skills).
+  - `stop` is a full freeze (`turnSkippedByStop`) — unlike sleep it
+    skips that turn's poison/regen tick entirely, not just player input.
+  - `berserk`/`confuse` auto-resolve the turn as a forced attack:
+    berserk always swings at the nearest living foe (1.3× physical
+    damage dealt via `BERSERK_PHYSICAL_DAMAGE_DEALT_MULTIPLIER`, magical
+    untouched); confuse swings at a random unit of *any* team in range,
+    ally included. New `resolveForcedDamageAttack` in `SkillExecution.ts`
+    bypasses the skill's normal team-targeting filter for exactly this
+    case, built on a `resolveDamageEffectAgainstTarget` extracted from
+    the existing damage path so both share one hit/crit/absorption
+    implementation. `BattleController` treats both as auto-resolved
+    turns, same recursion pattern as sleep/stop.
+  - `doom` kills outright when its countdown reaches its final turn.
+    **Bug found and fixed in this pass** (not by a failing test — by
+    re-reading the interaction): the doom check originally ran *after*
+    the stop early-return, but stop's own duration ticks down via the
+    same `endActiveUnitTurn` call the stop branch itself calls, which
+    unconditionally ticks down *every* active status effect including
+    doom — so a doom that finished on a stop-frozen turn was silently
+    discarded, never triggering its kill. Fixed by moving the doom check
+    to run first, before stop is even checked. New regression test:
+    "lets doom kill a unit on its final turn even while that unit is
+    also stopped."
+  - Verification: 15 new vitest tests, typecheck/build clean. Browser
+    regression pass `tmp/verify_battle_smoke.mjs` (full battle-entry →
+    action-menu → attack sequence, zero page/console errors) — confirms
+    the doom/stop reorder and the shared damage-resolution extraction
+    didn't disturb the ordinary combat path.
+- ✅ **Dispatch quests can now fail** (2026-07-14, same session — closes
+  the "always-succeed in v1" note from the dispatch-quests bullet
+  above): `calculateDispatchSuccessChance(member, dispatchQuest)` rolls
+  against a level-vs-rank baseline (85% base, ±5%/level above or below
+  the dispatch's expected level, −3% per battle of duration beyond the
+  first, clamped 5–99%). `DispatchQuestDefinition` gained
+  `difficultyRank` (backfilled onto all 8 dispatches);
+  `ResolvedDispatchReport` gained `outcome: 'success' | 'failure'` — a
+  failed roll returns the member with no gold/XP.
+  `tickDispatchesAfterBattle`/`applyBattleSpoils` now take a
+  `SeededRandomNumberGenerator`, threaded from `GameController.
+  buildBattleConclusion`. Verification: `calculateDispatchSuccessChance`
+  pinned at its saturating extremes plus a forced-fail case; browser
+  pass `tmp/verify_dispatch_failure_roll.mjs` observed both a real
+  success ("+60 gold, +40 XP") and failure ("returns … empty-handed")
+  in the battle-outcome overlay across repeated trials from a fresh
+  save, zero console/page errors.
 
-**208 vitest tests, typecheck clean.**
+**223 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones from the canon list (8 lore zones remain: Aegda Mountains,

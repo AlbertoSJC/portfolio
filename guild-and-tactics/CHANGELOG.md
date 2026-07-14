@@ -1296,3 +1296,94 @@ travels by road, FFTA2-style.
   re-run fully green under the travel model (silver guild *travels* to
   Thorns Plain, gold guild walks North Road → Breirwood). Zero page
   errors.
+
+**2026-07-14 — Five more status effects: silence, doom, stop, confuse, berserk.**
+
+Rounds §8's status-effect target out to 13 (well past the original ~10):
+poison/sleep/blind (M3), slow/haste/protect/shell/regen (2026-07-01), and
+now silence/doom/stop/confuse/berserk. One new skill per effect, one per
+new/existing advanced class, each learned at level 1 so it's immediately
+playable.
+
+- `silence`: blocks any skill with `manaPointCost > 0`; the free basic
+  attack still works. New `isUnitSilencedForSkill(user, skill)` in
+  `SkillExecution.ts`, checked in `Battle.useSkillWithActiveUnit` (throws),
+  the HUD's action menu (marks the button unaffordable), and the enemy AI's
+  skill scan (skips silenced options) — three call sites sharing one
+  predicate rather than three copies of the same check.
+- `doom`: a lethal countdown. `processStartOfTurnForActiveUnit` finds the
+  unit's `doom` effect and kills it outright the moment
+  `remainingTurns <= 1`, *before* any other start-of-turn effect runs
+  (see the stop interaction below for why doom goes first).
+- `stop`: a full freeze — `turnSkippedByStop`, and unlike sleep the turn
+  ends before regen/poison apply at all (sleep still takes its poison
+  tick; stop takes none).
+- `berserk`/`confuse`: forced-attack effects, each auto-resolving the
+  unit's turn without player input. Berserk always swings at the nearest
+  living foe (or wastes the turn if none is in range); confuse swings at a
+  random unit of *any* team in range, ally included — `SkillExecution.ts`
+  gained `resolveForcedDamageAttack`, which bypasses the skill's normal
+  team-targeting filter for exactly this case, built on top of a new
+  `resolveDamageEffectAgainstTarget` extracted from the existing damage
+  path (used by both, zero duplicated hit/crit/absorption logic). Berserk
+  also multiplies physical damage *dealt* by 1.3× (`BERSERK_PHYSICAL_
+  DAMAGE_DEALT_MULTIPLIER`) in `calculateDamageBeforeDice` — magical
+  damage is untouched, so a berserk caster gets no bonus from spells.
+  `BattleController` treats both as auto-resolved turns (same recursion
+  pattern as sleep/stop) and plays the existing damage-impact sound.
+- **Bug found and fixed by re-reading the interaction, not by a failing
+  test**: doom's kill check originally sat *after* the stop early-return,
+  so a unit's `stop` effect could out-live a `doom` effect that should
+  have killed it that exact turn — `stop`'s own duration only ticks down
+  via the same `endActiveUnitTurn` call every auto-skip path shares, and
+  that call unconditionally ticks down *every* active status effect
+  (doom included), silently discarding an expired-but-unresolved doom
+  the moment its `remainingTurns` hit zero while the unit was frozen and
+  unable to be checked. Moved the doom check to run first, before the
+  stop check, so a lethal countdown can never be swallowed by a
+  coincident freeze. New regression test: `lets doom kill a unit on its
+  final turn even while that unit is also stopped`.
+- New skills, one per new effect: Spellthief's Mana Theft (silence, human
+  spellthief), Necromancer's Grave Sentence (doom, undead necromancer),
+  Illusionist's Shattered Mind (confuse, human illusionist), Berserker's
+  Feral Frenzy (berserk, shared berserker, self-targeted), and the
+  Stoneling's Petrifying Gaze (stop, `floraAndStone` monster family, next
+  to its existing Rock Slam).
+- *Verification*: 223 vitest tests (15 new — silence gating, doom's
+  exact-turn kill and the stop interaction, stop's full freeze, berserk's
+  forced-attack and damage-bonus, confuse's ally-inclusive random target,
+  all with in-range and no-target-in-range cases), typecheck + build
+  clean. Browser regression pass `tmp/verify_battle_smoke.mjs` (a full
+  battle-entry → action-menu → attack sequence, zero page/console
+  errors) confirms the reorder and the shared damage-resolution
+  extraction didn't disturb the ordinary combat path.
+
+**2026-07-14 — Dispatch quests can now fail (closes the 2026-07-02 "always-succeed in v1" note).**
+
+Same session. `calculateDispatchSuccessChance(member, dispatchQuest)`
+(`DispatchQuest.ts`) rolls against a level-vs-rank baseline instead of
+guaranteeing every dispatch's reward.
+
+- Each dispatch rank now implies an expected member level
+  (`EXPECTED_MEMBER_LEVEL_BY_DISPATCH_RANK`: 3/7/12 for rank 1/2/3, the
+  same rank scale quests already use) — `DispatchQuestDefinition` gained
+  `difficultyRank`, backfilled onto all 8 existing dispatches. Success
+  starts at 85%, ±5% per level above/below the expected level, −3% per
+  battle of duration beyond the first, clamped to 5–99% so it's never a
+  sure thing or a sure loss.
+  `ResolvedDispatchReport` gained `outcome: 'success' | 'failure'`
+  (`levelsGained` is always 0 on failure — no reward paid, the member
+  just returns). `tickDispatchesAfterBattle`/`applyBattleSpoils` now take
+  a `SeededRandomNumberGenerator` to roll it, threaded through from
+  `GameController.buildBattleConclusion`.
+- `BattleSpoilsSummary.ts` prints "returns … empty-handed" instead of the
+  reward line on a failed roll.
+- *Verification*: `calculateDispatchSuccessChance` pinned at its
+  saturating extremes (near-certain for an overleveled member on a short
+  rank-1 errand, floored for an underleveled member on a long rank-3
+  one) and shown monotonic in duration; a forced-fail roll confirms zero
+  gold/XP and the dispatch still clears from `activeDispatches`. Browser
+  pass `tmp/verify_dispatch_failure_roll.mjs`: repeated the same
+  dispatch from a fresh save until both a success ("+60 gold, +40 XP")
+  and a failure ("returns … empty-handed") were observed in the real
+  battle-outcome overlay, zero console/page errors across all trials.

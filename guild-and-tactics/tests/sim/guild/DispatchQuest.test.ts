@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  calculateDispatchSuccessChance,
   dispatchQuestIdentifiersForZone,
   isMemberDispatched,
   startDispatch,
@@ -7,6 +8,7 @@ import {
   type DispatchQuestDefinition,
 } from '../../../src/sim/guild/DispatchQuest';
 import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
+import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
 import { DISPATCH_QUESTS } from '../../../src/content/dispatchQuests';
 import { ZONES } from '../../../src/content/zones';
 
@@ -15,10 +17,23 @@ const TEST_DISPATCH: DispatchQuestDefinition = {
   displayName: 'Test Errand',
   description: 'An errand used only in tests.',
   zoneIdentifier: 'north_road',
+  difficultyRank: 1,
   durationInBattles: 2,
   rewardGold: 50,
   rewardExperience: 40,
 };
+
+function createAlwaysSucceedingRandomNumberGenerator(): SeededRandomNumberGenerator {
+  const generator = new SeededRandomNumberGenerator(1);
+  generator.rollChance = () => true;
+  return generator;
+}
+
+function createAlwaysFailingRandomNumberGenerator(): SeededRandomNumberGenerator {
+  const generator = new SeededRandomNumberGenerator(1);
+  generator.rollChance = () => false;
+  return generator;
+}
 
 function createTestMember(identifier: string): GuildMember {
   return {
@@ -84,15 +99,17 @@ describe('tickDispatchesAfterBattle', () => {
   it('counts down and resolves at zero: gold paid, experience earned, dispatch removed', () => {
     const guild = createTestGuild(['member_a']);
     startDispatch(guild, TEST_DISPATCH, 'member_a');
+    const randomNumberGenerator = createAlwaysSucceedingRandomNumberGenerator();
 
-    expect(tickDispatchesAfterBattle(guild, dispatchTable)).toEqual([]);
+    expect(tickDispatchesAfterBattle(guild, dispatchTable, randomNumberGenerator)).toEqual([]);
     expect(guild.activeDispatches[0]?.remainingBattles).toBe(1);
     expect(guild.gold).toBe(100);
 
-    const resolved = tickDispatchesAfterBattle(guild, dispatchTable);
+    const resolved = tickDispatchesAfterBattle(guild, dispatchTable, randomNumberGenerator);
     expect(resolved).toHaveLength(1);
     expect(resolved[0]?.dispatchQuest.identifier).toBe('test_errand');
     expect(resolved[0]?.member.identifier).toBe('member_a');
+    expect(resolved[0]?.outcome).toBe('success');
     expect(guild.gold).toBe(150);
     expect(guild.roster[0]?.experiencePoints).toBe(40);
     expect(guild.activeDispatches).toEqual([]);
@@ -108,12 +125,13 @@ describe('tickDispatchesAfterBattle', () => {
     };
     startDispatch(guild, TEST_DISPATCH, 'member_a');
     startDispatch(guild, shortErrand, 'member_b');
+    const randomNumberGenerator = createAlwaysSucceedingRandomNumberGenerator();
 
-    const firstBattle = tickDispatchesAfterBattle(guild, dispatchTables);
+    const firstBattle = tickDispatchesAfterBattle(guild, dispatchTables, randomNumberGenerator);
     expect(firstBattle.map((report) => report.member.identifier)).toEqual(['member_b']);
     expect(isMemberDispatched(guild, 'member_a')).toBe(true);
 
-    const secondBattle = tickDispatchesAfterBattle(guild, dispatchTables);
+    const secondBattle = tickDispatchesAfterBattle(guild, dispatchTables, randomNumberGenerator);
     expect(secondBattle.map((report) => report.member.identifier)).toEqual(['member_a']);
     expect(guild.activeDispatches).toEqual([]);
   });
@@ -122,9 +140,56 @@ describe('tickDispatchesAfterBattle', () => {
     const guild = createTestGuild(['member_a']);
     const generousErrand = { ...TEST_DISPATCH, durationInBattles: 1, rewardExperience: 10000 };
     startDispatch(guild, generousErrand, 'member_a');
-    const resolved = tickDispatchesAfterBattle(guild, { [generousErrand.identifier]: generousErrand });
+    const resolved = tickDispatchesAfterBattle(
+      guild,
+      { [generousErrand.identifier]: generousErrand },
+      createAlwaysSucceedingRandomNumberGenerator(),
+    );
     expect(resolved[0]?.levelsGained).toBeGreaterThan(0);
     expect(guild.roster[0]?.level).toBeGreaterThan(2);
+  });
+
+  it('pays no reward and reports failure when the roll fails', () => {
+    const guild = createTestGuild(['member_a']);
+    const shortErrand = { ...TEST_DISPATCH, durationInBattles: 1 };
+    startDispatch(guild, shortErrand, 'member_a');
+    const resolved = tickDispatchesAfterBattle(
+      guild,
+      { [shortErrand.identifier]: shortErrand },
+      createAlwaysFailingRandomNumberGenerator(),
+    );
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0]?.outcome).toBe('failure');
+    expect(resolved[0]?.levelsGained).toBe(0);
+    expect(guild.gold).toBe(100);
+    expect(guild.roster[0]?.experiencePoints).toBe(0);
+    expect(guild.activeDispatches).toEqual([]);
+    expect(isMemberDispatched(guild, 'member_a')).toBe(false);
+  });
+});
+
+describe('calculateDispatchSuccessChance', () => {
+  it('saturates near-certain success for a strong member on an easy dispatch', () => {
+    const member = createTestMember('member_a');
+    member.level = 20;
+    const easyErrand = { ...TEST_DISPATCH, difficultyRank: 1 as const, durationInBattles: 1 };
+    expect(calculateDispatchSuccessChance(member, easyErrand)).toBe(0.99);
+  });
+
+  it('bottoms out for a weak member on a long, high-rank dispatch', () => {
+    const member = createTestMember('member_a');
+    member.level = 1;
+    const hardErrand = { ...TEST_DISPATCH, difficultyRank: 3 as const, durationInBattles: 10 };
+    expect(calculateDispatchSuccessChance(member, hardErrand)).toBe(0.05);
+  });
+
+  it('is worse for longer dispatches at the same rank and level', () => {
+    const member = createTestMember('member_a');
+    const shortErrand = { ...TEST_DISPATCH, difficultyRank: 2 as const, durationInBattles: 1 };
+    const longErrand = { ...TEST_DISPATCH, difficultyRank: 2 as const, durationInBattles: 5 };
+    expect(calculateDispatchSuccessChance(member, longErrand)).toBeLessThan(
+      calculateDispatchSuccessChance(member, shortErrand),
+    );
   });
 });
 
@@ -132,6 +197,7 @@ describe('dispatch content validity', () => {
   it('every dispatch quest belongs to an existing zone with sane numbers', () => {
     for (const dispatchQuest of Object.values(DISPATCH_QUESTS)) {
       expect(ZONES[dispatchQuest.zoneIdentifier], `zone for ${dispatchQuest.identifier}`).toBeDefined();
+      expect([1, 2, 3], dispatchQuest.identifier).toContain(dispatchQuest.difficultyRank);
       expect(dispatchQuest.durationInBattles, dispatchQuest.identifier).toBeGreaterThanOrEqual(1);
       expect(dispatchQuest.rewardGold, dispatchQuest.identifier).toBeGreaterThanOrEqual(0);
       expect(dispatchQuest.rewardExperience, dispatchQuest.identifier).toBeGreaterThanOrEqual(0);

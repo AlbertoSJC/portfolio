@@ -49,6 +49,11 @@ export function formatBattleEventAsLogLine(
         protect: 'warded against blows',
         shell: 'warded against magic',
         regen: 'blessed with regeneration',
+        silence: 'silenced',
+        doom: 'marked for doom',
+        stop: 'frozen in time',
+        confuse: 'confused',
+        berserk: 'sent into a berserk rage',
       }[event.statusEffect];
       return `${unitName(battle, event.targetIdentifier)} is ${statusLabel} for ${event.durationTurns} turns.`;
     }
@@ -58,6 +63,14 @@ export function formatBattleEventAsLogLine(
       return `${unitName(battle, event.targetIdentifier)} regenerates ${event.amount} hit points.`;
     case 'turnSkippedBySleep':
       return `${unitName(battle, event.unitIdentifier)} is fast asleep and cannot move.`;
+    case 'turnSkippedByStop':
+      return `${unitName(battle, event.unitIdentifier)} is frozen in time and cannot act.`;
+    case 'doomTriggered':
+      return `Doom claims ${unitName(battle, event.targetIdentifier)}!`;
+    case 'berserkAttackResolved':
+      return `${unitName(battle, event.unitIdentifier)} rages, out of control!`;
+    case 'confusedAttackResolved':
+      return `${unitName(battle, event.unitIdentifier)} is confused and lashes out!`;
     case 'unitKnockedOut':
       return `${unitName(battle, event.unitIdentifier)} is knocked out!`;
     case 'guildFled':

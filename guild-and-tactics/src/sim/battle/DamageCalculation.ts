@@ -7,6 +7,7 @@ import {
   BACK_ATTACK_HIT_CHANCE_BONUS,
   BASE_CRITICAL_HIT_CHANCE,
   BASE_HIT_CHANCE,
+  BERSERK_PHYSICAL_DAMAGE_DEALT_MULTIPLIER,
   BLIND_HIT_CHANCE_PENALTY,
   MAGICAL_RESISTANCE_MITIGATION_FACTOR,
   MINIMUM_DAMAGE_DEALT,
@@ -58,7 +59,8 @@ export function calculateDamageBeforeDice(
 ): number {
   const offensiveStatistic =
     damageEffect.damageSource === 'physical'
-      ? effectiveStatistic(attacker, STATISTIC.Attack)
+      ? effectiveStatistic(attacker, STATISTIC.Attack) *
+        (hasStatusEffect(attacker, 'berserk') ? BERSERK_PHYSICAL_DAMAGE_DEALT_MULTIPLIER : 1)
       : effectiveStatistic(attacker, STATISTIC.MagicPower);
   const defensiveStatistic =
     damageEffect.damageSource === 'physical'

@@ -22,6 +22,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'The wagons roll again, but the carters want a blade riding along until the forest stops watching them.',
     zoneIdentifier: 'north_road',
+    difficultyRank: 1,
     durationInBattles: 2,
     rewardGold: 60,
     rewardExperience: 40,
@@ -32,6 +33,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'Walk the wood-cutters’ boundary stones and mark what moves beyond them. Long work, quiet pay.',
     zoneIdentifier: 'north_road',
+    difficultyRank: 2,
     durationInBattles: 4,
     rewardGold: 140,
     rewardExperience: 90,
@@ -42,6 +44,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'The peat-cutters know the mire better than anyone — except at night. Walk them home for a week of evenings.',
     zoneIdentifier: 'marsh_trail',
+    difficultyRank: 1,
     durationInBattles: 3,
     rewardGold: 90,
     rewardExperience: 60,
@@ -52,6 +55,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'The masons sleep badly with the quarry stirring below. A guild badge by their fire buys them rest.',
     zoneIdentifier: 'quarry_path',
+    difficultyRank: 2,
     durationInBattles: 3,
     rewardGold: 110,
     rewardExperience: 70,
@@ -62,6 +66,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'Someone wanders into the blue field every market day, and someone has to carry them out before the blooms notice. Light work, if you hold your breath.',
     zoneIdentifier: 'slumber_meadow',
+    difficultyRank: 1,
     durationInBattles: 2,
     rewardGold: 55,
     rewardExperience: 35,
@@ -72,6 +77,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'Crates stack up at Crosspaths Halt between trains, and the goblins count them from the tree line. Sit on the pile until the Heartline comes.',
     zoneIdentifier: 'crosspaths_field',
+    difficultyRank: 1,
     durationInBattles: 3,
     rewardGold: 100,
     rewardExperience: 65,
@@ -82,6 +88,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'A freight run to Dusthalt wants one more blade in the guard car. The pay reflects what the last guard didn’t come back with.',
     zoneIdentifier: 'thorns_plain',
+    difficultyRank: 2,
     durationInBattles: 3,
     rewardGold: 130,
     rewardExperience: 80,
@@ -92,6 +99,7 @@ const DISPATCH_QUEST_ENTRIES = {
     description:
       'The Wardens are stretched thin and the lamps at Breir’s and Taurk’s shrines must not go out. Long nights, deep wood, good coin.',
     zoneIdentifier: 'breirwood',
+    difficultyRank: 3,
     durationInBattles: 4,
     rewardGold: 170,
     rewardExperience: 105,

@@ -28,7 +28,7 @@ export const FLORA_AND_STONE_MONSTERS = {
       magicResistance: 1,
     },
     canFly: false,
-    skillIdentifiers: ['rock_slam'],
+    skillIdentifiers: ['rock_slam', 'petrifying_gaze'],
     // Stone absorbs fire and earth; water erodes it.
     elementalAffinities: { fire: 0.25, earth: 0.5, water: 1.75 },
   },

@@ -4,6 +4,7 @@ import type { CardinalDirection, GridPosition } from '../grid/GridPosition';
 import { arePositionsEqual, directionFromTo, manhattanDistance } from '../grid/GridPosition';
 import type { Unit } from '../units/Unit';
 import { hasStatusEffect, isKnockedOut, tickDownStatModifiers, tickDownStatusEffects } from '../units/Unit';
+import { BASIC_ATTACK_SKILL_IDENTIFIER } from '../units/UnitFactory';
 import { POISON_DAMAGE_PER_TURN, REGEN_HEALING_PER_TURN } from './combatConstants';
 import type { BattleEvent } from './BattleEvents';
 import { findReachableTiles } from './MovementRange';
@@ -12,6 +13,8 @@ import {
   canUnitAffordSkill,
   executeSkill,
   isTargetTileWithinSkillRange,
+  isUnitSilencedForSkill,
+  resolveForcedDamageAttack,
 } from './SkillExecution';
 import { advanceToNextReadyUnit, forecastUpcomingTurnOrder } from './TurnOrderQueue';
 import { ITEM_USE_RANGE, TURN_ORDER_FORECAST_LENGTH } from './combatConstants';
@@ -169,6 +172,9 @@ export class Battle {
     if (!canUnitAffordSkill(activeUnit, skill)) {
       throw new Error(`${activeUnit.displayName} lacks the mana for "${skill.displayName}"`);
     }
+    if (isUnitSilencedForSkill(activeUnit, skill)) {
+      throw new Error(`${activeUnit.displayName} is silenced and cannot cast "${skill.displayName}"`);
+    }
     if (!isTargetTileWithinSkillRange(activeUnit, skill, targetTile)) {
       throw new Error(`Target tile is out of range for "${skill.displayName}"`);
     }
@@ -309,15 +315,43 @@ export class Battle {
   }
 
   /**
-   * Processes start-of-turn status effects (regen healing, poison damage,
-   * sleep auto-skip) for the current active unit. Returns events produced.
-   * When sleep causes an auto-skip, the returned events include
-   * turnEnded/turnStarted from the internal endActiveUnitTurn call — callers
-   * should recurse into the next unit's turn after logging those events.
+   * Processes start-of-turn status effects (doom countdown, regen healing,
+   * poison damage, sleep/stop auto-skip, berserk/confuse forced attacks)
+   * for the current active unit. Returns events produced. Doom is checked
+   * first because its countdown must be able to kill a unit even on a turn
+   * fully pre-empted by stop — stop only ticks down via the same
+   * endActiveUnitTurn call every auto-skip path shares, so checking doom
+   * after stop would let a lethal countdown silently expire unresolved
+   * while the target was frozen. Stop is checked next and pre-empts
+   * everything else that turn (a full freeze — unlike sleep, a stopped
+   * unit doesn't even take its poison/regen tick). When an effect ends the
+   * unit's turn without player input, the returned events include
+   * turnEnded/turnStarted from the internal endActiveUnitTurn call —
+   * callers should recurse into the next unit's turn after logging those
+   * events.
    */
   processStartOfTurnForActiveUnit(): BattleEvent[] {
     const activeUnit = this.getActiveUnit();
     const events: BattleEvent[] = [];
+
+    const doomEffect = activeUnit.activeStatusEffects.find((effect) => effect.kind === 'doom');
+    if (doomEffect !== undefined && doomEffect.remainingTurns <= 1 && !isKnockedOut(activeUnit)) {
+      activeUnit.currentHitPoints = 0;
+      events.push({ kind: 'doomTriggered', targetIdentifier: activeUnit.identifier });
+      events.push({ kind: 'unitKnockedOut', unitIdentifier: activeUnit.identifier });
+      this.recordDefeatedEnemies(events);
+      const outcome = this.getBattleOutcome();
+      if (outcome !== 'ongoing') {
+        events.push({ kind: 'battleEnded', outcome });
+        return events;
+      }
+    }
+
+    if (hasStatusEffect(activeUnit, 'stop')) {
+      events.push({ kind: 'turnSkippedByStop', unitIdentifier: activeUnit.identifier });
+      events.push(...this.endActiveUnitTurn());
+      return events;
+    }
 
     if (hasStatusEffect(activeUnit, 'regen')) {
       const healingRestored = Math.min(
@@ -358,8 +392,77 @@ export class Battle {
     if (hasStatusEffect(activeUnit, 'sleep')) {
       events.push({ kind: 'turnSkippedBySleep', unitIdentifier: activeUnit.identifier });
       events.push(...this.endActiveUnitTurn());
+      return events;
     }
 
+    if (hasStatusEffect(activeUnit, 'berserk')) {
+      events.push(...this.resolveBerserkAttackForActiveUnit(activeUnit));
+      const outcome = this.getBattleOutcome();
+      if (outcome !== 'ongoing') {
+        events.push({ kind: 'battleEnded', outcome });
+        return events;
+      }
+      events.push(...this.endActiveUnitTurn());
+      return events;
+    }
+
+    if (hasStatusEffect(activeUnit, 'confuse')) {
+      events.push(...this.resolveConfusedAttackForActiveUnit(activeUnit));
+      const outcome = this.getBattleOutcome();
+      if (outcome !== 'ongoing') {
+        events.push({ kind: 'battleEnded', outcome });
+        return events;
+      }
+      events.push(...this.endActiveUnitTurn());
+      return events;
+    }
+
+    return events;
+  }
+
+  /** Berserk forces an attack on the nearest foe if one is in range; otherwise the turn is wasted. */
+  private resolveBerserkAttackForActiveUnit(activeUnit: Unit): BattleEvent[] {
+    const events: BattleEvent[] = [{ kind: 'berserkAttackResolved', unitIdentifier: activeUnit.identifier }];
+    const nearestOpponent = this.findNearestLivingOpponent(activeUnit);
+    const attackSkill = this.getSkillByIdentifier(BASIC_ATTACK_SKILL_IDENTIFIER);
+    if (
+      nearestOpponent === undefined ||
+      !isTargetTileWithinSkillRange(activeUnit, attackSkill, nearestOpponent.position)
+    ) {
+      return events;
+    }
+    events.push(
+      ...executeSkill(
+        activeUnit,
+        attackSkill,
+        nearestOpponent.position,
+        this.units,
+        this.randomNumberGenerator,
+      ),
+    );
+    this.recordDefeatedEnemies(events);
+    return events;
+  }
+
+  /** Confuse forces an attack on a random unit of any team within range; otherwise the turn is wasted. */
+  private resolveConfusedAttackForActiveUnit(activeUnit: Unit): BattleEvent[] {
+    const events: BattleEvent[] = [{ kind: 'confusedAttackResolved', unitIdentifier: activeUnit.identifier }];
+    const attackSkill = this.getSkillByIdentifier(BASIC_ATTACK_SKILL_IDENTIFIER);
+    const candidates = this.units.filter(
+      (unit) =>
+        unit.identifier !== activeUnit.identifier &&
+        !isKnockedOut(unit) &&
+        manhattanDistance(activeUnit.position, unit.position) <= attackSkill.targetingRange,
+    );
+    const chosenIndex = this.randomNumberGenerator.nextIntegerBetween(0, candidates.length - 1);
+    const chosenTarget = candidates[chosenIndex];
+    if (chosenTarget === undefined) {
+      return events;
+    }
+    events.push(
+      ...resolveForcedDamageAttack(activeUnit, chosenTarget, attackSkill, this.randomNumberGenerator),
+    );
+    this.recordDefeatedEnemies(events);
     return events;
   }
 

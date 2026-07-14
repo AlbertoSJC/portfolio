@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
-import { executeSkill, findUnitsAffectedBySkill } from '../../../src/sim/battle/SkillExecution';
+import {
+  executeSkill,
+  findUnitsAffectedBySkill,
+  isUnitSilencedForSkill,
+} from '../../../src/sim/battle/SkillExecution';
 import type { SkillDefinition } from '../../../src/sim/battle/SkillDefinition';
 import { SKILLS } from '../../../src/content/skills';
 import { effectiveStatistic } from '../../../src/sim/units/Unit';
@@ -166,6 +170,21 @@ describe('executeSkill', () => {
     );
     expect(target.activeStatusEffects.some((effect) => effect.kind === 'poison')).toBe(true);
     expect(events.some((event) => event.kind === 'statusEffectApplied')).toBe(true);
+  });
+});
+
+describe('isUnitSilencedForSkill', () => {
+  it('blocks mana-cost skills but not the free basic attack', () => {
+    const silencedUnit = createTestUnit({
+      activeStatusEffects: [{ kind: 'silence', remainingTurns: 3, sourceSkillName: 'Mana Theft' }],
+    });
+    expect(isUnitSilencedForSkill(silencedUnit, skillOrThrow('fire_bolt'))).toBe(true);
+    expect(isUnitSilencedForSkill(silencedUnit, skillOrThrow('basic_attack'))).toBe(false);
+  });
+
+  it('never blocks a unit that is not silenced', () => {
+    const unaffectedUnit = createTestUnit();
+    expect(isUnitSilencedForSkill(unaffectedUnit, skillOrThrow('fire_bolt'))).toBe(false);
   });
 });
 

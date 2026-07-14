@@ -4,7 +4,15 @@ import type { DispatchQuestDefinition } from '../../../src/sim/guild/DispatchQue
 import { startDispatch } from '../../../src/sim/guild/DispatchQuest';
 import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
 import { experienceForDefeatingEnemy } from '../../../src/sim/progression/ExperienceAndLevels';
+import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
 import { EQUIPMENT } from '../../../src/content/equipment';
+
+/** Dispatch success is a coin flip in most of these tests — pin it to always succeed. */
+function createAlwaysSucceedingRandomNumberGenerator(): SeededRandomNumberGenerator {
+  const generator = new SeededRandomNumberGenerator(1);
+  generator.rollChance = () => true;
+  return generator;
+}
 
 function createTestMember(identifier: string, overrides: Partial<GuildMember> = {}): GuildMember {
   return {
@@ -53,7 +61,13 @@ const KILL_EXPERIENCE_FOR_TWO_LEVEL_THREES = experienceForDefeatingEnemy(3) * 2;
 describe('applyBattleSpoils', () => {
   it('pays gold and bonus experience on victory, on top of kill experience', () => {
     const guild = createTestGuild([createTestMember('member_a')]);
-    const report = applyBattleSpoils(guild, createSpoilsInput(), EQUIPMENT, {});
+    const report = applyBattleSpoils(
+      guild,
+      createSpoilsInput(),
+      EQUIPMENT,
+      {},
+      createAlwaysSucceedingRandomNumberGenerator(),
+    );
     expect(guild.gold).toBe(170);
     expect(report.goldAwarded).toBe(70);
     expect(report.experiencePerMember).toBe(KILL_EXPERIENCE_FOR_TWO_LEVEL_THREES + 50);
@@ -63,7 +77,13 @@ describe('applyBattleSpoils', () => {
   it('keeps kill experience but forfeits gold and bonus on defeat and flee alike', () => {
     for (const outcome of ['defeat', 'fled'] as const) {
       const guild = createTestGuild([createTestMember('member_a')]);
-      const report = applyBattleSpoils(guild, createSpoilsInput({ outcome }), EQUIPMENT, {});
+      const report = applyBattleSpoils(
+        guild,
+        createSpoilsInput({ outcome }),
+        EQUIPMENT,
+        {},
+        createAlwaysSucceedingRandomNumberGenerator(),
+      );
       expect(guild.gold, outcome).toBe(100);
       expect(report.goldAwarded, outcome).toBe(0);
       expect(report.experiencePerMember, outcome).toBe(KILL_EXPERIENCE_FOR_TWO_LEVEL_THREES);
@@ -72,7 +92,13 @@ describe('applyBattleSpoils', () => {
 
   it('hands the remaining item pouch back to the guild inventory', () => {
     const guild = createTestGuild([createTestMember('member_a')]);
-    applyBattleSpoils(guild, createSpoilsInput({ remainingItemPouch: { ether: 2 } }), EQUIPMENT, {});
+    applyBattleSpoils(
+      guild,
+      createSpoilsInput({ remainingItemPouch: { ether: 2 } }),
+      EQUIPMENT,
+      {},
+      createAlwaysSucceedingRandomNumberGenerator(),
+    );
     expect(guild.consumableInventory).toEqual({ ether: 2 });
   });
 
@@ -83,6 +109,7 @@ describe('applyBattleSpoils', () => {
       createSpoilsInput({ bonusExperienceOnVictory: 10000 }),
       EQUIPMENT,
       {},
+      createAlwaysSucceedingRandomNumberGenerator(),
     );
     expect(report.levelUps).toHaveLength(1);
     expect(report.levelUps[0]?.member.level).toBeGreaterThan(2);
@@ -103,6 +130,7 @@ describe('applyBattleSpoils', () => {
       }),
       EQUIPMENT,
       {},
+      createAlwaysSucceedingRandomNumberGenerator(),
     );
     expect(report.masteredSkills).toEqual([
       { member: guild.roster[0], skillIdentifier: 'cleaving_arc' },
@@ -115,6 +143,7 @@ describe('applyBattleSpoils', () => {
       displayName: 'Test Errand',
       description: 'An errand used only in tests.',
       zoneIdentifier: 'north_road',
+      difficultyRank: 1,
       durationInBattles: 1,
       rewardGold: 60,
       rewardExperience: 40,
@@ -126,9 +155,11 @@ describe('applyBattleSpoils', () => {
       createSpoilsInput({ outcome: 'fled', defeatedEnemyLevels: [] }),
       EQUIPMENT,
       { [errand.identifier]: errand },
+      createAlwaysSucceedingRandomNumberGenerator(),
     );
     expect(report.resolvedDispatches).toHaveLength(1);
     expect(report.resolvedDispatches[0]?.member.identifier).toBe('member_b');
+    expect(report.resolvedDispatches[0]?.outcome).toBe('success');
     expect(guild.gold).toBe(160);
     expect(guild.activeDispatches).toEqual([]);
   });
@@ -140,6 +171,7 @@ describe('applyBattleSpoils', () => {
       createSpoilsInput({ deployedMemberIdentifiers: ['member_a', 'member_ghost'] }),
       EQUIPMENT,
       {},
+      createAlwaysSucceedingRandomNumberGenerator(),
     );
     expect(report.levelUps.every((levelUp) => levelUp.member.identifier === 'member_a')).toBe(true);
   });

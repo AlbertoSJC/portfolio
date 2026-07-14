@@ -254,6 +254,170 @@ describe('Battle', () => {
     expect(battle.getActiveUnit().identifier).toBe('enemy_wake');
   });
 
+  it('blocks a silenced unit from casting a mana-cost skill but still allows a basic attack', () => {
+    const silencedCaster = createTestUnit({
+      identifier: 'caster',
+      skillIdentifiers: ['basic_attack', 'fire_bolt'],
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'silence', remainingTurns: 3, sourceSkillName: 'Mana Theft' }],
+    });
+    const enemy = createTestUnit({
+      team: 'enemy',
+      position: { column: 1, row: 0 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = createTestBattle([silencedCaster, enemy]);
+    expect(() => battle.useSkillWithActiveUnit('fire_bolt', enemy.position)).toThrow();
+    expect(() => battle.useSkillWithActiveUnit('basic_attack', enemy.position)).not.toThrow();
+  });
+
+  it('kills a doomed unit exactly on the countdown\'s last turn, not before', () => {
+    const notYetDoomedUnit = createTestUnit({
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'doom', remainingTurns: 3, sourceSkillName: 'Grave Sentence' }],
+    });
+    const earlyEnemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const earlyBattle = createTestBattle([notYetDoomedUnit, earlyEnemy]);
+    const earlyEvents = earlyBattle.processStartOfTurnForActiveUnit();
+    expect(notYetDoomedUnit.currentHitPoints).toBeGreaterThan(0);
+    expect(earlyEvents.some((event) => event.kind === 'doomTriggered')).toBe(false);
+
+    const doomedUnit = createTestUnit({
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'doom', remainingTurns: 1, sourceSkillName: 'Grave Sentence' }],
+    });
+    const lateEnemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const lateBattle = createTestBattle([doomedUnit, lateEnemy]);
+    const lateEvents = lateBattle.processStartOfTurnForActiveUnit();
+    expect(doomedUnit.currentHitPoints).toBe(0);
+    expect(lateEvents.some((event) => event.kind === 'doomTriggered')).toBe(true);
+    expect(lateEvents.some((event) => event.kind === 'unitKnockedOut')).toBe(true);
+  });
+
+  it('fully freezes a stopped unit: turn skipped, no poison or regen tick that turn', () => {
+    const stoppedUnit = createTestUnit({
+      identifier: 'stopped',
+      currentHitPoints: 10,
+      baseStatistics: { speed: 9 },
+      activeStatusEffects: [
+        { kind: 'stop', remainingTurns: 2, sourceSkillName: 'Petrifying Gaze' },
+        { kind: 'poison', remainingTurns: 3, sourceSkillName: 'Venom Strike' },
+        { kind: 'regen', remainingTurns: 3, sourceSkillName: 'Mending Prayer' },
+      ],
+    });
+    const enemy = createTestUnit({
+      identifier: 'enemy_wake',
+      team: 'enemy',
+      position: { column: 5, row: 0 },
+      baseStatistics: { speed: 8 },
+    });
+    const battle = createTestBattle([stoppedUnit, enemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(stoppedUnit.currentHitPoints).toBe(10);
+    expect(events.some((event) => event.kind === 'turnSkippedByStop')).toBe(true);
+    expect(events.some((event) => event.kind === 'poisonDamageDealt')).toBe(false);
+    expect(events.some((event) => event.kind === 'regenHealingRestored')).toBe(false);
+    expect(battle.getActiveUnit().identifier).toBe('enemy_wake');
+  });
+
+  it('lets doom kill a unit on its final turn even while that unit is also stopped', () => {
+    const doomedAndStoppedUnit = createTestUnit({
+      identifier: 'doomed_and_stopped',
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [
+        { kind: 'doom', remainingTurns: 1, sourceSkillName: 'Grave Sentence' },
+        { kind: 'stop', remainingTurns: 2, sourceSkillName: 'Petrifying Gaze' },
+      ],
+    });
+    const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });
+    const battle = createTestBattle([doomedAndStoppedUnit, enemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(doomedAndStoppedUnit.currentHitPoints).toBe(0);
+    expect(events.some((event) => event.kind === 'doomTriggered')).toBe(true);
+    expect(events.some((event) => event.kind === 'turnSkippedByStop')).toBe(false);
+  });
+
+  it('forces a berserk unit to attack the nearest enemy when one is in range', () => {
+    const berserkUnit = createTestUnit({
+      identifier: 'berserker',
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'berserk', remainingTurns: 3, sourceSkillName: 'Feral Frenzy' }],
+    });
+    const nearEnemy = createTestUnit({
+      identifier: 'near_enemy',
+      team: 'enemy',
+      position: { column: 1, row: 0 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = createTestBattle([berserkUnit, nearEnemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(events.some((event) => event.kind === 'berserkAttackResolved')).toBe(true);
+    expect(events.some((event) => event.kind === 'damageDealt' || event.kind === 'attackMissed')).toBe(true);
+    expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
+  });
+
+  it('wastes a berserk unit\'s turn when no enemy is in range', () => {
+    const berserkUnit = createTestUnit({
+      identifier: 'berserker',
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'berserk', remainingTurns: 3, sourceSkillName: 'Feral Frenzy' }],
+    });
+    const farEnemy = createTestUnit({
+      identifier: 'far_enemy',
+      team: 'enemy',
+      position: { column: 5, row: 3 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = createTestBattle([berserkUnit, farEnemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(events.some((event) => event.kind === 'berserkAttackResolved')).toBe(true);
+    expect(events.some((event) => event.kind === 'skillUsed')).toBe(false);
+    expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
+  });
+
+  it('forces a confused unit to strike a random unit in range, including allies', () => {
+    const confusedUnit = createTestUnit({
+      identifier: 'confused',
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'confuse', remainingTurns: 2, sourceSkillName: 'Shattered Mind' }],
+    });
+    const onlyAlly = createTestUnit({
+      identifier: 'ally',
+      position: { column: 1, row: 0 },
+      baseStatistics: { speed: 4 },
+    });
+    const farEnemy = createTestUnit({
+      identifier: 'far_enemy',
+      team: 'enemy',
+      position: { column: 5, row: 3 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = createTestBattle([confusedUnit, onlyAlly, farEnemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(events.some((event) => event.kind === 'confusedAttackResolved')).toBe(true);
+    expect(events.some((event) => event.kind === 'damageDealt' || event.kind === 'attackMissed')).toBe(true);
+    expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
+  });
+
+  it('wastes a confused unit\'s turn when no one is in range', () => {
+    const confusedUnit = createTestUnit({
+      identifier: 'confused',
+      baseStatistics: { speed: 12 },
+      activeStatusEffects: [{ kind: 'confuse', remainingTurns: 2, sourceSkillName: 'Shattered Mind' }],
+    });
+    const farEnemy = createTestUnit({
+      identifier: 'far_enemy',
+      team: 'enemy',
+      position: { column: 5, row: 3 },
+      baseStatistics: { speed: 6 },
+    });
+    const battle = createTestBattle([confusedUnit, farEnemy]);
+    const events = battle.processStartOfTurnForActiveUnit();
+    expect(events.some((event) => event.kind === 'confusedAttackResolved')).toBe(true);
+    expect(events.some((event) => event.kind === 'skillUsed')).toBe(false);
+    expect(events.some((event) => event.kind === 'turnEnded')).toBe(true);
+  });
+
   it('ends the battle as fled when a guild unit retreats from a fleeable battle', () => {
     const guildUnit = createTestUnit({ baseStatistics: { speed: 12 } });
     const enemy = createTestUnit({ team: 'enemy', position: { column: 5, row: 0 }, baseStatistics: { speed: 6 } });

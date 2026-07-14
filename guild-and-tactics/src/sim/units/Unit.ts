@@ -62,7 +62,12 @@ export type StatusEffectKind =
   | 'haste'
   | 'protect'
   | 'shell'
-  | 'regen';
+  | 'regen'
+  | 'silence'
+  | 'doom'
+  | 'stop'
+  | 'confuse'
+  | 'berserk';
 
 const BENEFICIAL_STATUS_EFFECT_KINDS: ReadonlySet<StatusEffectKind> = new Set([
   'haste',

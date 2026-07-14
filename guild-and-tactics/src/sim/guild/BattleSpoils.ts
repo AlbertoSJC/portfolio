@@ -1,4 +1,5 @@
 import type { EquipmentDefinition } from '../items/EquipmentDefinition';
+import type { SeededRandomNumberGenerator } from '../SeededRandomNumberGenerator';
 import {
   applyExperienceGain,
   experienceForDefeatingEnemy,
@@ -63,6 +64,7 @@ export function applyBattleSpoils(
   spoils: BattleSpoilsInput,
   equipmentTable: Record<string, EquipmentDefinition>,
   dispatchQuestTable: Record<string, DispatchQuestDefinition>,
+  randomNumberGenerator: SeededRandomNumberGenerator,
 ): BattleSpoilsReport {
   guild.consumableInventory = { ...spoils.remainingItemPouch };
 
@@ -99,7 +101,11 @@ export function applyBattleSpoils(
 
   // Every concluded battle passes time for members away on dispatch,
   // whatever the outcome — they are elsewhere, earning their keep.
-  const resolvedDispatches = tickDispatchesAfterBattle(guild, dispatchQuestTable);
+  const resolvedDispatches = tickDispatchesAfterBattle(
+    guild,
+    dispatchQuestTable,
+    randomNumberGenerator,
+  );
 
   return {
     outcome: spoils.outcome,

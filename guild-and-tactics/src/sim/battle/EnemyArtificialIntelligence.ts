@@ -7,7 +7,7 @@ import { determineRelativeAttackArc } from './FacingAndFlanking';
 import { calculateDamageBeforeDice, calculateHitChance } from './DamageCalculation';
 import { findReachableTiles } from './MovementRange';
 import type { DamageSkillEffect } from './SkillDefinition';
-import { canUnitAffordSkill } from './SkillExecution';
+import { canUnitAffordSkill, isUnitSilencedForSkill } from './SkillExecution';
 
 /** Scoring weights for the utility AI. Named so tuning is honest (PRD §9.1). */
 const KNOCKOUT_SCORE_BONUS = 50;
@@ -49,7 +49,7 @@ export function planEnemyTurn(battle: Battle, enemyUnit: Unit): EnemyTurnPlan {
       if (skill.targetTeam !== 'enemies' || skill.effect.kind !== 'damage') {
         continue;
       }
-      if (!canUnitAffordSkill(enemyUnit, skill)) {
+      if (!canUnitAffordSkill(enemyUnit, skill) || isUnitSilencedForSkill(enemyUnit, skill)) {
         continue;
       }
       for (const target of livingTargets) {

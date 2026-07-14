@@ -8,7 +8,8 @@ import type {
   RaceDefinition,
 } from './UnitDefinitions';
 
-const BASIC_ATTACK_SKILL_IDENTIFIER = 'basic_attack';
+/** Every unit knows this skill (granted below) — the sim layer's one universal skill identifier. */
+export const BASIC_ATTACK_SKILL_IDENTIFIER = 'basic_attack';
 
 function deduplicate(values: readonly string[]): string[] {
   return [...new Set(values)];

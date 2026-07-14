@@ -98,7 +98,7 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [{ skillIdentifier: 'grave_sentence', learnedAtLevel: 1 }],
   },
 
   revenant: {

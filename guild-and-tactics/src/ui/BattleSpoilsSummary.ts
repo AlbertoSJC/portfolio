@@ -25,11 +25,17 @@ export function buildBattleSpoilsSummaryLines(
     summaryLines.push(`${mastered.member.displayName} has mastered ${skillName}!`);
   }
   for (const resolved of report.resolvedDispatches) {
-    summaryLines.push(
-      `${resolved.member.displayName} returns from ${resolved.dispatchQuest.displayName} — +${resolved.dispatchQuest.rewardGold} gold, +${resolved.dispatchQuest.rewardExperience} XP`,
-    );
-    if (resolved.levelsGained > 0) {
-      summaryLines.push(`${resolved.member.displayName} is now level ${resolved.member.level}!`);
+    if (resolved.outcome === 'success') {
+      summaryLines.push(
+        `${resolved.member.displayName} returns from ${resolved.dispatchQuest.displayName} — +${resolved.dispatchQuest.rewardGold} gold, +${resolved.dispatchQuest.rewardExperience} XP`,
+      );
+      if (resolved.levelsGained > 0) {
+        summaryLines.push(`${resolved.member.displayName} is now level ${resolved.member.level}!`);
+      }
+    } else {
+      summaryLines.push(
+        `${resolved.member.displayName} returns from ${resolved.dispatchQuest.displayName} empty-handed.`,
+      );
     }
   }
   return summaryLines;

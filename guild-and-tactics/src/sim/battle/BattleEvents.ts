@@ -45,6 +45,10 @@ export type BattleEvent =
   | { kind: 'poisonDamageDealt'; targetIdentifier: string; amount: number }
   | { kind: 'regenHealingRestored'; targetIdentifier: string; amount: number }
   | { kind: 'turnSkippedBySleep'; unitIdentifier: string }
+  | { kind: 'turnSkippedByStop'; unitIdentifier: string }
+  | { kind: 'doomTriggered'; targetIdentifier: string }
+  | { kind: 'berserkAttackResolved'; unitIdentifier: string }
+  | { kind: 'confusedAttackResolved'; unitIdentifier: string }
   | { kind: 'unitKnockedOut'; unitIdentifier: string }
   | { kind: 'guildFled'; unitIdentifier: string }
   | { kind: 'turnStarted'; unitIdentifier: string }

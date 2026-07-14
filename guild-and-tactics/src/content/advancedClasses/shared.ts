@@ -66,7 +66,7 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 0.5,
       speed: 0.5,
     },
-    skills: [],
+    skills: [{ skillIdentifier: 'feral_frenzy', learnedAtLevel: 1 }],
   },
 
   ranger: {
