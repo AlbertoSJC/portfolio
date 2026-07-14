@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateDamageBeforeDice,
   calculateHitChance,
-} from '../../../src/sim/battle/DamageCalculation';
+} from '@/sim/battle/DamageCalculation';
 import {
   BACK_ATTACK_HIT_CHANCE_BONUS,
   BASE_HIT_CHANCE,
   BLIND_HIT_CHANCE_PENALTY,
   SIDE_ATTACK_HIT_CHANCE_BONUS,
-} from '../../../src/sim/battle/combatConstants';
-import type { DamageSkillEffect } from '../../../src/sim/battle/SkillDefinition';
-import { createTestUnit } from '../../mocks/unitMocks';
+} from '@/sim/battle/combatConstants';
+import type { DamageSkillEffect } from '@/sim/battle/SkillDefinition';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 const PLAIN_PHYSICAL_EFFECT: DamageSkillEffect = {
   kind: 'damage',

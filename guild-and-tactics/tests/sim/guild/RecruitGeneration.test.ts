@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
 import {
   RECRUITS_ON_OFFER_BY_TIER,
   averageRosterLevel,
   generateRecruitOffers,
   hireCostForLevel,
-} from '../../../src/sim/guild/RecruitGeneration';
-import { RACES } from '../../../src/content/races';
-import { RECRUIT_NAMES_BY_RACE } from '../../../src/content/recruitNames';
+} from '@/sim/guild/RecruitGeneration';
+import { RACES } from '@/content/races';
+import { RECRUIT_NAMES_BY_RACE } from '@/content/recruitNames';
 
 describe('generateRecruitOffers', () => {
   it('only ever offers classes the recruit race allows', () => {

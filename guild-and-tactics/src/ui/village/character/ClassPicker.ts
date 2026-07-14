@@ -1,9 +1,9 @@
-import type { GuildMember } from '../../../sim/guild/GuildState';
-import type { BaseClassIdentifier } from '../../../sim/units/Unit';
+import type { GuildMember } from '@/sim/guild/GuildState';
+import type { BaseClassIdentifier } from '@/sim/units/Unit';
 import type {
   AdvancedClassDefinition,
   RaceDefinition,
-} from '../../../sim/units/UnitDefinitions';
+} from '@/sim/units/UnitDefinitions';
 import type { CharacterSheetContentTables, ClassPickerCallbacks } from './CharacterSheetTypes';
 
 export function buildClassPickerContent(

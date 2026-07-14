@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
+import { EQUIPMENT } from '@/content/equipment';
+import type { GuildMember, GuildState } from '@/sim/guild/GuildState';
 import {
   equipItemOnMember,
   equippedDefinitionsForMember,
   unequipMemberSlot,
-} from '../../../src/sim/guild/MemberEquipment';
-import type { EquipmentDefinition } from '../../../src/sim/items/EquipmentDefinition';
+} from '@/sim/guild/MemberEquipment';
+import type { EquipmentDefinition } from '@/sim/items/EquipmentDefinition';
 
 function equipmentOrThrow(equipmentIdentifier: string): EquipmentDefinition {
   const equipment = EQUIPMENT[equipmentIdentifier];

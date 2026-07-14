@@ -1,6 +1,6 @@
-import { REPUTATION_TIER_LABELS, type ReputationTier } from '../../sim/guild/ReputationTier';
-import { requiredReputationTierForZone } from '../../sim/guild/ZoneAccess';
-import type { ZoneDefinition } from '../../sim/guild/ZoneDefinition';
+import { REPUTATION_TIER_LABELS, type ReputationTier } from '@/sim/guild/ReputationTier';
+import { requiredReputationTierForZone } from '@/sim/guild/ZoneAccess';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import { createSoundedButton } from '../village/views/SoundedButton';
 

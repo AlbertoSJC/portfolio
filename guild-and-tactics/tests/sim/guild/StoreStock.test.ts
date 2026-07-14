@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import { ITEMS } from '../../../src/content/items';
-import type { GuildState } from '../../../src/sim/guild/GuildState';
+import { EQUIPMENT } from '@/content/equipment';
+import { ITEMS } from '@/content/items';
+import type { GuildState } from '@/sim/guild/GuildState';
 import {
   CONSUMABLE_RESTOCK_QUANTITY,
   EQUIPMENT_RESTOCK_QUANTITY,
@@ -9,7 +9,7 @@ import {
   restockStore,
   storeStockOf,
   takeOneFromStoreStock,
-} from '../../../src/sim/guild/StoreStock';
+} from '@/sim/guild/StoreStock';
 
 const ZONE_A = 'north_road';
 const ZONE_B = 'marsh_trail';

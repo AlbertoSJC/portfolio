@@ -1,6 +1,6 @@
-import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
-import type { ZoneRoamingGroupLocation } from '../../../sim/guild/ZoneSession';
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
+import type { ZoneRoamingGroupLocation } from '@/sim/guild/ZoneSession';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 import { createOverworldMapCanvas, type MapEdge, type MapNodeEntry } from '../OverworldMapCanvas';
 import {
   drawMonsterIcon,

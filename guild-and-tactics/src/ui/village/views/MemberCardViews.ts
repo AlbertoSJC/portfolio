@@ -1,4 +1,4 @@
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 import { createMemberPortraitCanvas } from '../MemberPortrait';
 import type {
   MemberIdentityViewModel,

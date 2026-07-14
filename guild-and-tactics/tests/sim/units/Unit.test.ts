@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { tickDownStatusEffects, tickDownStatModifiers } from '../../../src/sim/units/Unit';
-import { createTestUnit } from '../../mocks/unitMocks';
+import { tickDownStatusEffects, tickDownStatModifiers } from '@/sim/units/Unit';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 describe('tickDownStatusEffects', () => {
   it('decrements remainingTurns on each active effect', () => {

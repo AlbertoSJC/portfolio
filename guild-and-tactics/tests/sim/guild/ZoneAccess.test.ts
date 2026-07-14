@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ZONES } from '../../../src/content/zones';
-import { isZoneAccessibleAtTier, requiredReputationTierForZone } from '../../../src/sim/guild/ZoneAccess';
-import type { ZoneDefinition } from '../../../src/sim/guild/ZoneDefinition';
+import { ZONES } from '@/content/zones';
+import { isZoneAccessibleAtTier, requiredReputationTierForZone } from '@/sim/guild/ZoneAccess';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
 
 function zoneRequiring(minimumReputationTier: ZoneDefinition['minimumReputationTier']): ZoneDefinition {
   return {

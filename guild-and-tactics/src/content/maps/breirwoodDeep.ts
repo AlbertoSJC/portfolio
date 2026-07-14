@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /**
  * Deep Breirwood: old-growth walls of trees, a pilgrim path winding

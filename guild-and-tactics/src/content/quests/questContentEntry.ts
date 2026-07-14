@@ -1,4 +1,4 @@
-import type { QuestDefinition, QuestEnemySpawn } from '../../sim/guild/QuestDefinition';
+import type { QuestDefinition, QuestEnemySpawn } from '@/sim/guild/QuestDefinition';
 import type { BattleMapIdentifier } from '../maps/battleMapRegistry';
 import type { MonsterIdentifier } from '../monsters';
 import type { ZoneIdentifier } from '../zones';

@@ -1,4 +1,4 @@
-import type { WorldRoad } from '../../sim/guild/WorldTravel';
+import type { WorldRoad } from '@/sim/guild/WorldTravel';
 import type { ZoneIdentifier } from './index';
 
 /** A world road as authored in content: both endpoints are compile-checked zone identifiers. */

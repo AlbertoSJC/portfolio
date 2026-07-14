@@ -1,4 +1,4 @@
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 import type { QuestCardViewModel, QuestDetailViewModel } from '../presenters/TavernPresenters';
 import type { MusterCardViewModel } from '../presenters/MemberPresenters';
 import { createElementWithClass } from './DomPrimitives';

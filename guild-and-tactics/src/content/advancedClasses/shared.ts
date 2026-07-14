@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 
 /** Minimum level in the primary base class before a pure advanced class unlocks. */
 export const PURE_ADVANCED_CLASS_UNLOCK_LEVEL = 5;
@@ -37,7 +37,11 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'bulwark_stance', learnedAtLevel: 1 },
+      { skillIdentifier: 'shield_wall', learnedAtLevel: 6 },
+      { skillIdentifier: 'immovable', learnedAtLevel: 11 },
+    ],
   },
 
   berserker: {
@@ -66,7 +70,11 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 0.5,
       speed: 0.5,
     },
-    skills: [{ skillIdentifier: 'feral_frenzy', learnedAtLevel: 1 }],
+    skills: [
+      { skillIdentifier: 'feral_frenzy', learnedAtLevel: 1 },
+      { skillIdentifier: 'rending_cleave', learnedAtLevel: 6 },
+      { skillIdentifier: 'unbound_fury', learnedAtLevel: 11 },
+    ],
   },
 
   ranger: {
@@ -96,7 +104,11 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 0.5,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'longshot', learnedAtLevel: 1 },
+      { skillIdentifier: 'pinning_shot', learnedAtLevel: 6 },
+      { skillIdentifier: 'dead_aim', learnedAtLevel: 11 },
+    ],
   },
 
   duelist: {
@@ -127,7 +139,11 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       speed: 0.7,
       evasion: 0.007,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'riposte_cut', learnedAtLevel: 1 },
+      { skillIdentifier: 'feinting_blade', learnedAtLevel: 6 },
+      { skillIdentifier: 'perfect_counter', learnedAtLevel: 11 },
+    ],
   },
 
   sage: {
@@ -161,7 +177,11 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 2,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'arcane_ward', learnedAtLevel: 1 },
+      { skillIdentifier: 'scholars_cure', learnedAtLevel: 6 },
+      { skillIdentifier: 'twin_study', learnedAtLevel: 11 },
+    ],
   },
 
   assassin: {
@@ -193,6 +213,10 @@ export const SHARED_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 1,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'killing_blow', learnedAtLevel: 1 },
+      { skillIdentifier: 'silent_approach', learnedAtLevel: 6 },
+      { skillIdentifier: 'no_target_is_safe', learnedAtLevel: 11 },
+    ],
   },
 };

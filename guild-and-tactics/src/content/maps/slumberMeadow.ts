@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /**
  * Open, rainy meadow west of the heartland crossroads — wide sightlines,

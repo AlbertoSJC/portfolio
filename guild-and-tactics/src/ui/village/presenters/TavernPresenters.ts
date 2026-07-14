@@ -1,10 +1,10 @@
-import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
+import { BATTLE_PARTY_CAPACITY, type GuildState } from '@/sim/guild/GuildState';
 import {
   findActiveDispatchForQuest,
   type DispatchQuestDefinition,
-} from '../../../sim/guild/DispatchQuest';
-import type { QuestDefinition } from '../../../sim/guild/QuestDefinition';
-import type { BattleMap } from '../../../sim/grid/BattleMap';
+} from '@/sim/guild/DispatchQuest';
+import type { QuestDefinition } from '@/sim/guild/QuestDefinition';
+import type { BattleMap } from '@/sim/grid/BattleMap';
 
 export interface TavernContentTables {
   quests: Record<string, QuestDefinition>;

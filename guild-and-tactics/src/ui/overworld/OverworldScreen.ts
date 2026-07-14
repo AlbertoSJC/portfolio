@@ -1,12 +1,12 @@
-import { type GuildState } from '../../sim/guild/GuildState';
+import { type GuildState } from '@/sim/guild/GuildState';
 import {
   reputationTierForQuestCount,
   REPUTATION_TIER_LABELS,
   type ReputationTier,
-} from '../../sim/guild/ReputationTier';
-import { isZoneAccessibleAtTier } from '../../sim/guild/ZoneAccess';
-import type { WorldRoad } from '../../sim/guild/WorldTravel';
-import type { ZoneDefinition } from '../../sim/guild/ZoneDefinition';
+} from '@/sim/guild/ReputationTier';
+import { isZoneAccessibleAtTier } from '@/sim/guild/ZoneAccess';
+import type { WorldRoad } from '@/sim/guild/WorldTravel';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import { createSoundedButton } from '../village/views/SoundedButton';
 import { createOverworldMapCanvas, type MapEdge, type MapNodeEntry } from './OverworldMapCanvas';

@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
-import { QUESTS } from '../../../src/content/quests';
-import { ZONES } from '../../../src/content/zones';
-import type { GuildState } from '../../../src/sim/guild/GuildState';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
+import { QUESTS } from '@/content/quests';
+import { ZONES } from '@/content/zones';
+import type { GuildState } from '@/sim/guild/GuildState';
 import {
   QUEST_BOARD_SIZE,
   REQUIRED_REPUTATION_TIER_BY_QUEST_RANK,
   completeQuestOnBoard,
   questIdentifiersForZone,
   refillQuestBoard,
-} from '../../../src/sim/guild/QuestBoard';
-import { meetsReputationRequirement } from '../../../src/sim/guild/ReputationTier';
+} from '@/sim/guild/QuestBoard';
+import { meetsReputationRequirement } from '@/sim/guild/ReputationTier';
 
 const ZONE_A = 'north_road';
 const ZONE_B = 'marsh_trail';

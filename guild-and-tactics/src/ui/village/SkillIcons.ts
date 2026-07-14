@@ -1,4 +1,4 @@
-import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
 
 /**
  * Procedural canvas icons for skill rows — one icon per effect category.

@@ -1,4 +1,4 @@
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 import { createElementWithClass } from './DomPrimitives';
 
 export interface PillBarEntry<EntryIdentifier extends string> {

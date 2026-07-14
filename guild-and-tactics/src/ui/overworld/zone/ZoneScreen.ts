@@ -1,12 +1,12 @@
-import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
-import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
-import type { ZoneRoamingGroupLocation } from '../../../sim/guild/ZoneSession';
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
-import { ModalDialog } from '../../village/ModalDialog';
-import { buildMusterCardViewModels, type MemberContentTables } from '../../village/presenters/MemberPresenters';
-import { createHintParagraph } from '../../village/views/DomPrimitives';
-import { renderMusterCard } from '../../village/views/MemberCardViews';
-import { createSoundedButton } from '../../village/views/SoundedButton';
+import { BATTLE_PARTY_CAPACITY, type GuildState } from '@/sim/guild/GuildState';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
+import type { ZoneRoamingGroupLocation } from '@/sim/guild/ZoneSession';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
+import { ModalDialog } from '@/ui/village/ModalDialog';
+import { buildMusterCardViewModels, type MemberContentTables } from '@/ui/village/presenters/MemberPresenters';
+import { createHintParagraph } from '@/ui/village/views/DomPrimitives';
+import { renderMusterCard } from '@/ui/village/views/MemberCardViews';
+import { createSoundedButton } from '@/ui/village/views/SoundedButton';
 import { runTravelAnimationLoop } from '../travelAnimationLoop';
 import { createZoneRoadMapCanvas, type ZoneWalkAnimation } from './ZoneRoadMapCanvas';
 

@@ -2,11 +2,11 @@ import {
   GUILD_ROSTER_CAPACITY,
   type GuildMember,
   type GuildState,
-} from '../../../sim/guild/GuildState';
-import { isMemberDispatched } from '../../../sim/guild/DispatchQuest';
-import type { EquipmentDefinition } from '../../../sim/items/EquipmentDefinition';
-import { experienceRequiredToLevelUpFrom } from '../../../sim/progression/ExperienceAndLevels';
-import type { BaseClassDefinition, RaceDefinition } from '../../../sim/units/UnitDefinitions';
+} from '@/sim/guild/GuildState';
+import { isMemberDispatched } from '@/sim/guild/DispatchQuest';
+import type { EquipmentDefinition } from '@/sim/items/EquipmentDefinition';
+import { experienceRequiredToLevelUpFrom } from '@/sim/progression/ExperienceAndLevels';
+import type { BaseClassDefinition, RaceDefinition } from '@/sim/units/UnitDefinitions';
 
 export interface MemberContentTables {
   races: Record<string, RaceDefinition>;

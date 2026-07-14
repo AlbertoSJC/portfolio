@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { generateEncounterEnemySpawns } from '../../../src/sim/guild/EncounterGeneration';
-import type { MonsterLevelRange, ZoneRoamingGroupDefinition } from '../../../src/sim/guild/ZoneDefinition';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
+import { generateEncounterEnemySpawns } from '@/sim/guild/EncounterGeneration';
+import type { MonsterLevelRange, ZoneRoamingGroupDefinition } from '@/sim/guild/ZoneDefinition';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
 
 const TEST_GROUP: ZoneRoamingGroupDefinition = {
   identifier: 'test_group',

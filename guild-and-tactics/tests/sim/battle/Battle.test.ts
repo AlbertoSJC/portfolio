@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { Battle } from '../../../src/sim/battle/Battle';
-import { parseBattleMapFromRows } from '../../../src/sim/grid/BattleMap';
-import { ITEMS } from '../../../src/content/items';
-import { SKILLS } from '../../../src/content/skills';
-import { createTestUnit } from '../../mocks/unitMocks';
-import type { Unit } from '../../../src/sim/units/Unit';
+import { Battle } from '@/sim/battle/Battle';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
+import { ITEMS } from '@/content/items';
+import { SKILLS } from '@/content/skills';
+import { createTestUnit } from '@tests/mocks/unitMocks';
+import type { Unit } from '@/sim/units/Unit';
 
 const TEST_MAP = parseBattleMapFromRows('arena', 'Test Arena', [
   '......',

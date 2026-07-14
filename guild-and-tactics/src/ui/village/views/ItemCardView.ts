@@ -1,4 +1,4 @@
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 import { createItemIconCanvas } from '../ItemIcons';
 import type { ItemCardViewModel, StoreCardViewModel } from '../presenters/ItemCardPresenters';
 import { createElementWithClass } from './DomPrimitives';

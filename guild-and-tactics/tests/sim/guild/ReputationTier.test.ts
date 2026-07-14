@@ -3,7 +3,7 @@ import {
   meetsReputationRequirement,
   reputationTierForQuestCount,
   REPUTATION_TIER_THRESHOLDS,
-} from '../../../src/sim/guild/ReputationTier';
+} from '@/sim/guild/ReputationTier';
 
 describe('reputationTierForQuestCount', () => {
   it('returns bronze at 0 quests', () => {

@@ -1,11 +1,11 @@
-import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
-import type { EquipmentDefinition, EquipmentSlot } from '../../../sim/items/EquipmentDefinition';
-import type { BaseClassIdentifier, ClassIdentifier } from '../../../sim/units/Unit';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
+import type { EquipmentDefinition, EquipmentSlot } from '@/sim/items/EquipmentDefinition';
+import type { BaseClassIdentifier, ClassIdentifier } from '@/sim/units/Unit';
 import type {
   AdvancedClassDefinition,
   BaseClassDefinition,
   RaceDefinition,
-} from '../../../sim/units/UnitDefinitions';
+} from '@/sim/units/UnitDefinitions';
 
 export interface CharacterSheetCallbacks {
   onEquipItem: (memberIdentifier: string, equipmentIdentifier: string) => void;

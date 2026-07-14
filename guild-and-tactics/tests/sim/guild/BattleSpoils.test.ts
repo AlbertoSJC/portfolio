@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applyBattleSpoils, type BattleSpoilsInput } from '../../../src/sim/guild/BattleSpoils';
-import type { DispatchQuestDefinition } from '../../../src/sim/guild/DispatchQuest';
-import { startDispatch } from '../../../src/sim/guild/DispatchQuest';
-import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
-import { experienceForDefeatingEnemy } from '../../../src/sim/progression/ExperienceAndLevels';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
-import { EQUIPMENT } from '../../../src/content/equipment';
+import { applyBattleSpoils, type BattleSpoilsInput } from '@/sim/guild/BattleSpoils';
+import type { DispatchQuestDefinition } from '@/sim/guild/DispatchQuest';
+import { startDispatch } from '@/sim/guild/DispatchQuest';
+import type { GuildMember, GuildState } from '@/sim/guild/GuildState';
+import { experienceForDefeatingEnemy } from '@/sim/progression/ExperienceAndLevels';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
+import { EQUIPMENT } from '@/content/equipment';
 
 /** Dispatch success is a coin flip in most of these tests — pin it to always succeed. */
 function createAlwaysSucceedingRandomNumberGenerator(): SeededRandomNumberGenerator {

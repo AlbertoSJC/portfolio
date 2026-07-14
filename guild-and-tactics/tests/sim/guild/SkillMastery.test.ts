@@ -5,10 +5,10 @@ import {
   isSkillMastered,
   masteredSkillIdentifiersForMember,
   recordEquipmentSkillUses,
-} from '../../../src/sim/guild/SkillMastery';
-import type { GuildMember } from '../../../src/sim/guild/GuildState';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import { SKILLS } from '../../../src/content/skills';
+} from '@/sim/guild/SkillMastery';
+import type { GuildMember } from '@/sim/guild/GuildState';
+import { EQUIPMENT } from '@/content/equipment';
+import { SKILLS } from '@/content/skills';
 
 function createTestMember(overrides: Partial<GuildMember> = {}): GuildMember {
   return {

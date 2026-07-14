@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   BrowserLocalStorageSaveGameStorage,
   type KeyValueStore,
-} from '../../src/platform/SaveGameStorage';
-import { SeededRandomNumberGenerator } from '../../src/sim/SeededRandomNumberGenerator';
-import { createNewGuild } from '../../src/content/newGame';
+} from '@/platform/SaveGameStorage';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
+import { createNewGuild } from '@/content/newGame';
 
 function createInMemoryKeyValueStore(): KeyValueStore {
   const entries = new Map<string, string>();

@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /**
  * M1 battle map: a clearing in the werecat forests north of Wanderer's Rest.

@@ -1,4 +1,4 @@
-import type { MonsterDefinition } from '../../sim/units/UnitDefinitions';
+import type { MonsterDefinition } from '@/sim/units/UnitDefinitions';
 import { BEAST_MONSTERS } from './beasts';
 import { FLORA_AND_STONE_MONSTERS } from './floraAndStone';
 import { HUMANOID_MONSTERS } from './humanoids';

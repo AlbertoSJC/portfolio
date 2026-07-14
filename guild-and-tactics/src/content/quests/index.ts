@@ -1,4 +1,4 @@
-import type { QuestDefinition } from '../../sim/guild/QuestDefinition';
+import type { QuestDefinition } from '@/sim/guild/QuestDefinition';
 import { BREIRWOOD_QUESTS } from './breirwoodQuests';
 import { CROSSPATHS_FIELD_QUESTS } from './crosspathsFieldQuests';
 import { MARSH_TRAIL_QUESTS } from './marshTrailQuests';

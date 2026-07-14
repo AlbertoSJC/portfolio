@@ -1,4 +1,4 @@
-import { STATISTIC, type UnitStatistics } from '../../../sim/units/Unit';
+import { STATISTIC, type UnitStatistics } from '@/sim/units/Unit';
 
 export const STATISTIC_SHORT_LABELS: Record<keyof UnitStatistics, string> = {
   hitPointsMaximum: 'HP',

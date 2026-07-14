@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 import {
   PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
   HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -35,7 +35,11 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       speed: 0.8,
       evasion: 0.008,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'umbral_step', learnedAtLevel: 1 },
+      { skillIdentifier: 'vanishing_cut', learnedAtLevel: 6 },
+      { skillIdentifier: 'shadows_grace', learnedAtLevel: 11 },
+    ],
   },
 
   galeweaver: {
@@ -66,7 +70,11 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'cutting_gale', learnedAtLevel: 1 },
+      { skillIdentifier: 'windward_ward', learnedAtLevel: 6 },
+      { skillIdentifier: 'cyclone', learnedAtLevel: 11 },
+    ],
   },
 
   windwanderer: {
@@ -100,7 +108,11 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1,
       speed: 0.7,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'gale_step_strike', learnedAtLevel: 1 },
+      { skillIdentifier: 'tempest_step', learnedAtLevel: 6 },
+      { skillIdentifier: 'breirs_fury', learnedAtLevel: 11 },
+    ],
   },
 
   priest_of_the_8_lives: {
@@ -134,7 +146,11 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'eighth_lifes_vow', learnedAtLevel: 1 },
+      { skillIdentifier: 'windward_blow', learnedAtLevel: 6 },
+      { skillIdentifier: 'shrine_blessed', learnedAtLevel: 11 },
+    ],
   },
 
   phantom: {
@@ -168,7 +184,11 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 0.5,
       speed: 0.7,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'phantom_step', learnedAtLevel: 1 },
+      { skillIdentifier: 'after_image', learnedAtLevel: 6 },
+      { skillIdentifier: 'vanishing_flurry', learnedAtLevel: 11 },
+    ],
   },
 
   shrine_warden: {
@@ -202,6 +222,10 @@ export const WERECAT_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> =
       magicResistance: 1.5,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'wardens_blessing', learnedAtLevel: 1 },
+      { skillIdentifier: 'taurks_rebuke', learnedAtLevel: 6 },
+      { skillIdentifier: 'twin_shrine_ward', learnedAtLevel: 11 },
+    ],
   },
 };

@@ -1,33 +1,33 @@
-import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
-import type { BattleMap } from '../../../sim/grid/BattleMap';
-import { BATTLE_PARTY_CAPACITY, type GuildState } from '../../../sim/guild/GuildState';
-import type { QuestDefinition } from '../../../sim/guild/QuestDefinition';
-import type { ZoneDefinition } from '../../../sim/guild/ZoneDefinition';
-import type { ConsumableItemDefinition } from '../../../sim/items/ConsumableItemDefinition';
-import type { EquipmentDefinition } from '../../../sim/items/EquipmentDefinition';
-import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../../sim/units/UnitDefinitions';
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
-import { GuildMenu, type GuildMenuCallbacks } from '../../guild/GuildMenu';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
+import type { BattleMap } from '@/sim/grid/BattleMap';
+import { BATTLE_PARTY_CAPACITY, type GuildState } from '@/sim/guild/GuildState';
+import type { QuestDefinition } from '@/sim/guild/QuestDefinition';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
+import type { ConsumableItemDefinition } from '@/sim/items/ConsumableItemDefinition';
+import type { EquipmentDefinition } from '@/sim/items/EquipmentDefinition';
+import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '@/sim/units/UnitDefinitions';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
+import { GuildMenu, type GuildMenuCallbacks } from '@/ui/guild/GuildMenu';
 import {
   buildStoreCardViewModels,
   STORE_FILTER_ENTRIES,
   type StoreFilter,
-} from '../../village/presenters/ItemCardPresenters';
-import { buildMusterCardViewModels } from '../../village/presenters/MemberPresenters';
+} from '@/ui/village/presenters/ItemCardPresenters';
+import { buildMusterCardViewModels } from '@/ui/village/presenters/MemberPresenters';
 import {
   buildDispatchCardViewModels,
   buildDispatchDetailViewModel,
   buildQuestCardViewModels,
   buildQuestDetailViewModel,
-} from '../../village/presenters/TavernPresenters';
-import type { DispatchQuestDefinition } from '../../../sim/guild/DispatchQuest';
-import { findActiveDispatchForQuest } from '../../../sim/guild/DispatchQuest';
-import { findRosterMember } from '../../../sim/guild/GuildState';
-import { createCardList, createHintParagraph } from '../../village/views/DomPrimitives';
-import { renderStoreCard } from '../../village/views/ItemCardView';
-import { renderPillBar } from '../../village/views/PillBarView';
-import { renderQuestCard, renderQuestDetail } from '../../village/views/QuestViews';
-import { createSoundedButton } from '../../village/views/SoundedButton';
+} from '@/ui/village/presenters/TavernPresenters';
+import type { DispatchQuestDefinition } from '@/sim/guild/DispatchQuest';
+import { findActiveDispatchForQuest } from '@/sim/guild/DispatchQuest';
+import { findRosterMember } from '@/sim/guild/GuildState';
+import { createCardList, createHintParagraph } from '@/ui/village/views/DomPrimitives';
+import { renderStoreCard } from '@/ui/village/views/ItemCardView';
+import { renderPillBar } from '@/ui/village/views/PillBarView';
+import { renderQuestCard, renderQuestDetail } from '@/ui/village/views/QuestViews';
+import { createSoundedButton } from '@/ui/village/views/SoundedButton';
 import { createOverworldMapCanvas, type MapNodeEntry } from '../OverworldMapCanvas';
 
 export interface ZoneContentTables {

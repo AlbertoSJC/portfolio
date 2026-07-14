@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
 import {
   executeSkill,
   findUnitsAffectedBySkill,
   isUnitSilencedForSkill,
-} from '../../../src/sim/battle/SkillExecution';
-import type { SkillDefinition } from '../../../src/sim/battle/SkillDefinition';
-import { SKILLS } from '../../../src/content/skills';
-import { effectiveStatistic } from '../../../src/sim/units/Unit';
-import { createTestUnit } from '../../mocks/unitMocks';
+} from '@/sim/battle/SkillExecution';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
+import { SKILLS } from '@/content/skills';
+import { effectiveStatistic } from '@/sim/units/Unit';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 function skillOrThrow(skillIdentifier: string): SkillDefinition {
   const skill = SKILLS[skillIdentifier];

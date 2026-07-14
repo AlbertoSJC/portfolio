@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /**
  * The heartland crossroads: two paths meet by the drinking lake, and the

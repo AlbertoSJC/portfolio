@@ -6,11 +6,11 @@ import {
   startDispatch,
   tickDispatchesAfterBattle,
   type DispatchQuestDefinition,
-} from '../../../src/sim/guild/DispatchQuest';
-import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
-import { SeededRandomNumberGenerator } from '../../../src/sim/SeededRandomNumberGenerator';
-import { DISPATCH_QUESTS } from '../../../src/content/dispatchQuests';
-import { ZONES } from '../../../src/content/zones';
+} from '@/sim/guild/DispatchQuest';
+import type { GuildMember, GuildState } from '@/sim/guild/GuildState';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
+import { DISPATCH_QUESTS } from '@/content/dispatchQuests';
+import { ZONES } from '@/content/zones';
 
 const TEST_DISPATCH: DispatchQuestDefinition = {
   identifier: 'test_errand',

@@ -1,13 +1,13 @@
-import type { GuildMember, GuildState } from '../../../sim/guild/GuildState';
-import { equippedDefinitionsForMember } from '../../../sim/guild/MemberEquipment';
-import type { EquipmentSlot } from '../../../sim/items/EquipmentDefinition';
-import { experienceRequiredToLevelUpFrom } from '../../../sim/progression/ExperienceAndLevels';
+import type { GuildMember, GuildState } from '@/sim/guild/GuildState';
+import { equippedDefinitionsForMember } from '@/sim/guild/MemberEquipment';
+import type { EquipmentSlot } from '@/sim/items/EquipmentDefinition';
+import { experienceRequiredToLevelUpFrom } from '@/sim/progression/ExperienceAndLevels';
 import type {
   AdvancedClassDefinition,
   BaseClassDefinition,
   RaceDefinition,
-} from '../../../sim/units/UnitDefinitions';
-import { createUnitFromCharacter } from '../../../sim/units/UnitFactory';
+} from '@/sim/units/UnitDefinitions';
+import { createUnitFromCharacter } from '@/sim/units/UnitFactory';
 import { createMemberPortraitCanvas } from '../MemberPortrait';
 import { buildEquipmentSection } from './EquipmentSection';
 import { buildSkillsPanel } from './SkillsPanel';

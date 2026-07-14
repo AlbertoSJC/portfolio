@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 import {
   PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
   HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -35,7 +35,11 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'skyfall_strike', learnedAtLevel: 1 },
+      { skillIdentifier: 'wingbeat_barrage', learnedAtLevel: 6 },
+      { skillIdentifier: 'zenith_dive', learnedAtLevel: 11 },
+    ],
   },
 
   spellblade: {
@@ -67,7 +71,11 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'stormforged_edge', learnedAtLevel: 1 },
+      { skillIdentifier: 'thunderclap_slash', learnedAtLevel: 6 },
+      { skillIdentifier: 'godless_current', learnedAtLevel: 11 },
+    ],
   },
 
   skytalon: {
@@ -99,6 +107,10 @@ export const FERYAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       defense: 1,
       speed: 0.7,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'talon_rake', learnedAtLevel: 1 },
+      { skillIdentifier: 'wingclip', learnedAtLevel: 6 },
+      { skillIdentifier: 'apex_predator', learnedAtLevel: 11 },
+    ],
   },
 };

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   advanceToNextReadyUnit,
   forecastUpcomingTurnOrder,
-} from '../../../src/sim/battle/TurnOrderQueue';
-import { TURN_ORDER_FORECAST_LENGTH } from '../../../src/sim/battle/combatConstants';
-import { createTestUnit } from '../../mocks/unitMocks';
+} from '@/sim/battle/TurnOrderQueue';
+import { TURN_ORDER_FORECAST_LENGTH } from '@/sim/battle/combatConstants';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 describe('advanceToNextReadyUnit', () => {
   it('lets a unit with double speed act twice before a slow unit acts once', () => {

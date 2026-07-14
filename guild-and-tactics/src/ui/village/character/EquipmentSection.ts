@@ -1,11 +1,11 @@
-import { countEquipmentPieces, type GuildMember, type GuildState } from '../../../sim/guild/GuildState';
+import { countEquipmentPieces, type GuildMember, type GuildState } from '@/sim/guild/GuildState';
 import {
   ALL_EQUIPMENT_SLOTS,
   EQUIPMENT_SLOT_DISPLAY_NAMES,
   canClassEquip,
   type EquipmentDefinition,
   type EquipmentSlot,
-} from '../../../sim/items/EquipmentDefinition';
+} from '@/sim/items/EquipmentDefinition';
 import { describeStatisticBonuses } from '../presenters/StatisticDescriptions';
 import type { CharacterSheetCallbacks, CharacterSheetContentTables } from './CharacterSheetTypes';
 

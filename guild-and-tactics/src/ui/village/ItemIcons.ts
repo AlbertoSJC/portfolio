@@ -1,5 +1,5 @@
-import type { ConsumableItemDefinition } from '../../sim/items/ConsumableItemDefinition';
-import type { EquipmentDefinition } from '../../sim/items/EquipmentDefinition';
+import type { ConsumableItemDefinition } from '@/sim/items/ConsumableItemDefinition';
+import type { EquipmentDefinition } from '@/sim/items/EquipmentDefinition';
 
 /**
  * Procedural canvas icons by item type — the item counterpart of the

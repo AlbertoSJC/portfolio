@@ -1,4 +1,4 @@
-import type { Unit, UnitStatistics } from '../../src/sim/units/Unit';
+import type { Unit, UnitStatistics } from '@/sim/units/Unit';
 
 export const NEUTRAL_TEST_STATISTICS: UnitStatistics = {
   hitPointsMaximum: 30,

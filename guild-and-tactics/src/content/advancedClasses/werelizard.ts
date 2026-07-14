@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 import {
   PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
   HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -36,7 +36,11 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'stone_fang', learnedAtLevel: 1 },
+      { skillIdentifier: 'quaking_ground', learnedAtLevel: 6 },
+      { skillIdentifier: 'taurks_judgment', learnedAtLevel: 11 },
+    ],
   },
 
   shaman: {
@@ -68,7 +72,11 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 2,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'tidal_blessing', learnedAtLevel: 1 },
+      { skillIdentifier: 'yierns_ward', learnedAtLevel: 6 },
+      { skillIdentifier: 'deep_renewal', learnedAtLevel: 11 },
+    ],
   },
 
   stonefist: {
@@ -102,7 +110,11 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'earthen_fist', learnedAtLevel: 1 },
+      { skillIdentifier: 'quarry_breaker', learnedAtLevel: 6 },
+      { skillIdentifier: 'mountains_weight', learnedAtLevel: 11 },
+    ],
   },
 
   totem_guard: {
@@ -136,6 +148,10 @@ export const WERELIZARD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'totem_of_resilience', learnedAtLevel: 1 },
+      { skillIdentifier: 'guardian_totem', learnedAtLevel: 6 },
+      { skillIdentifier: 'ancestors_stand', learnedAtLevel: 11 },
+    ],
   },
 };

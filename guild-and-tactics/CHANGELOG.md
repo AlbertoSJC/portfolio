@@ -1387,3 +1387,64 @@ guaranteeing every dispatch's reward.
   dispatch from a fresh save until both a success ("+60 gold, +40 XP")
   and a failure ("returns … empty-handed") were observed in the real
   battle-outcome overlay, zero console/page errors across all trials.
+
+**2026-07-14 — Every advanced class gets a full skill line (95 new skills, 33/33 classes).**
+
+Same session. Resolves the single biggest content gap found while
+auditing the status-effects work above: 29 of 33 advanced classes were
+mechanically identical to their base class — same skills, different stat
+curve — because they'd simply never been given any of their own. A
+content-design pass (drafted and iterated as an artifact for review, then
+generated programmatically to avoid transcription errors across ~100
+entries) gave all 33 a **three-tier line**: a level-1 opener (usable the
+moment the class change lands, since the earliest switch-in is level 5),
+a level-6 developed skill, and a level-11 capstone — mirroring the
+1/3/5/7/9/11 spacing the four base classes already use. The four
+already-shipped single skills from the status-effects pass (Berserker,
+Necromancer, Illusionist, Spellthief) were kept as their level-1 opener
+rather than duplicated.
+
+- **Content, not mechanics**: every new skill uses effect kinds and
+  status effects that already existed (`damage`/`heal`/`statModifier`/
+  `statusEffect`) — no `SkillDefinition` or `Unit.ts` changes. 95 new
+  entries in `skills.ts` (grouped by class, matching the file's existing
+  comment-header convention), pool now **135 of the ~150 target** (§8).
+  33/33 advanced classes now have their own identity — up from 4.
+  Mid-pass, the audit also caught a second, unrelated bug in the earlier
+  count: **Werecat's "Priest of the 8 Lives" was missing entirely** from
+  the first draft (33 classes, not 32 — a script bug in the audit, not a
+  content bug) and was added with its own line (self-regen opener, a
+  wind-physical strike, an ally-haste capstone) once caught.
+- **Naming and elements stayed lore-disciplined throughout**: Werecat
+  never dark, Undead never frost (fire/dark/earth only), Feryan
+  lightning-only and god-free, Human sacred tied specifically to the
+  three Hortian classes (Bishop/Paladin/Inquisitor). A few standout
+  capstones: Black Mage's `Annihilate` (12 MP, the most expensive skill
+  in the game so far), Assassin's `No Target Is Safe` (×2.0, the highest
+  plain physical multiplier) — both flagged as balance-pass candidates
+  once they've actually been fought with, not tuned blind.
+- **Applied programmatically, not by hand**: 33 class-file edits plus 95
+  skill entries is a lot of surface to transcribe correctly by hand, so
+  the reviewed draft's structured data was extracted and run through a
+  small generator that parsed each skill's mechanic line into a
+  `SkillDefinition` object and patched `skills.ts` plus all six
+  `advancedClasses/*.ts` files directly, then a second pass reformatted
+  the generated single-line arrays into the project's existing multi-line
+  style. Every identifier was diffed against the existing 40-entry pool
+  first — zero collisions, new or old.
+- **New content-validity test**: `ClassSkillEntry.skillIdentifier` is a
+  plain `string` at the sim layer by design (`UnitDefinitions.ts` — "must
+  not depend on content"), unlike monster/equipment skill references
+  which *are* compile-checked via `SkillIdentifier`. That means a typo'd
+  class → skill reference would silently grant nothing instead of
+  failing `tsc`. `UnitFactory.test.ts` gained a sweep — every base and
+  advanced class's `skillIdentifier`s resolve to a real `SKILLS` entry,
+  and every advanced class has an opener at level 1 — closing a gap that
+  existed even before this pass (base classes had the same untyped risk).
+- *Verification*: 226 vitest tests (3 new), typecheck + build clean.
+  Browser pass `tmp/verify_new_advanced_skills.mjs`: injected a level-6
+  Warrior past Knight's level-5 prerequisite, switched class through the
+  Guild menu's Class Change screen, and confirmed the character sheet
+  showed Knight's real skill line — Bulwark Stance available, Shield Wall
+  available (level 6), Immovable correctly locked ("Unlocks at Lv.11") —
+  zero console/page errors.

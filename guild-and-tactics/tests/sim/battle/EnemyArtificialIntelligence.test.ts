@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { Battle } from '../../../src/sim/battle/Battle';
-import { planEnemyTurn } from '../../../src/sim/battle/EnemyArtificialIntelligence';
-import { parseBattleMapFromRows } from '../../../src/sim/grid/BattleMap';
-import { manhattanDistance } from '../../../src/sim/grid/GridPosition';
-import { SKILLS } from '../../../src/content/skills';
-import { createTestUnit } from '../../mocks/unitMocks';
+import { Battle } from '@/sim/battle/Battle';
+import { planEnemyTurn } from '@/sim/battle/EnemyArtificialIntelligence';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
+import { manhattanDistance } from '@/sim/grid/GridPosition';
+import { SKILLS } from '@/content/skills';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 const OPEN_MAP = parseBattleMapFromRows('ai_arena', 'AI Arena', [
   '........',

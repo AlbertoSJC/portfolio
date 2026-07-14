@@ -1,4 +1,4 @@
-import type { UserInterfaceSounds } from '../../UserInterfaceSounds';
+import type { UserInterfaceSounds } from '@/ui/UserInterfaceSounds';
 
 export interface SoundedButtonOptions {
   label: string;

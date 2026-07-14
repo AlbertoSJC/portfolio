@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ZoneSession } from '../../../src/sim/guild/ZoneSession';
-import type { ZoneDefinition } from '../../../src/sim/guild/ZoneDefinition';
+import { ZoneSession } from '@/sim/guild/ZoneSession';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
 
 const TEST_ZONE: ZoneDefinition = {
   identifier: 'test_zone',

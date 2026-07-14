@@ -2,26 +2,26 @@ import {
   countConsumable,
   countEquipmentPieces,
   type GuildState,
-} from '../../../sim/guild/GuildState';
-import { storeStockOf } from '../../../sim/guild/StoreStock';
+} from '@/sim/guild/GuildState';
+import { storeStockOf } from '@/sim/guild/StoreStock';
 import {
   meetsReputationRequirement,
   reputationTierForQuestCount,
   type ReputationTier,
-} from '../../../sim/guild/ReputationTier';
+} from '@/sim/guild/ReputationTier';
 import {
   describeConsumableEffect,
   sellPriceForItem,
   type ConsumableItemDefinition,
-} from '../../../sim/items/ConsumableItemDefinition';
+} from '@/sim/items/ConsumableItemDefinition';
 import {
   EQUIPMENT_SLOT_DISPLAY_NAMES,
   sellPriceForEquipment,
   type EquipmentDefinition,
   type EquipmentSlot,
-} from '../../../sim/items/EquipmentDefinition';
-import type { BaseClassDefinition } from '../../../sim/units/UnitDefinitions';
-import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
+} from '@/sim/items/EquipmentDefinition';
+import type { BaseClassDefinition } from '@/sim/units/UnitDefinitions';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
 import type { ItemIconKind } from '../ItemIcons';
 import { iconKindForConsumable, iconKindForEquipment } from '../ItemIcons';
 import { describeStatisticBonuses } from './StatisticDescriptions';

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ADVANCED_CLASSES } from '../../../src/content/advancedClasses';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import { RACES } from '../../../src/content/races';
-import { changeMemberClass } from '../../../src/sim/guild/ClassChange';
-import type { GuildMember, GuildState } from '../../../src/sim/guild/GuildState';
+import { ADVANCED_CLASSES } from '@/content/advancedClasses';
+import { EQUIPMENT } from '@/content/equipment';
+import { RACES } from '@/content/races';
+import { changeMemberClass } from '@/sim/guild/ClassChange';
+import type { GuildMember, GuildState } from '@/sim/guild/GuildState';
 
 function createTestGuildWithMember(member: GuildMember): GuildState {
   return {

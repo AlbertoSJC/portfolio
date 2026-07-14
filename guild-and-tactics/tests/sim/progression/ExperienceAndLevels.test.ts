@@ -4,8 +4,8 @@ import {
   applyExperienceGain,
   experienceForDefeatingEnemy,
   experienceRequiredToLevelUpFrom,
-} from '../../../src/sim/progression/ExperienceAndLevels';
-import type { GuildMember } from '../../../src/sim/guild/GuildState';
+} from '@/sim/progression/ExperienceAndLevels';
+import type { GuildMember } from '@/sim/guild/GuildState';
 
 function createTestMember(level: number, experiencePoints = 0): GuildMember {
   return {

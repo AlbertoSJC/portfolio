@@ -1,17 +1,17 @@
-import type { SkillDefinition } from '../../../sim/battle/SkillDefinition';
-import type { GuildMember } from '../../../sim/guild/GuildState';
-import type { BaseClassIdentifier } from '../../../sim/units/Unit';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
+import type { GuildMember } from '@/sim/guild/GuildState';
+import type { BaseClassIdentifier } from '@/sim/units/Unit';
 import type {
   AdvancedClassDefinition,
   BaseClassDefinition,
   ClassSkillEntry,
-} from '../../../sim/units/UnitDefinitions';
+} from '@/sim/units/UnitDefinitions';
 import {
   equipmentGrantedSkillIdentifiersForMember,
   isSkillMastered,
   masteredSkillIdentifiersForMember,
   SKILL_USES_TO_MASTER,
-} from '../../../sim/guild/SkillMastery';
+} from '@/sim/guild/SkillMastery';
 import { createSkillIconCanvas, iconKindForSkill } from '../SkillIcons';
 import type { CharacterSheetCallbacks, CharacterSheetContentTables } from './CharacterSheetTypes';
 

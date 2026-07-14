@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /**
  * Thorns Plain's signature landscape: grass broken by impassable thorn

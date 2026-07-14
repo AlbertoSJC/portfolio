@@ -1,4 +1,4 @@
-import { drawUnitMiniature } from '../../render/SpriteRegistry';
+import { drawUnitMiniature } from '@/render/SpriteRegistry';
 
 const PORTRAIT_WIDTH_PIXELS = 72;
 const PORTRAIT_HEIGHT_PIXELS = 84;

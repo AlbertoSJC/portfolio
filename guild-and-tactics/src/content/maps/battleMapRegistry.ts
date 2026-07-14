@@ -1,5 +1,5 @@
-import type { BattleMap } from '../../sim/grid/BattleMap';
-import type { GridPosition } from '../../sim/grid/GridPosition';
+import type { BattleMap } from '@/sim/grid/BattleMap';
+import type { GridPosition } from '@/sim/grid/GridPosition';
 import { BREIRWOOD_DEEP_MAP } from './breirwoodDeep';
 import { CROSSPATHS_FIELD_MAP } from './crosspathsField';
 import { FOREST_CLEARING_MAP } from './forestClearing';

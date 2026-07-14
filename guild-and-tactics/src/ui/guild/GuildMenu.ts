@@ -1,9 +1,9 @@
-import type { SkillDefinition } from '../../sim/battle/SkillDefinition';
-import type { GuildState } from '../../sim/guild/GuildState';
-import type { ConsumableItemDefinition } from '../../sim/items/ConsumableItemDefinition';
-import type { EquipmentDefinition, EquipmentSlot } from '../../sim/items/EquipmentDefinition';
-import type { BaseClassIdentifier, ClassIdentifier } from '../../sim/units/Unit';
-import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '../../sim/units/UnitDefinitions';
+import type { SkillDefinition } from '@/sim/battle/SkillDefinition';
+import type { GuildState } from '@/sim/guild/GuildState';
+import type { ConsumableItemDefinition } from '@/sim/items/ConsumableItemDefinition';
+import type { EquipmentDefinition, EquipmentSlot } from '@/sim/items/EquipmentDefinition';
+import type { BaseClassIdentifier, ClassIdentifier } from '@/sim/units/Unit';
+import type { AdvancedClassDefinition, BaseClassDefinition, RaceDefinition } from '@/sim/units/UnitDefinitions';
 import type { UserInterfaceSounds } from '../UserInterfaceSounds';
 import { buildCharacterSheetContent } from '../village/character/CharacterSheet';
 import { buildClassPickerContent } from '../village/character/ClassPicker';

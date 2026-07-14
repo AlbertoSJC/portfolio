@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { createUnitsForEncounterBattle } from '../../../src/sim/guild/EncounterBattleAssembly';
-import { ADVANCED_CLASSES } from '../../../src/content/advancedClasses';
-import { BASE_CLASSES } from '../../../src/content/baseClasses';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import { BATTLE_MAPS } from '../../../src/content/maps/battleMapRegistry';
-import { MONSTERS } from '../../../src/content/monsters';
-import { RACES } from '../../../src/content/races';
-import { ZONES } from '../../../src/content/zones';
-import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
-import { buildZoneRoadAdjacency } from '../../../src/sim/graph/ZoneRoadGraph';
-import type { GuildMember } from '../../../src/sim/guild/GuildState';
-import type { QuestEnemySpawn } from '../../../src/sim/guild/QuestDefinition';
-import type { ZoneDefinition, ZoneRoamingGroupDefinition } from '../../../src/sim/guild/ZoneDefinition';
+import { createUnitsForEncounterBattle } from '@/sim/guild/EncounterBattleAssembly';
+import { ADVANCED_CLASSES } from '@/content/advancedClasses';
+import { BASE_CLASSES } from '@/content/baseClasses';
+import { EQUIPMENT } from '@/content/equipment';
+import { BATTLE_MAPS } from '@/content/maps/battleMapRegistry';
+import { MONSTERS } from '@/content/monsters';
+import { RACES } from '@/content/races';
+import { ZONES } from '@/content/zones';
+import { isPositionInsideMap, tileAt } from '@/sim/grid/BattleMap';
+import { buildZoneRoadAdjacency } from '@/sim/graph/ZoneRoadGraph';
+import type { GuildMember } from '@/sim/guild/GuildState';
+import type { QuestEnemySpawn } from '@/sim/guild/QuestDefinition';
+import type { ZoneDefinition, ZoneRoamingGroupDefinition } from '@/sim/guild/ZoneDefinition';
 
 /**
  * BFS over (locationIdentifier, patrolRouteIndex) states, one road hop per

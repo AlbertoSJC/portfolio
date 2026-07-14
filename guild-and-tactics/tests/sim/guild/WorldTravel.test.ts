@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ZONES } from '../../../src/content/zones';
-import { STARTING_ZONE_IDENTIFIER, WORLD_ROADS } from '../../../src/content/zones/worldMap';
-import { REPUTATION_TIER_LABELS, type ReputationTier } from '../../../src/sim/guild/ReputationTier';
-import { findWorldTravelRoute, type WorldRoad } from '../../../src/sim/guild/WorldTravel';
-import { isZoneAccessibleAtTier } from '../../../src/sim/guild/ZoneAccess';
+import { ZONES } from '@/content/zones';
+import { STARTING_ZONE_IDENTIFIER, WORLD_ROADS } from '@/content/zones/worldMap';
+import { REPUTATION_TIER_LABELS, type ReputationTier } from '@/sim/guild/ReputationTier';
+import { findWorldTravelRoute, type WorldRoad } from '@/sim/guild/WorldTravel';
+import { isZoneAccessibleAtTier } from '@/sim/guild/ZoneAccess';
 
 const TEST_ROADS: WorldRoad[] = [
   { fromZoneIdentifier: 'west', toZoneIdentifier: 'center' },

@@ -1,4 +1,4 @@
-import type { ZoneDefinition } from '../../sim/guild/ZoneDefinition';
+import type { ZoneDefinition } from '@/sim/guild/ZoneDefinition';
 import { BREIRWOOD_ZONE } from './breirwood';
 import { CROSSPATHS_FIELD_ZONE } from './crosspathsField';
 import { MARSH_TRAIL_ZONE } from './marshTrail';

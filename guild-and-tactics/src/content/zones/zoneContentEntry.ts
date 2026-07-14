@@ -1,4 +1,4 @@
-import type { ZoneDefinition, ZoneRoamingGroupDefinition } from '../../sim/guild/ZoneDefinition';
+import type { ZoneDefinition, ZoneRoamingGroupDefinition } from '@/sim/guild/ZoneDefinition';
 import type { BattleMapIdentifier } from '../maps/battleMapRegistry';
 import type { MonsterIdentifier } from '../monsters';
 

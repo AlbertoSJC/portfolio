@@ -20,6 +20,20 @@ user for it; do not invent or commit lore.
 
 ## Architecture
 
+**Imports use path aliases, not relative paths of 2+ levels.** `@/*` →
+`src/*`, `@tests/*` → `tests/*` (configured in both `tsconfig.json`'s
+`compilerOptions.paths` and `vite.config.ts`'s `resolve.alias` — they
+must be kept in sync, since tsc/the IDE read the former and Vite/Vitest's
+bundler-based resolution reads the latter; no separate `vitest.config.ts`
+exists, so Vitest inherits `vite.config.ts` directly). `./sibling` and
+one-level-up `../parent` imports stay relative — the alias only replaces
+the `../../` and deeper chains that used to make a file's real location
+hard to read at a glance (a test three folders deep importing `../../../
+src/content/skills` becomes `@/content/skills`; a test-only helper like
+`tests/mocks/unitMocks.ts` becomes `@tests/mocks/unitMocks`). Match this
+rule for any new file: if an import needs `../../` or more to reach its
+target, alias it; otherwise leave it relative.
+
 `src/sim/` — all game rules; no DOM imports; seeded RNG (battles replay
 deterministically, zone exploration too). `src/content/` — typed data
 only. `src/render/` — canvas isometric battle grid; ALL unit visuals go
@@ -653,8 +667,46 @@ over it, adding roaming-group/player tokens) — same canvas, different
   success ("+60 gold, +40 XP") and failure ("returns … empty-handed")
   in the battle-outcome overlay across repeated trials from a fresh
   save, zero console/page errors.
+- ✅ **Every advanced class gets a full skill line** (2026-07-14, same
+  session): 29 of 33 advanced classes were mechanically identical to
+  their base class — `skills: []` — because they'd never been given any
+  of their own. Drafted as an artifact for review first (grouped by
+  race, grounded in LORE.md, checked for identifier collisions), then
+  applied with a small generator rather than by hand: parsed each
+  skill's mechanic line into a `SkillDefinition`, patched `skills.ts` +
+  all six `advancedClasses/*.ts` files, then reformatted the generated
+  arrays into the project's existing multi-line style.
+  - Every class now has a **three-tier line**: level 1 (opener, usable
+    the moment the class change lands — the earliest switch-in is level
+    5), level 6 (developed), level 11 (capstone) — mirroring the base
+    classes' own 1/3/5/7/9/11 spacing. The four already-shipped skills
+    from the status-effects pass (Berserker, Necromancer, Illusionist,
+    Spellthief) were kept as the level-1 opener, not duplicated.
+  - 95 new `skills.ts` entries, **pool now 135 of the ~150 target**
+    (§8) — up from 40. All 33 classes have their own identity now, up
+    from 4. Naming/elements stayed lore-disciplined throughout (Werecat
+    never dark, Undead never frost, Feryan lightning-only, Human sacred
+    tied to the three Hortian classes).
+  - **Caught mid-pass**: the first draft's class count was wrong — 32,
+    not 33 — because Werecat's `priest_of_the_8_lives` (already in
+    `werecat.ts` with an empty skill list) was silently dropped by a
+    buggy count script. Added once caught, with its own line (self-regen
+    opener, wind-physical strike, ally-haste capstone).
+  - **New content-validity test**: `ClassSkillEntry.skillIdentifier` is
+    a plain `string` at the sim layer by design (not compile-checked,
+    unlike monster/equipment skill refs via `SkillIdentifier`) — a
+    typo'd reference would silently grant nothing instead of failing
+    `tsc`. `UnitFactory.test.ts` gained a sweep: every base/advanced
+    class's skill references resolve to a real `SKILLS` entry, and
+    every advanced class has an opener at level 1.
+  - Verification: 226 vitest tests (3 new), typecheck/build clean.
+    Browser pass `tmp/verify_new_advanced_skills.mjs`: injected a
+    level-6 Warrior, switched to Knight through the Guild menu's Class
+    Change screen, confirmed the character sheet showed the real skill
+    line (Bulwark Stance and Shield Wall available, Immovable correctly
+    locked at "Unlocks at Lv.11"), zero console/page errors.
 
-**223 vitest tests, typecheck clean.**
+**226 vitest tests, typecheck clean.**
 
 **M4 next targets:**
 - More zones from the canon list (8 lore zones remain: Aegda Mountains,
@@ -662,6 +714,11 @@ over it, adding roaming-group/player tokens) — same canvas, different
   Sunscar, Ashen Reach, The Duskward Marches) — follow the "Adding a
   zone" checklist; LORE.md "The lay of the land" is the source of truth
   for names, creatures, and placement.
-- More items toward §8 targets.
+- More items toward §8 targets (skills are now close at 135/~150; items
+  are the furthest behind at 28/~80).
+- A balance pass on the new advanced-class skills once they've actually
+  been fought with — a couple of capstones (Black Mage's `Annihilate`,
+  Assassin's `No Target Is Safe`) were deliberately pushed to the top of
+  the game's cost/multiplier range and haven't been played yet.
 - Guns & trains are lore-established but deferred (approved future
   iterations, README §12) — do not build them in this pass.

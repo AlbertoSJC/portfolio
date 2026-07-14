@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { parseBattleMapFromRows } from '../../../src/sim/grid/BattleMap';
-import { positionKey } from '../../../src/sim/grid/GridPosition';
-import { findReachableTiles } from '../../../src/sim/battle/MovementRange';
-import { createTestUnit } from '../../mocks/unitMocks';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
+import { positionKey } from '@/sim/grid/GridPosition';
+import { findReachableTiles } from '@/sim/battle/MovementRange';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 const OPEN_FIVE_BY_FIVE_MAP = parseBattleMapFromRows('open', 'Open Field', [
   '.....',

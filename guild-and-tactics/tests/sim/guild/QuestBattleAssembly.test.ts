@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { createUnitsForQuestBattle } from '../../../src/sim/guild/QuestBattleAssembly';
-import { ADVANCED_CLASSES } from '../../../src/content/advancedClasses';
-import { BASE_CLASSES } from '../../../src/content/baseClasses';
-import { EQUIPMENT } from '../../../src/content/equipment';
-import { BATTLE_MAPS } from '../../../src/content/maps/battleMapRegistry';
-import { MONSTERS } from '../../../src/content/monsters';
-import { QUESTS } from '../../../src/content/quests';
-import { RACES } from '../../../src/content/races';
-import { ZONES } from '../../../src/content/zones';
-import { isPositionInsideMap, tileAt } from '../../../src/sim/grid/BattleMap';
-import { questIdentifiersForZone } from '../../../src/sim/guild/QuestBoard';
-import type { GuildMember } from '../../../src/sim/guild/GuildState';
+import { createUnitsForQuestBattle } from '@/sim/guild/QuestBattleAssembly';
+import { ADVANCED_CLASSES } from '@/content/advancedClasses';
+import { BASE_CLASSES } from '@/content/baseClasses';
+import { EQUIPMENT } from '@/content/equipment';
+import { BATTLE_MAPS } from '@/content/maps/battleMapRegistry';
+import { MONSTERS } from '@/content/monsters';
+import { QUESTS } from '@/content/quests';
+import { RACES } from '@/content/races';
+import { ZONES } from '@/content/zones';
+import { isPositionInsideMap, tileAt } from '@/sim/grid/BattleMap';
+import { questIdentifiersForZone } from '@/sim/guild/QuestBoard';
+import type { GuildMember } from '@/sim/guild/GuildState';
 
 const CONTENT_TABLES = {
   races: RACES,

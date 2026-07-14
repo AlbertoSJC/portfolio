@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { determineRelativeAttackArc } from '../../../src/sim/battle/FacingAndFlanking';
-import { createTestUnit } from '../../mocks/unitMocks';
+import { determineRelativeAttackArc } from '@/sim/battle/FacingAndFlanking';
+import { createTestUnit } from '@tests/mocks/unitMocks';
 
 describe('determineRelativeAttackArc', () => {
   const defenderFacingNorth = createTestUnit({

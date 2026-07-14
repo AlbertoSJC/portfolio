@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 import {
   PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
   HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -36,7 +36,11 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'grim_resolve', learnedAtLevel: 1 },
+      { skillIdentifier: 'undying_blow', learnedAtLevel: 6 },
+      { skillIdentifier: 'wrath_undying', learnedAtLevel: 11 },
+    ],
   },
 
   pyromancer: {
@@ -67,7 +71,11 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'infernal_pyre', learnedAtLevel: 1 },
+      { skillIdentifier: 'koshs_wrath', learnedAtLevel: 6 },
+      { skillIdentifier: 'immolation', learnedAtLevel: 11 },
+    ],
   },
 
   necromancer: {
@@ -98,7 +106,11 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1.5,
       speed: 0.3,
     },
-    skills: [{ skillIdentifier: 'grave_sentence', learnedAtLevel: 1 }],
+    skills: [
+      { skillIdentifier: 'grave_sentence', learnedAtLevel: 1 },
+      { skillIdentifier: 'bone_lance', learnedAtLevel: 6 },
+      { skillIdentifier: 'reapers_toll', learnedAtLevel: 11 },
+    ],
   },
 
   revenant: {
@@ -132,7 +144,11 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 0.5,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'undying_assault', learnedAtLevel: 1 },
+      { skillIdentifier: 'grave_momentum', learnedAtLevel: 6 },
+      { skillIdentifier: 'refuse_to_fall', learnedAtLevel: 11 },
+    ],
   },
 
   ashguard: {
@@ -166,7 +182,11 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.3,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'cinderward', learnedAtLevel: 1 },
+      { skillIdentifier: 'ash_hardened_blow', learnedAtLevel: 6 },
+      { skillIdentifier: 'unyielding_ember', learnedAtLevel: 11 },
+    ],
   },
 
   wraith: {
@@ -200,6 +220,10 @@ export const UNDEAD_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = 
       magicResistance: 1,
       speed: 0.6,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'shadow_rend', learnedAtLevel: 1 },
+      { skillIdentifier: 'grasping_shadow', learnedAtLevel: 6 },
+      { skillIdentifier: 'voidrend', learnedAtLevel: 11 },
+    ],
   },
 };

@@ -1,4 +1,4 @@
-import { parseBattleMapFromRows } from '../../sim/grid/BattleMap';
+import { parseBattleMapFromRows } from '@/sim/grid/BattleMap';
 
 /** An abandoned stone quarry — tiered rock ledges reward Jump and flight. */
 export const OLD_QUARRY_MAP = parseBattleMapFromRows('old_quarry', 'Old Quarry', [

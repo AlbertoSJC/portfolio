@@ -7,7 +7,7 @@ zone taverns scattered across the map, fight tactical grid battles, level up,
 learn skills, upgrade gear — and repeat. There is no main story; the game *is*
 the guild loop.
 
-> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, ten more status effects (13 total), FFTA-style equipment-skill mastery, monster level-scaling per zone, dispatch quests (now with a success/failure roll), FFTA2-style world travel, and reputation-gated zone access (a diegetic roadwatch-guard dialogue), shipped so far.
+> **Status**: M1 (combat), M2 (guild loop), and M3 (depth — advanced classes, status effects, village map, element wheel) complete. M4 (content & polish) underway — guild reputation tiers, a world map of walkable, FFTA1-style zones with visible roaming encounters (no home location), mid-battle flee, ten more status effects (13 total), FFTA-style equipment-skill mastery, monster level-scaling per zone, dispatch quests (now with a success/failure roll), FFTA2-style world travel, reputation-gated zone access (a diegetic roadwatch-guard dialogue), and a full skill line for all 33 advanced classes (135 skills total), shipped so far.
 
 ---
 
@@ -641,6 +641,16 @@ days of work, not a rewrite.
      ±5%/level, −3% per battle of duration beyond the first, clamped
      5–99%); a failed roll returns the member with no reward. See
      CHANGELOG.
+   - ✅ **Every advanced class gets a full skill line** — done 2026-07-14,
+     same session: 29 of 33 advanced classes were mechanically identical
+     to their base class (empty `skills: []`) before this pass. All 33
+     now have a three-tier line — level 1/6/11, mirroring the base
+     classes' own spacing — 95 new skills, pool now 135 of the ~150
+     target (§8). Naming and elements stayed lore-disciplined per race
+     throughout. New content-validity test closes a pre-existing gap:
+     class → skill references aren't compile-checked (unlike monster/
+     equipment ones), so `UnitFactory.test.ts` now sweeps every base and
+     advanced class's skill references against `SKILLS`. See CHANGELOG.
 
 > Build history is in [CHANGELOG.md](CHANGELOG.md).
 

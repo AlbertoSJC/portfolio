@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { findShortestZoneRoute } from '../../../src/sim/graph/ZoneRoadGraph';
-import type { ZoneRoad } from '../../../src/sim/guild/ZoneDefinition';
+import { findShortestZoneRoute } from '@/sim/graph/ZoneRoadGraph';
+import type { ZoneRoad } from '@/sim/guild/ZoneDefinition';
 
 const LINEAR_ROADS: ZoneRoad[] = [
   { fromLocationIdentifier: 'a', toLocationIdentifier: 'b' },

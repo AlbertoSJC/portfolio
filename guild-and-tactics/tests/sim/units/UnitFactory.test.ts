@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { createUnitFromCharacter, createUnitFromMonster } from '../../../src/sim/units/UnitFactory';
-import { BASE_CLASSES } from '../../../src/content/baseClasses';
-import { MONSTERS } from '../../../src/content/monsters';
-import { RACES } from '../../../src/content/races';
+import { createUnitFromCharacter, createUnitFromMonster } from '@/sim/units/UnitFactory';
+import { ADVANCED_CLASSES } from '@/content/advancedClasses';
+import { BASE_CLASSES } from '@/content/baseClasses';
+import { MONSTERS } from '@/content/monsters';
+import { RACES } from '@/content/races';
+import { SKILLS } from '@/content/skills';
 import type {
   BaseClassDefinition,
   MonsterDefinition,
   RaceDefinition,
-} from '../../../src/sim/units/UnitDefinitions';
+} from '@/sim/units/UnitDefinitions';
 
 function raceOrThrow(raceKey: string): RaceDefinition {
   const race = RACES[raceKey];
@@ -203,5 +205,35 @@ describe('createUnitFromMonster', () => {
     const impossibleWolf = createUnitFromMonster(wolf, 'enemy_floor', { column: 0, row: 0 }, 'south', -3);
     expect(impossibleWolf.baseStatistics.hitPointsMaximum).toBe(1);
     expect(impossibleWolf.baseStatistics.attack).toBe(0);
+  });
+});
+
+describe('base/advanced class skill content validity', () => {
+  // `ClassSkillEntry.skillIdentifier` is a plain string at the sim layer
+  // (it must not depend on content), so unlike monster/equipment skill
+  // references it is NOT compile-checked against SkillIdentifier — a typo
+  // here would silently grant nothing instead of failing tsc. This sweep
+  // is the only thing that catches it.
+  it('every base class skillIdentifier resolves to a real skill', () => {
+    for (const [classKey, baseClass] of Object.entries(BASE_CLASSES)) {
+      for (const entry of baseClass.skills) {
+        expect(SKILLS[entry.skillIdentifier], `${classKey} -> ${entry.skillIdentifier}`).toBeDefined();
+      }
+    }
+  });
+
+  it('every advanced class skillIdentifier resolves to a real skill', () => {
+    for (const [classKey, advancedClass] of Object.entries(ADVANCED_CLASSES)) {
+      for (const entry of advancedClass.skills) {
+        expect(SKILLS[entry.skillIdentifier], `${classKey} -> ${entry.skillIdentifier}`).toBeDefined();
+      }
+    }
+  });
+
+  it('every advanced class has a skill learnable at level 1', () => {
+    for (const [classKey, advancedClass] of Object.entries(ADVANCED_CLASSES)) {
+      const hasOpener = advancedClass.skills.some((entry) => entry.learnedAtLevel === 1);
+      expect(hasOpener, classKey).toBe(true);
+    }
   });
 });

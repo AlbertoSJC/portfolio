@@ -1,4 +1,4 @@
-import type { MonsterDefinition } from '../../sim/units/UnitDefinitions';
+import type { MonsterDefinition } from '@/sim/units/UnitDefinitions';
 import type { SkillIdentifier } from '../skills';
 
 /**

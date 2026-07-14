@@ -1,4 +1,4 @@
-import type { AdvancedClassDefinition } from '../../sim/units/UnitDefinitions';
+import type { AdvancedClassDefinition } from '@/sim/units/UnitDefinitions';
 import {
   PURE_ADVANCED_CLASS_UNLOCK_LEVEL,
   HYBRID_PRIMARY_UNLOCK_LEVEL,
@@ -35,7 +35,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 0.5,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'dragoons_descent', learnedAtLevel: 1 },
+      { skillIdentifier: 'lance_sweep', learnedAtLevel: 6 },
+      { skillIdentifier: 'heavens_judgment', learnedAtLevel: 11 },
+    ],
   },
 
   black_mage: {
@@ -66,7 +70,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'cataclysm', learnedAtLevel: 1 },
+      { skillIdentifier: 'ruinbolt', learnedAtLevel: 6 },
+      { skillIdentifier: 'annihilate', learnedAtLevel: 11 },
+    ],
   },
 
   illusionist: {
@@ -97,7 +105,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.4,
     },
-    skills: [{ skillIdentifier: 'shattered_mind', learnedAtLevel: 1 }],
+    skills: [
+      { skillIdentifier: 'shattered_mind', learnedAtLevel: 1 },
+      { skillIdentifier: 'veil_of_lies', learnedAtLevel: 6 },
+      { skillIdentifier: 'waking_nightmare', learnedAtLevel: 11 },
+    ],
   },
 
   bishop: {
@@ -129,7 +141,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 2,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'zealous_rite', learnedAtLevel: 1 },
+      { skillIdentifier: 'horts_rebuke', learnedAtLevel: 6 },
+      { skillIdentifier: 'grand_benediction', learnedAtLevel: 11 },
+    ],
   },
 
   paladin: {
@@ -163,7 +179,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'guardians_oath', learnedAtLevel: 1 },
+      { skillIdentifier: 'smite_the_unholy', learnedAtLevel: 6 },
+      { skillIdentifier: 'aegis_of_hort', learnedAtLevel: 11 },
+    ],
   },
 
   rune_knight: {
@@ -197,7 +217,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.4,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'rune_of_power', learnedAtLevel: 1 },
+      { skillIdentifier: 'runic_strike', learnedAtLevel: 6 },
+      { skillIdentifier: 'grand_etching', learnedAtLevel: 11 },
+    ],
   },
 
   spellthief: {
@@ -231,7 +255,11 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1,
       speed: 0.6,
     },
-    skills: [{ skillIdentifier: 'mana_theft', learnedAtLevel: 1 }],
+    skills: [
+      { skillIdentifier: 'mana_theft', learnedAtLevel: 1 },
+      { skillIdentifier: 'arcane_pilfer', learnedAtLevel: 6 },
+      { skillIdentifier: 'grand_larceny', learnedAtLevel: 11 },
+    ],
   },
 
   inquisitor: {
@@ -265,6 +293,10 @@ export const HUMAN_ADVANCED_CLASSES: Record<string, AdvancedClassDefinition> = {
       magicResistance: 1.5,
       speed: 0.5,
     },
-    skills: [],
+    skills: [
+      { skillIdentifier: 'zealots_judgment', learnedAtLevel: 1 },
+      { skillIdentifier: 'binding_oath', learnedAtLevel: 6 },
+      { skillIdentifier: 'final_verdict', learnedAtLevel: 11 },
+    ],
   },
 };

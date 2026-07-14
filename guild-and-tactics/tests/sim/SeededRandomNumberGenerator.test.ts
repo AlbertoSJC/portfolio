@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SeededRandomNumberGenerator } from '../../src/sim/SeededRandomNumberGenerator';
+import { SeededRandomNumberGenerator } from '@/sim/SeededRandomNumberGenerator';
 
 describe('SeededRandomNumberGenerator', () => {
   it('produces the identical sequence for the same seed', () => {
