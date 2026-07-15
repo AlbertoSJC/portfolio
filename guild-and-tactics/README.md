@@ -362,17 +362,21 @@ network, generated (not authored) per fight.
 
 ## 8. Content targets (v1)
 
-| Content | Target |
-|---|---|
-| Races | 5 |
-| Base classes | 4 |
-| Advanced classes | 33 (pure + two-base hybrids, per the §4 matrix) |
-| Skills/spells | ~5–6 per class with heavy sharing across classes ⇒ ~150 distinct |
-| Battle maps | 10–15 |
-| Quests | ~40 (template-driven + handcrafted bosses) |
-| Items | ~80 |
-| Zones | 3+ (more iteratively, §6.0) |
-| Status effects | ~10 |
+Current column last updated 2026-07-14 — recount before trusting it if a
+lot of time has passed; the dev log below is the authoritative source for
+*when* each number last moved.
+
+| Content | Target | Current | Gap |
+|---|---|---|---|
+| Races | 5 | 5 | done |
+| Base classes | 4 | 4 | done |
+| Advanced classes | 33 (pure + two-base hybrids, per the §4 matrix) | 33 | done |
+| Skills/spells | ~5–6 per class with heavy sharing across classes ⇒ ~150 distinct | 135 | 15 |
+| Status effects | ~10 | 13 | done (exceeded) |
+| Zones | 3+ (more iteratively, §6.0) | 7 built, 8 lore zones unbuilt | see "Adding a zone" |
+| Battle maps | 10–15 | 7 | 3–8 |
+| Quests | ~40 (template-driven + handcrafted bosses) | 22 (+8 dispatch) | ~18 |
+| Items | ~80 | 28 | ~52 — **furthest behind** |
 
 ## 9. Technical design
 

@@ -708,17 +708,31 @@ over it, adding roaming-group/player tokens) — same canvas, different
 
 **226 vitest tests, typecheck clean.**
 
-**M4 next targets:**
-- More zones from the canon list (8 lore zones remain: Aegda Mountains,
-  Frozen Fingers, Taurk's Wisdom, The Broadwater, Stormperch Crags, The
-  Sunscar, Ashen Reach, The Duskward Marches) — follow the "Adding a
-  zone" checklist; LORE.md "The lay of the land" is the source of truth
-  for names, creatures, and placement.
-- More items toward §8 targets (skills are now close at 135/~150; items
-  are the furthest behind at 28/~80).
-- A balance pass on the new advanced-class skills once they've actually
-  been fought with — a couple of capstones (Black Mage's `Annihilate`,
-  Assassin's `No Target Is Safe`) were deliberately pushed to the top of
-  the game's cost/multiplier range and haven't been played yet.
-- Guns & trains are lore-established but deferred (approved future
-  iterations, README §12) — do not build them in this pass.
+**M4 next targets** (ranked; README §8 has the live target/current/gap
+table this ranking is derived from — recheck it before trusting the
+numbers below if time has passed):
+
+1. **Items — the furthest-behind category (28 of ~80, ~52 short).**
+   Every other content type either hit its target this session (advanced
+   classes, status effects) or has a clear existing pipeline to lean on
+   (skills at 135/~150, zones/quests via the checklist below). Items have
+   no equivalent recent push and no in-progress plan — this is the
+   single biggest gap with the least momentum behind it, which is why
+   it's first rather than last.
+2. **More zones from the canon list** (8 lore zones remain: Aegda
+   Mountains, Frozen Fingers, Taurk's Wisdom, The Broadwater, Stormperch
+   Crags, The Sunscar, Ashen Reach, The Duskward Marches) — follow the
+   "Adding a zone" checklist above; LORE.md "The lay of the land" is the
+   source of truth for names, creatures, and placement. Each new zone
+   also pulls quests and battle maps toward their targets for free (a
+   zone needs both), so this is the most leveraged single content task
+   after items.
+3. **A balance pass on the new advanced-class skills**, once they've
+   actually been fought with — not before. A couple of capstones (Black
+   Mage's `Annihilate`, Assassin's `No Target Is Safe`) were deliberately
+   pushed to the top of the game's cost/multiplier range; this needs
+   playtesting data, not a desk review, so it's ranked below the content
+   pushes above rather than done immediately.
+4. **Guns & trains** are lore-established but explicitly deferred
+   (approved future iterations, README §12) — do not build them in this
+   pass, even opportunistically.
